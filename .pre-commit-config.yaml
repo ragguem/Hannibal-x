@@ -1,47 +1,82 @@
-# uv run pre-commit install
+# Dépôt local, sans CI distante : ces crochets sont le contrôle de chaque commit.
+# Installation : uv run pre-commit install
+# Tout fonctionne hors ligne (outils verrouillés dans uv.lock, aucun dépôt de crochets à télécharger).
+default_install_hook_types: [pre-commit]
+# legacy/ est figé (ADR 0002) et interfaces/ vient de LOTUSim : aucun crochet ne les réécrit.
+exclude: ^(legacy|interfaces)/
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: check-added-large-files
-        args: ["--maxkb=2048"]
-      - id: check-merge-conflict
-      - id: check-yaml
-        args: ["--allow-multiple-documents"]
-      - id: check-toml
-      - id: check-json
-      - id: end-of-file-fixer
-        exclude: ^legacy/
-      - id: trailing-whitespace
-        exclude: ^legacy/
-      - id: detect-private-key
-
   - repo: local
     hooks:
-      - id: ruff-check
-        name: ruff check
-        entry: uv run ruff check --fix
+      - id: check-added-large-files
+        name: fichiers volumineux
+        entry: uv run --frozen check-added-large-files --maxkb=2048
         language: system
-        types: [python]
-      - id: ruff-format
-        name: ruff format
-        entry: uv run ruff format
+      - id: check-merge-conflict
+        name: marqueurs de conflit
+        entry: uv run --frozen check-merge-conflict
         language: system
-        types: [python]
-      - id: lint-imports
-        name: import-linter
-        entry: uv run lint-imports
+      - id: check-yaml
+        name: YAML valide
+        entry: uv run --frozen check-yaml --allow-multiple-documents
         language: system
-        pass_filenames: false
-        files: ^(apps|packages)/.*\.py$
-      - id: contracts-schemas
-        name: schémas des contrats à jour
-        entry: uv run pytest -q packages/contracts
+        types: [yaml]
+      - id: check-toml
+        name: TOML valide
+        entry: uv run --frozen check-toml
         language: system
-        pass_filenames: false
-        files: ^packages/contracts/
+        types: [toml]
+      - id: check-json
+        name: JSON valide
+        entry: uv run --frozen check-json
+        language: system
+        types: [json]
+      - id: end-of-file-fixer
+        name: fin de fichier
+        entry: uv run --frozen end-of-file-fixer
+        language: system
+        types: [text]
+      - id: trailing-whitespace
+        name: espaces en fin de ligne
+        entry: uv run --frozen trailing-whitespace-fixer
+        language: system
+        types: [text]
+      - id: detect-private-key
+        name: clé privée
+        entry: uv run --frozen detect-private-key
+        language: system
+        types: [text]
       - id: no-data-files
         name: aucune donnée hors dépôt
         entry: "Fichier de données refusé (voir docs/donnees-hors-depot.md)"
         language: fail
-        files: (^|/)(kb|audit|eval_data)/|\.(wav|mp3|gguf|safetensors|onnx|pt|bin)$
+        files: (^|/)(kb|audit|eval_data)/|\.(wav|mp3|flac|ogg|gguf|safetensors|onnx|pt|bin|pdf)$
+        exclude: ^docs/[^/]+\.pdf$
+
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --frozen ruff check --fix --force-exclude
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --frozen ruff format --force-exclude
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run --frozen mypy
+        language: system
+        pass_filenames: false
+        files: ^(apps|packages)/.*\.py$
+      - id: lint-imports
+        name: import-linter
+        entry: uv run --frozen lint-imports
+        language: system
+        pass_filenames: false
+        files: ^(apps|packages)/.*\.py$
+      - id: pytest
+        name: pytest
+        entry: uv run --frozen pytest -q -p no:cacheprovider
+        language: system
+        pass_filenames: false
+        files: ^(apps|packages|eval)/|^pyproject\.toml$|^uv\.lock$

@@ -533,9 +533,11 @@ Jusqu’au Lot 6, une démonstration peut toujours être faite avec `app_v3`. On
 
 | Sujet | Règle |
 |---|---|
-| Branches | développement sur le tronc : commits directs sur `main` si la CI locale est verte, branches courtes (≤ 2 jours) pour les changements risqués ; `main` toujours déployable |
+| Dépôt | **local uniquement**, sans remote ni CI hébergée (ADR 0006) ; sauvegarde par `git bundle` (`tools/backup.ps1`) au moins à chaque fin de lot |
+| Branches | commits sur `main` passés par les crochets pre-commit ; branche locale courte pour un essai risqué ; `main` toujours déployable |
+| Contrôle | crochets pre-commit à chaque commit (ruff, mypy, import-linter, pytest) ; `tools/check` complet obligatoire avant chaque étiquette |
 | Commits | Conventional Commits (`feat(api): …`) ; `CHANGELOG.md` mis à jour à chaque étiquette |
-| Revue | développeur seul : revue automatisée de chaque branche, relecture des ADR et des contrats par la direction de projet ou un pair à chaque fin de lot |
+| Revue | développeur seul : revue automatisée des changements locaux, relecture des ADR et des contrats par la direction de projet ou un pair à chaque fin de lot |
 | Contrat d’abord | toute nouvelle route commence par l’OpenAPI ; le front avance sur des faux |
 | Reprise de code | on déplace d’abord, on améliore ensuite : un commit qui déplace une règle ne la modifie pas |
 | Caractérisation | aucune règle n’est déplacée sans test qui fige son comportement actuel |
@@ -556,12 +558,12 @@ Les faux adaptateurs sont du code de production (`infrastructure/fakes/`), injec
 
 | Niveau | Où | Bloquant |
 |---|---|---|
-| Unitaires `core` et caractérisation | CI | oui |
-| Handlers avec ports factices | CI | oui |
-| Contrats internes et OpenAPI | CI | oui |
-| Intégration SQL (Postgres de test) | CI | oui |
-| Front (Vitest) et bout en bout (Playwright sur adaptateurs factices) | CI | oui |
-| ROS et LOTUSim | serveur d’intégration, à chaque fusion sur `main` | oui à partir du Lot 2 |
+| Unitaires `core` et caractérisation | crochet pre-commit et `tools/check` | oui |
+| Handlers avec ports factices | crochet pre-commit et `tools/check` | oui |
+| Contrats internes et OpenAPI | crochet pre-commit et `tools/check` | oui |
+| Intégration SQL (Postgres de test) | `tools/check` (Postgres de la composition de développement) | oui, avant étiquette |
+| Front (Vitest) et bout en bout (Playwright sur adaptateurs factices) | `tools/check` | oui, avant étiquette |
+| ROS et LOTUSim | serveur d’intégration (`tools/check.sh` puis tests ROS), avant chaque étiquette | oui à partir du Lot 2 |
 | Mesures (interprétation, voix, doctrine, latences) | serveur d’intégration, la nuit | oui à partir du lot concerné : un score qui baisse bloque l’étiquette |
 
 ### 9.5 Données hors dépôt

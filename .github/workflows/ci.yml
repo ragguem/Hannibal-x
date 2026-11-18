@@ -1,3 +1,4 @@
+# Inactif tant que le dépôt reste local (ADR 0006) : tools/check.ps1 ou tools/check.sh jouent ce rôle.
 name: ci
 
 on:

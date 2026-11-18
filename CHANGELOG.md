@@ -3,6 +3,19 @@
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versions : [SemVer](https://semver.org/lang/fr/),
 un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 
+## [Non publié]
+
+### Ajouté
+
+- ADR 0006 : dépôt git local, sans remote ni CI hébergée.
+- `tools/check.ps1` et `tools/check.sh` : contrôle complet local (équivalent de la CI), seuil de couverture 85 %.
+- `tools/backup.ps1` : sauvegarde du dépôt par `git bundle`.
+
+### Modifié
+
+- Crochets pre-commit entièrement hors ligne (`pre-commit-hooks` verrouillé dans `uv.lock`), avec mypy et pytest.
+- `.github/workflows/ci.yml` conservé mais inactif.
+
 ## [0.1.0] — 2026-11-18 — Lot 0 : fondations
 
 ### Ajouté

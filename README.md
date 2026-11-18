@@ -26,8 +26,8 @@ Système d'aide au commandement naval qui fonctionne entièrement en local : il 
 
 ```bash
 uv sync --all-packages        # Python 3.12, dépendances figées par uv.lock
-uv run pytest                 # socle, contrats, API, caractérisation de l'ancien code
-uv run lint-imports           # règles de l'architecture hexagonale
+uv run pre-commit install     # contrôles à chaque commit (dépôt local, sans CI distante)
+./tools/check.sh              # contrôle complet ; sous Windows : .\tools\check.ps1
 cp infra/compose/dev.env.example infra/compose/dev.env
 docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env up -d --build
 curl -s http://127.0.0.1:8000/v1/ready

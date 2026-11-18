@@ -20,13 +20,17 @@ pnpm install
 uv run pytest
 ```
 
-Contrôles lancés par la CI (à lancer avant de pousser) :
+Le dépôt est local, sans CI distante (ADR 0006) :
+
+- chaque commit passe par les crochets pre-commit (ruff, mypy, import-linter, pytest, fichiers de données refusés) ;
+- le contrôle complet, obligatoire avant chaque étiquette de lot :
+
+```powershell
+.\tools\check.ps1            # poste Windows ; -Image pour construire aussi l'image API
+```
 
 ```bash
-uv run ruff check . && uv run ruff format --check .
-uv run mypy
-uv run lint-imports
-uv run pytest
+tools/check.sh               # serveur ; --image pour construire aussi l'image API
 ```
 
 ## Lancer l'API
@@ -62,9 +66,14 @@ exigent leur jeton.
 
 ## Git
 
-- Développement sur `main` (trunk-based), branches courtes si besoin, CI verte avant fusion.
+- Tous les commits restent en local. Développement sur `main`, branche locale courte pour un essai risqué.
+- Pas de `--no-verify`, sauf commit de travail repris avant l'étiquette.
 - Conventional Commits : `feat(api): …`, `fix(signals): …`, `chore: …`, `docs: …`, `test: …`, `refactor: …`.
-- Fin de lot : `CHANGELOG.md`, `VERSION` et versions des paquets à `0.N.0`, étiquette `v0.N.0`.
+- Fin de lot :
+  1. `CHANGELOG.md`, `VERSION` et versions des paquets à `0.N.0` ;
+  2. `.\tools\check.ps1` vert (avec `-Image` si Docker tourne) ;
+  3. `git tag -a v0.N.0 -m "Lot N : …"` ;
+  4. `.\tools\backup.ps1 -Destination <support externe>` : le dépôt n'existe nulle part ailleurs.
 
 ## Poste Windows derrière un proxy ou un bac à sable
 
