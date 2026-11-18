@@ -1,0 +1,34 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hannibal · Registre des commandes</title><link rel="stylesheet" href="/static/app.css">
+<style>
+body{padding:18px 22px}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:14px}.hd .brand{font-weight:800;letter-spacing:.06em}.hd .brand span{color:var(--mut);font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mut);font-weight:500;text-align:left;font-size:11.5px;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.st{display:inline-block;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.st.ok{background:#0f3d24;color:var(--green)}.st.ko{background:#3d1414;color:var(--red)}.st.wa{background:#3a2a08;color:var(--amber)}
+.ev{color:var(--mut);font-size:11.5px}audio{height:28px;width:190px}small{color:var(--mut)}
+</style></head><body>
+<div class="hd"><div class="brand">HANNIBAL <span>· Registre des commandes</span></div><div class="grow"></div>
+<span class="chip" id="cnt">—</span><button class="btn sm" onclick="load()">Actualiser</button></div>
+<div class="card"><p class="lbl">Chaque commande garde son audio, sa transcription, le signal retenu, sa référence et la décision de l'opérateur. Le fichier n'est jamais réécrit : on y ajoute seulement.</p>
+<table><thead><tr><th>Commande</th><th>Opérateur</th><th>Audio</th><th>Entendu ou saisi</th><th>Signal et référence</th><th>Décision</th><th>Historique</th></tr></thead><tbody id="tb"></tbody></table></div>
+<script>
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const LBL={received:"reçu",transcribed:"transcrit",interpreted:"interprété",awaiting_review:"en attente de relecture",approved:"approuvé",rejected:"rejeté",logged:"consigné",llm_explained:"explication IA"};
+async function load(){const d=await (await fetch("/api/audit")).json();const by={},order=[];
+ d.items.forEach(e=>{if(!by[e.cmd_id]){by[e.cmd_id]={id:e.cmd_id,ev:[]};order.push(e.cmd_id)}const c=by[e.cmd_id];c.ev.push(e);
+  if(e.event==="received"){c.op=e.operator;c.audio=e.audio;c.source=e.source;c.parent=e.parent}
+  if(e.event==="transcribed")c.text=e.transcript;
+  if(e.event==="interpreted"){c.text=c.text||e.text;c.status=e.status;c.signal=e.signal;c.ref=e.reference;c.to=e.to}
+  if(e.event==="approved"){c.dec="approved";c.sent=e.sent}if(e.event==="rejected")c.dec="rejected"});
+ document.getElementById("cnt").textContent=order.length+" commande(s)";
+ document.getElementById("tb").innerHTML=order.reverse().map(id=>{const c=by[id];
+  return `<tr><td class="mono">${esc(id)}${c.parent?`<br><small>corrige ${esc(c.parent)}</small>`:""}</td><td>${esc((c.op||"").toUpperCase())}</td>
+  <td>${c.audio?`<audio controls preload="none" src="/api/audio/${esc(id)}.wav"></audio>`:"<small>clavier</small>"}</td>
+  <td class="mono">${esc(c.text)}</td>
+  <td>${c.signal?`<b class="mono">${esc(c.signal)}</b><br><small>${esc(c.ref)}</small>`:`<span class="st ko">${esc(c.status||"")}</span>`}</td>
+  <td><span class="st ${c.dec==="approved"?"ok":c.dec==="rejected"?"ko":"wa"}">${c.dec==="approved"?"Approuvé":c.dec==="rejected"?"Rejeté":"En attente"}</span>${c.sent?`<br><small class="mono">${esc(c.sent)}</small>`:""}</td>
+  <td class="ev">${c.ev.map(e=>esc(e.ts.slice(11,19))+" "+(LBL[e.event]||e.event)).join("<br>")}</td></tr>`}).join("")||`<tr><td colspan="7"><small>Aucune commande pour l'instant.</small></td></tr>`}
+load();setInterval(load,5000);
+</script></body></html>

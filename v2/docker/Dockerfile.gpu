@@ -1,0 +1,2 @@
+FROM hannibal-v2
+RUN pip install --no-cache-dir torch && pip install --no-cache-dir sentence-transformers

@@ -1,0 +1,45 @@
+# HANNIBAL X — seul le code est suivi par git.
+# Jamais dans le dépôt : publications, textes qui en sont tirés (tables de signaux, passages, questions, réponses, fiches),
+# modèles, audio, registres d audit, journaux, mots de passe, binaires téléchargés.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/Dockerfile
+!/Dockerfile.jazzy
+!/tunnel.sh
+!/tunnel_cf.sh
+!/patch_sub.py
+!/app/
+!/app_v2/
+!/app_v3/
+!/hx/
+!/v2/
+!/interfaces/
+!/scripts/
+!/docs/
+
+# version 1 : programmes seulement (kb/, tests/, audio/, results/, expert/ contiennent le texte de la publication)
+/hx/*
+!/hx/scripts/
+!/hx/README.md
+!/hx/Dockerfile.hx
+
+# version 2 : programmes et scripts seulement (docs/, docs_classifies/, classifie/, chunks/, data*/, eval*/, glossary/, tactical/, models/ restent hors dépôt)
+/v2/*
+!/v2/scripts/
+!/v2/docker/
+!/v2/*.sh
+!/v2/make_app_v3.py
+!/v2/patch_pubs.py
+
+__pycache__/
+*.pyc
+*.log
+*.bak*
+*.avant_*
+_avant_revue/
+audit/
+public_password.txt
+/app*/web/models/hawaii.glb
+/app*/web/models/lowell.glb

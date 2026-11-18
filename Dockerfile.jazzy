@@ -1,0 +1,11 @@
+FROM ros:jazzy
+SHELL ["/bin/bash", "-c"]
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git ros-jazzy-geographic-msgs ros-jazzy-rosidl-default-generators \
+    python3-colcon-common-extensions && rm -rf /var/lib/apt/lists/*
+COPY interfaces /build/src/interfaces
+RUN git clone --depth 1 -b main https://github.com/naval-group/LOTUSim-Unity-ros-tcp-endpoint /build/src/ROS-TCP-Endpoint
+RUN sed -i 's/durability=QoSDurabilityPolicy.TRANSIENT_LOCAL/durability=QoSDurabilityPolicy.VOLATILE/' /build/src/ROS-TCP-Endpoint/ros_tcp_endpoint/subscriber.py
+COPY patch_sub.py /patch_sub.py
+RUN python3 /patch_sub.py && grep -n "_to_old" /build/src/ROS-TCP-Endpoint/ros_tcp_endpoint/subscriber.py
+RUN source /opt/ros/jazzy/setup.bash && cd /build && colcon build

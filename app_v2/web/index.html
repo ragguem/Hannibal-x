@@ -1,0 +1,75 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hannibal · Préparation de mission</title><link rel="stylesheet" href="/static/app.css">
+<style>
+.wrap{max-width:1180px;margin:0 auto;padding:26px 20px 60px}
+.top{display:flex;align-items:baseline;gap:14px;margin-bottom:22px}.top h1{font-size:22px;letter-spacing:.04em}
+.top span{color:var(--mut)}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+.sc{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.scard{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:block;width:100%}
+.scard.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset;background:#0f1c33}
+.scard h3{font-size:15px;margin-bottom:4px}.scard p{margin:6px 0 0;color:var(--mut);font-size:13px}
+.lvl{font-size:11px;border-radius:6px;padding:1px 8px;margin-left:8px}
+.lvl.d{background:#0f2e22;color:var(--green)}.lvl.i{background:#2a1f0a;color:var(--amber)}.lvl.a{background:#341414;color:var(--red)}
+.step{margin:0 0 10px;font-weight:700}.step b{color:var(--blue);margin-right:8px}
+.ships{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.ship{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:10px 14px;min-width:130px;text-align:left}
+.ship.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+.ship b{display:block;text-transform:uppercase;letter-spacing:.05em}
+canvas#prev{width:100%;height:190px;background:#08111f;border:1px solid var(--line);border-radius:10px}
+.go{width:100%;padding:14px;font-size:16px;margin-top:14px}
+.lamps{margin-top:14px}.lamp{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.lamp i{width:12px;height:12px;border-radius:50%;background:#2a3753;display:inline-block}
+.lamp.run i{background:var(--amber);animation:p 1s infinite}.lamp.ok i{background:var(--green)}.lamp.err i{background:var(--red)}
+.lamp small{color:var(--mut);display:block}
+@keyframes p{50%{opacity:.35}}
+.ov{position:fixed;inset:0;background:#050a12e6;display:none;align-items:center;justify-content:center;z-index:9}
+.ov.on{display:flex}.ov .card{width:min(520px,92vw)}
+label.opt{display:flex;gap:8px;align-items:center;color:var(--mut);margin-top:10px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.sc{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<div class="top"><h1>HANNIBAL</h1><span>Préparation de mission · simulation tactique navale</span></div>
+<div class="grid"><div>
+  <p class="step"><b>1</b>Choisir le scénario</p><div class="sc" id="sc"></div>
+  <p class="step" style="margin-top:22px"><b>2</b>Choisir son navire</p>
+  <div class="card"><div class="ships" id="ships"></div><canvas id="prev" width="720" height="190"></canvas>
+  <p style="color:var(--mut);margin:8px 0 0;font-size:13px" id="roleinfo"></p></div>
+</div><div>
+  <div class="card accent"><p class="lbl amber">Briefing</p><h3 id="bt" style="margin-bottom:6px"></h3><p id="bb" style="margin:0;color:var(--ink)"></p>
+  <p class="mono" style="color:var(--mut);margin:10px 0 0;font-size:12.5px" id="bm"></p>
+  <label class="opt"><input type="checkbox" id="auto" checked> Capitaines autonomes : ils rendent compte, demandent l'autorisation et interviennent seuls</label>
+  <label class="opt"><input type="checkbox" id="manual"> Barre manuelle : je gouverne moi-même mon navire (flèches du clavier)</label>
+  <p style="color:var(--mut);font-size:12.5px;margin:6px 0 0">La vue 3D s'ouvre dans le navigateur : <a href="/vue3d" target="_blank" style="color:#9cc9ff">ouvrir la vue 3D</a>.</p>
+  <button class="btn green go" id="go">Démarrer la simulation</button></div>
+  <div class="card" style="margin-top:14px"><p class="lbl">Rappel</p><p style="margin:0;color:var(--mut);font-size:13px">Si tu joues le <b>guide</b>, tu donnes les ordres. Si tu joues une <b>escorte</b>, tu reçois les ordres du guide et tu dois les exécuter à l'heure.</p></div>
+</div></div></div>
+<div class="ov" id="ov"><div class="card"><p class="lbl">Démarrage</p><h3 id="ovt">Préparation…</h3><div class="lamps" id="lamps"></div>
+<button class="btn ghost sm" id="cancel" style="margin-top:10px">Annuler</button></div></div>
+<script>
+let SC=[],cur=null,me=null;
+const $=id=>document.getElementById(id);
+const lvl=n=>n==="Débutant"?"d":n==="Intermédiaire"?"i":"a";
+fetch("/api/scenarios").then(r=>r.json()).then(d=>{SC=d;$("sc").innerHTML="";d.forEach(s=>{const b=document.createElement("button");b.className="scard";b.dataset.id=s.id;
+ b.innerHTML=`<h3></h3><p></p>`;b.querySelector("h3").innerHTML=s.titre+`<span class="lvl ${lvl(s.niveau)}">${s.niveau}</span>`;b.querySelector("p").textContent=s.resume;b.onclick=()=>pick(s.id);$("sc").appendChild(b)});pick(d[0].id)});
+function pick(id){cur=SC.find(s=>s.id===id);me=cur.flotte.find(f=>f.role==="guide").nom;
+ document.querySelectorAll(".scard").forEach(b=>b.classList.toggle("on",b.dataset.id===id));
+ $("bt").textContent=cur.titre;$("bb").textContent=cur.briefing;$("bm").textContent=`Durée ${Math.round(cur.duree_s/60*10)/10} min · ${cur.vitesse_initiale_kn} nœuds · formation ${cur.formation_depart}`;shipsUI();draw()}
+function shipsUI(){const w=$("ships");w.innerHTML="";cur.flotte.forEach(f=>{const b=document.createElement("button");b.className="ship"+(f.nom===me?" on":"");
+ b.innerHTML=`<b>${f.nom}</b><span class="badge ${f.role==="guide"?"guide":""}">${f.role==="guide"?"Guide (OTC)":"Escorte"}</span>`;b.onclick=()=>{me=f.nom;shipsUI();draw()};w.appendChild(b)});
+ const g=cur.flotte.find(f=>f.role==="guide").nom;$("roleinfo").textContent=me===g?"Tu joues le guide : tu donnes les ordres à la flotte.":`Tu joues ${me.toUpperCase()} : tu reçois les ordres de ${g.toUpperCase()} et tu les exécutes.`}
+function draw(){const c=$("prev"),x=c.getContext("2d");x.clearRect(0,0,c.width,c.height);const sl=cur.slots,k=0.13,cx=c.width/2,cy=c.height/2;
+ const pts=Object.entries(sl);let mx=0;pts.forEach(([n,[a,b]])=>mx=Math.max(mx,Math.abs(a),Math.abs(b)));const sc=Math.min(c.width*0.42/Math.max(mx,300),c.height*0.38/Math.max(mx,300))*1;
+ const ox=pts.reduce((s,[,p])=>s+p[1],0)/pts.length,oy=pts.reduce((s,[,p])=>s+p[0],0)/pts.length;
+ x.strokeStyle="#1d2b46";x.setLineDash([4,6]);x.beginPath();x.moveTo(0,cy);x.lineTo(c.width,cy);x.stroke();x.setLineDash([]);
+ x.fillStyle="#8196b8";x.font="12px Segoe UI";x.fillText("Cap de route ↑ (nord)",12,18);
+ pts.forEach(([n,[a,b]])=>{const px=cx+(b-ox)*sc,py=cy-(a-oy)*sc;x.save();x.translate(px,py);x.fillStyle=n===me?"#3ddc84":"#4aa3ff";x.beginPath();x.moveTo(0,-13);x.lineTo(8,10);x.lineTo(0,5);x.lineTo(-8,10);x.closePath();x.fill();x.restore();
+ x.fillStyle=n===me?"#3ddc84":"#e3ebf8";x.font="12px Segoe UI";x.textAlign="center";x.fillText(n.toUpperCase()+(cur.flotte.find(f=>f.nom===n).role==="guide"?" ★":""),px,py+26)});x.textAlign="start"}
+$("go").onclick=async()=>{$("ov").classList.add("on");$("ovt").textContent="Préparation…";
+ await fetch("/api/start",{method:"POST",body:JSON.stringify({scenario:cur.id,player:me,auto:$("auto").checked,manual:$("manual").checked})});poll()};
+$("cancel").onclick=async()=>{await fetch("/api/stop",{method:"POST",body:"{}"});$("ov").classList.remove("on");clearTimeout(tm)};
+let tm;async function poll(){try{const d=await (await fetch("/api/state")).json();
+ $("lamps").innerHTML=(d.steps||[]).map(s=>`<div class="lamp ${s.state}"><i></i><div>${s.label}<small>${s.detail||""}</small></div></div>`).join("");
+ if(d.phase==="running"){location.href="/console";return}
+ if(d.phase==="error"){$("ovt").textContent="Erreur au démarrage"}else $("ovt").textContent="Démarrage en cours…"}catch(e){}
+ tm=setTimeout(poll,800)}
+</script></body></html>

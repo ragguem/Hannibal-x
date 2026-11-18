@@ -1,0 +1,26 @@
+id: transit_colonne
+titre: Transit en colonne
+niveau: Débutant
+duree_s: 270
+resume: Quatre frégates en colonne, cap nord, 12 nœuds. Le guide ordonne trois changements de route.
+briefing: >
+  Situation : transit de nuit en zone sûre. La formation est en colonne, le guide en tête.
+  Mission : exécuter chaque ordre du guide à l'heure et garder sa place dans la formation.
+formation_depart: column
+cap_initial: 0
+vitesse_initiale_kn: 12
+flotte:
+  - { nom: hannibal, role: guide }
+  - { nom: alfa, role: escorte }
+  - { nom: charlie, role: escorte }
+  - { nom: delta, role: escorte }
+evenements:
+  - { t: 20,  de: hannibal, a: TOUS, ordres: [{ type: CORPEN, cap: 90 }] }
+  - { t: 80,  de: hannibal, a: TOUS, ordres: [{ type: SPEED, kn: 15 }] }
+  - { t: 140, de: hannibal, a: TOUS, ordres: [{ type: CORPEN, cap: 0 }] }
+  - { t: 200, de: hannibal, a: TOUS, ordres: [{ type: SPEED, kn: 12 }] }
+attendu:
+  - { avant_t: 50,  ordre: CORPEN, texte: "Exécuter CORPEN 090" }
+  - { avant_t: 110, ordre: SPEED,  texte: "Exécuter SPEED 15" }
+  - { avant_t: 170, ordre: CORPEN, texte: "Exécuter CORPEN 000" }
+  - { avant_t: 230, ordre: SPEED,  texte: "Exécuter SPEED 12" }
