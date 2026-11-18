@@ -1,6 +1,6 @@
 """Cree ~/hannibal/app_v3 a partir de app_v2 (copie) et y ajoute le panneau Doctrine + glossaire (service hx2). Ne modifie ni app ni app_v2."""
 import os, shutil, re
-H = os.path.expanduser("~/hannibal"); src, dst = H + "/app_v2", H + "/app_v3"
+H = os.environ.get("HANNIBAL_HOME", os.path.expanduser("~/hannibal")); src, dst = H + "/app_v2", H + "/app_v3"
 if not os.path.exists(dst):
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("audit", "public_password.txt", "*.bak*", "__pycache__"))
     os.makedirs(dst + "/audit", exist_ok=True)

@@ -1,45 +1,66 @@
 # HANNIBAL X — seul le code est suivi par git.
 # Jamais dans le dépôt : publications, textes qui en sont tirés (tables de signaux, passages, questions, réponses, fiches),
-# modèles, audio, registres d audit, journaux, mots de passe, binaires téléchargés.
-/*
-!/.gitignore
-!/.gitattributes
-!/README.md
-!/Dockerfile
-!/Dockerfile.jazzy
-!/tunnel.sh
-!/tunnel_cf.sh
-!/patch_sub.py
-!/app/
-!/app_v2/
-!/app_v3/
-!/hx/
-!/v2/
-!/interfaces/
-!/scripts/
-!/docs/
+# modèles, audio, registres d'audit, journaux, mots de passe, binaires téléchargés.
+# Où vivent ces données : docs/donnees-hors-depot.md
 
-# version 1 : programmes seulement (kb/, tests/, audio/, results/, expert/ contiennent le texte de la publication)
-/hx/*
-!/hx/scripts/
-!/hx/README.md
-!/hx/Dockerfile.hx
+# ── données et modèles, où qu'ils soient ──
+**/kb/
+/legacy/app*/audit/
+/var/
+**/eval_data/
+/eval/datasets/
+/models/
+*.pdf
+!/docs/*.pdf
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.bin
+*.jsonl
+!/eval/characterization/**/*.jsonl
 
-# version 2 : programmes et scripts seulement (docs/, docs_classifies/, classifie/, chunks/, data*/, eval*/, glossary/, tactical/, models/ restent hors dépôt)
-/v2/*
-!/v2/scripts/
-!/v2/docker/
-!/v2/*.sh
-!/v2/make_app_v3.py
-!/v2/patch_pubs.py
+# ── secrets ──
+*.env
+!*.env.example
+*.key
+*.pem
+public_password.txt
 
+# ── ancien code : programmes seulement ──
+/legacy/hx/*
+!/legacy/hx/scripts/
+!/legacy/hx/README.md
+!/legacy/hx/Dockerfile.hx
+/legacy/v2/*
+!/legacy/v2/scripts/
+!/legacy/v2/docker/
+!/legacy/v2/*.sh
+!/legacy/v2/make_app_v3.py
+!/legacy/v2/patch_pubs.py
+/legacy/app*/web/models/hawaii.glb
+/legacy/app*/web/models/lowell.glb
+
+# ── outils ──
 __pycache__/
 *.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.import_linter_cache/
+.coverage
+coverage.xml
+htmlcov/
+node_modules/
+dist/
+build/
 *.log
 *.bak*
 *.avant_*
 _avant_revue/
-audit/
-public_password.txt
-/app*/web/models/hawaii.glb
-/app*/web/models/lowell.glb
+.DS_Store

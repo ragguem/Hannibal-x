@@ -1,6 +1,6 @@
 """app_v3 : choix de la publication dans le panneau Doctrine (ameliore nettement la precision)."""
 import os
-d = os.path.expanduser("~/hannibal/app_v3")
+d = os.path.join(os.environ.get("HANNIBAL_HOME", os.path.expanduser("~/hannibal")), "app_v3")
 p = d + "/server.py"; s = open(p, encoding="utf-8").read()
 if "DOC_PUBS" not in s:
     s = s.replace('HX2_URL = os.environ.get("HX2_URL", "http://127.0.0.1:8774")', 'HX2_URL = os.environ.get("HX2_URL", "http://127.0.0.1:8774")\nDOC_PUBS = {"MTP-01-VOL1", "ATP-16", "ATP-16.1", "MXP-02", "AJP-3", "AJP-3.1", "AJP-3.3", "AJP-3.3.3", "AJP-3.20", "AJP-6"}   # jamais de publication classifiee')
