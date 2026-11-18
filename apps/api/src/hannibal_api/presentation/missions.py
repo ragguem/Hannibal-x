@@ -1,10 +1,13 @@
 """Routes de mission (§ 12). Traduit l'état du moteur (clés françaises héritées) vers les contrats."""
 
+import asyncio
+import json
+from collections.abc import AsyncIterator
 from http import HTTPStatus
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from hannibal_api.application.missions import MissionError, MissionRun, Missions, NotFound
 from hannibal_contracts import missions as contracts
@@ -231,7 +234,13 @@ AuthenticatedUser = Annotated[
 ]
 
 
-def missions_router(missions: Missions, settings: BaseServiceSettings) -> APIRouter:
+def server_sent_event(event: str, data: str) -> str:
+    return f"event: {event}\ndata: {data}\n\n"
+
+
+def missions_router(
+    missions: Missions, settings: BaseServiceSettings, *, stream_period_s: float
+) -> APIRouter:
     router = APIRouter(
         prefix="/v1", tags=["missions"], dependencies=[Depends(require_internal_token(settings))]
     )
@@ -262,16 +271,49 @@ def missions_router(missions: Missions, settings: BaseServiceSettings) -> APIRou
     async def read_mission(mission_id: str) -> contracts.Mission:
         return to_mission(missions.read(mission_id))
 
+    @router.get(
+        "/missions/{mission_id}/events",
+        response_class=StreamingResponse,
+        responses={
+            HTTPStatus.OK: {
+                "content": {"text/event-stream": {}},
+                "description": "Événements `situation` (une `Mission` complète, 4 par seconde) puis `phase` "
+                '(`{"phase": "ended"}`) à la fin de la mission, qui ferme le flux.',
+            },
+            **ERROR_RESPONSES,
+        },
+    )
+    async def mission_events(mission_id: str, request: Request) -> StreamingResponse:
+        run = missions.read(mission_id)
+
+        async def stream() -> AsyncIterator[str]:
+            while not await request.is_disconnected():
+                yield server_sent_event("situation", to_mission(run).model_dump_json())
+                if not run.active:
+                    yield server_sent_event(
+                        "phase", json.dumps({"phase": contracts.MissionPhase.ENDED.value})
+                    )
+                    return
+                await asyncio.sleep(stream_period_s)
+
+        return StreamingResponse(
+            stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
     @router.delete("/missions/{mission_id}", status_code=HTTPStatus.NO_CONTENT, responses=ERROR_RESPONSES)
-    async def stop_mission(mission_id: str) -> Response:
-        await missions.stop(mission_id)
+    async def stop_mission(mission_id: str, user: AuthenticatedUser = "local") -> Response:
+        await missions.stop(mission_id, actor_id=user)
         return Response(status_code=HTTPStatus.NO_CONTENT)
 
     @router.post(
         "/missions/{mission_id}/orders", response_model=contracts.OrderOutcome, responses=ERROR_RESPONSES
     )
-    async def submit_order(mission_id: str, body: contracts.SubmitOrder) -> contracts.OrderOutcome:
-        return to_order_outcome(missions.submit_order(mission_id, body.text))
+    async def submit_order(
+        mission_id: str, body: contracts.SubmitOrder, user: AuthenticatedUser = "local"
+    ) -> contracts.OrderOutcome:
+        return to_order_outcome(await missions.submit_order(mission_id, body.text, actor_id=user))
 
     @router.post(
         "/missions/{mission_id}/simulations", response_model=contracts.Simulation, responses=ERROR_RESPONSES
@@ -288,20 +330,24 @@ def missions_router(missions: Missions, settings: BaseServiceSettings) -> APIRou
         return [contracts.Recommendation(**advice) for advice in missions.recommend(mission_id)]
 
     @router.post("/missions/{mission_id}/helm", response_model=contracts.Helm, responses=ERROR_RESPONSES)
-    async def set_helm(mission_id: str, body: contracts.SetHelm) -> contracts.Helm:
+    async def set_helm(
+        mission_id: str, body: contracts.SetHelm, user: AuthenticatedUser = "local"
+    ) -> contracts.Helm:
         change = {
             HELM_FIELD_TO_ENGINE_KEY[name]: value
             for name, value in body.model_dump(exclude_none=True).items()
         }
-        return to_helm(missions.set_helm(mission_id, change))
+        return to_helm(await missions.set_helm(mission_id, change, actor_id=user))
 
     @router.post(
         "/missions/{mission_id}/contacts/{contact_id}/classification",
         status_code=HTTPStatus.NO_CONTENT,
         responses=ERROR_RESPONSES,
     )
-    async def classify_contact(mission_id: str, contact_id: str, body: contracts.ClassifyContact) -> Response:
-        missions.classify_contact(mission_id, contact_id, body.classification.value)
+    async def classify_contact(
+        mission_id: str, contact_id: str, body: contracts.ClassifyContact, user: AuthenticatedUser = "local"
+    ) -> Response:
+        await missions.classify_contact(mission_id, contact_id, body.classification.value, actor_id=user)
         return Response(status_code=HTTPStatus.NO_CONTENT)
 
     @router.post(
@@ -309,8 +355,10 @@ def missions_router(missions: Missions, settings: BaseServiceSettings) -> APIRou
         status_code=HTTPStatus.NO_CONTENT,
         responses=ERROR_RESPONSES,
     )
-    async def reply_request(mission_id: str, ship: str, body: contracts.ReplyRequest) -> Response:
-        missions.reply_request(mission_id, ship, body.approve)
+    async def reply_request(
+        mission_id: str, ship: str, body: contracts.ReplyRequest, user: AuthenticatedUser = "local"
+    ) -> Response:
+        await missions.reply_request(mission_id, ship, body.approve, actor_id=user)
         return Response(status_code=HTTPStatus.NO_CONTENT)
 
     @router.put(

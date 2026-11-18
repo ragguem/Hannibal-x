@@ -1,6 +1,7 @@
 from collections.abc import Mapping
 from typing import Any, Protocol
 
+from hannibal_api.domain.audit import AuditEntry, AuditRecord, ChainVerification, MissionOutcome
 from hannibal_api.domain.readiness import ProbeResult
 
 
@@ -33,3 +34,27 @@ class Simulator(Protocol):
     async def steer(self, waypoints: Mapping[str, tuple[float, float]]) -> None: ...
 
     async def clear(self) -> None: ...
+
+
+class MissionJournal(Protocol):
+    """Écrit, dans une seule transaction, l'état persistant de la mission, l'audit et le fait métier."""
+
+    async def mission_started(
+        self, mission_id: str, scenario_id: str, player_ship: str, owner_id: str, entry: AuditEntry
+    ) -> None: ...
+
+    async def mission_finished(
+        self, mission_id: str, outcome: MissionOutcome, debrief: dict[str, Any] | None, entry: AuditEntry
+    ) -> None: ...
+
+    async def record(self, entry: AuditEntry) -> None: ...
+
+    async def interrupt_unfinished(self) -> list[str]:
+        """Au démarrage : les missions restées `running` ont perdu leur moteur en mémoire."""
+        ...
+
+
+class AuditReader(Protocol):
+    async def read(self, mission_id: str | None, after_seq: int, limit: int) -> list[AuditRecord]: ...
+
+    async def verify(self) -> ChainVerification: ...

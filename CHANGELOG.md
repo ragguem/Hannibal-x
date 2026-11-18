@@ -13,6 +13,14 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 - `apps/api` : handlers de mission sur le moteur `core.scenario`, `MissionRunner` à 2 Hz, catalogue YAML validé au
   démarrage, simulateur en mémoire (mode `fake`) ; une mission se joue de bout en bout sans écran. En mode `real`,
   une mission échoue en `dependency_unavailable` tant que le client `sim-bridge` n'est pas livré.
+- Schéma `ops` 1.0.0 (Alembic, `uv run hx-api-migrate`) : `missions`, registre `audit_events` chaîné par SHA-256
+  (trigger, append-only, `ops.verify_audit_chain`), boîte d'envoi `integration_outbox` (enveloppe CloudEvents).
+  Une mission restée `running` au redémarrage de l'API passe en `interrupted` et l'événement est audité.
+- Routes `GET /v1/audit` (pagination par `after_seq`) et `GET /v1/audit/integrity` ; auteur des actions lu dans
+  l'en-tête `X-Hx-User` ; flux SSE `GET /v1/missions/{id}/events` (`situation`, puis `phase` en fin de mission).
+- Compose : service `migrate` exécuté avant l'API ; port hôte PostgreSQL réglable par `HX_DEV_DB_PORT`
+  (5432 est souvent pris par un PostgreSQL local).
+- Tests `-m postgres` sur une base jetable désignée par `HX_TEST_DATABASE_URL` (ignorés sinon).
 
 ## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait
 

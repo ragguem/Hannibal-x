@@ -7,12 +7,17 @@ from fastapi import FastAPI
 
 from hannibal_api import __version__
 from hannibal_api.application.missions import MissionError
+from hannibal_api.presentation.audit import audit_router
 from hannibal_api.presentation.missions import missions_router, on_mission_error
 from hannibal_api.presentation.system import system_router
 from hannibal_api.socle.container import Container
 from hannibal_api.socle.settings import ApiSettings
 from hannibal_contracts import CONTRACTS_VERSION
 from hannibal_platform.app import create_service_app
+from hannibal_platform.errors import HannibalError
+from hannibal_platform.logging import get_logger
+
+log = get_logger(__name__)
 
 
 def create_app(settings: ApiSettings | None = None, container: Container | None = None) -> FastAPI:
@@ -22,8 +27,15 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        try:
+            await missions.interrupt_unfinished()
+        except HannibalError as error:
+            log.warning("unfinished_missions_not_checked", code=error.code, detail=error.detail)
         yield
         await missions.shutdown()
+        engine = container.database_engine()
+        if engine is not None:
+            await engine.dispose()
 
     app = create_service_app(
         settings,
@@ -40,6 +52,7 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
     app.include_router(
         system_router(container.check_readiness(), service=settings.service_name, version=__version__)
     )
-    app.include_router(missions_router(missions, settings))
+    app.include_router(missions_router(missions, settings, stream_period_s=settings.mission_stream_period_s))
+    app.include_router(audit_router(container.audit_trail(), settings))
     app.add_exception_handler(MissionError, on_mission_error)
     return app

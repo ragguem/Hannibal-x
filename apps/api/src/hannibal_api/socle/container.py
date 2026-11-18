@@ -2,9 +2,13 @@ import time
 
 from dependency_injector import containers, providers
 
+from hannibal_api.application.audit import AuditTrail
 from hannibal_api.application.check_readiness import CheckReadiness
 from hannibal_api.application.missions import Missions
 from hannibal_api.domain.readiness import ProbeState
+from hannibal_api.infrastructure.persistence.database import create_database_engine
+from hannibal_api.infrastructure.persistence.journal import PostgresAuditReader, PostgresMissionJournal
+from hannibal_api.infrastructure.persistence.memory import InMemoryMissionJournal
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
 from hannibal_api.infrastructure.simulator import InMemorySimulator, UnavailableSimulator
@@ -49,10 +53,26 @@ class Container(containers.DeclarativeContainer):
         real=providers.Singleton(UnavailableSimulator),
     )
     scenarios = providers.Singleton(YamlScenarioCatalog, directory=settings.provided.scenarios_dir)
+
+    database_engine = providers.Singleton(create_database_engine, dsn=settings.provided.database_dsn)
+    in_memory_journal = providers.Singleton(InMemoryMissionJournal)
+    journal = providers.Selector(
+        mode,
+        fake=in_memory_journal,
+        real=providers.Singleton(PostgresMissionJournal, engine=database_engine),
+    )
+    audit_reader = providers.Selector(
+        mode,
+        fake=in_memory_journal,
+        real=providers.Singleton(PostgresAuditReader, engine=database_engine),
+    )
+    audit_trail = providers.Singleton(AuditTrail, reader=audit_reader)
+
     missions = providers.Singleton(
         Missions,
         catalog=scenarios,
         simulator=simulator,
+        journal=journal,
         clock=clock,
         runner_period_s=settings.provided.mission_runner_period_s,
     )

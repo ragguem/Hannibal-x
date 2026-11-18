@@ -1,0 +1,70 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:AuditEventView",
+  "additionalProperties": false,
+  "properties": {
+    "actor_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Utilisateur à l'origine de l'événement ; absent pour le système",
+      "title": "Actor Id"
+    },
+    "at": {
+      "format": "date-time",
+      "title": "At",
+      "type": "string"
+    },
+    "command_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Command Id"
+    },
+    "event": {
+      "title": "Event",
+      "type": "string"
+    },
+    "mission_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mission Id"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "seq": {
+      "description": "Numéro d'ordre attribué par la base, sans trou",
+      "title": "Seq",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "seq",
+    "at",
+    "actor_id",
+    "event",
+    "payload"
+  ],
+  "title": "AuditEventView",
+  "type": "object"
+}

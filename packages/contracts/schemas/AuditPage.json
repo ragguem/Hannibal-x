@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "AuditEventView": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Utilisateur à l'origine de l'événement ; absent pour le système",
+          "title": "Actor Id"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "command_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Command Id"
+        },
+        "event": {
+          "title": "Event",
+          "type": "string"
+        },
+        "mission_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mission Id"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "seq": {
+          "description": "Numéro d'ordre attribué par la base, sans trou",
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "seq",
+        "at",
+        "actor_id",
+        "event",
+        "payload"
+      ],
+      "title": "AuditEventView",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:AuditPage",
+  "additionalProperties": false,
+  "properties": {
+    "events": {
+      "items": {
+        "$ref": "#/$defs/AuditEventView"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "next_after_seq": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "À passer en `after_seq` pour la page suivante ; absent à la fin",
+      "title": "Next After Seq"
+    }
+  },
+  "required": [
+    "events",
+    "next_after_seq"
+  ],
+  "title": "AuditPage",
+  "type": "object"
+}

@@ -12,7 +12,8 @@ from typing import Any, ClassVar
 
 from hannibal_core.scenario import ScenarioEngine
 
-from hannibal_api.application.ports import Clock, ScenarioCatalog, Simulator
+from hannibal_api.application.ports import Clock, MissionJournal, ScenarioCatalog, Simulator
+from hannibal_api.domain.audit import AuditEntry, AuditEvent, FactType, MissionOutcome
 from hannibal_platform.logging import get_logger
 
 log = get_logger(__name__)
@@ -98,13 +99,22 @@ class MissionRun:
 class Missions:
     """Handlers `ListScenarios`, `StartMission`, `ReadMission`, `StopMission`, `SubmitOrder`, `SimulateOrder`,
     `Recommend`, `SetHelm`, `ClassifyContact`, `ReplyRequest`, `SetAutopilot`, et le pas du `MissionRunner`.
+
+    Le moteur vit en mémoire : un changement d'état est appliqué au moteur, puis journalisé. Si le journal est
+    indisponible, l'appel échoue en `database_unavailable` et l'opérateur le voit.
     """
 
     def __init__(
-        self, catalog: ScenarioCatalog, simulator: Simulator, clock: Clock, runner_period_s: float
+        self,
+        catalog: ScenarioCatalog,
+        simulator: Simulator,
+        journal: MissionJournal,
+        clock: Clock,
+        runner_period_s: float,
     ) -> None:
         self._catalog = catalog
         self._simulator = simulator
+        self._journal = journal
         self._clock = clock
         self._runner_period_s = runner_period_s
         self._runs_by_id: dict[str, MissionRun] = {}
@@ -140,6 +150,19 @@ class Missions:
         )
         engine.st = await self._simulator.states()
         run = MissionRun(str(uuid.uuid4()), scenario_id, operator, engine)
+        await self._journal.mission_started(
+            run.id,
+            scenario_id,
+            player_ship,
+            operator,
+            AuditEntry(
+                AuditEvent.MISSION_STARTED,
+                operator,
+                run.id,
+                {"scenario_id": scenario_id, "player_ship": player_ship, "autopilot": autopilot},
+                FactType.MISSION_STARTED,
+            ),
+        )
         self._runs_by_id[run.id] = run
         if self._runner_period_s > 0:
             run.task = asyncio.create_task(self._run_until_end(run), name=f"mission-{run.id}")
@@ -161,7 +184,23 @@ class Missions:
         if waypoints:
             await self._simulator.steer(waypoints)
         if run.ended:
-            log.info("mission_finished", mission_id=run.id, debrief=run.engine.run["debrief"])
+            await self._finish(run, MissionOutcome.FINISHED, actor_id=None)
+
+    async def _finish(self, run: MissionRun, outcome: MissionOutcome, actor_id: str | None) -> None:
+        debrief = run.engine.run["debrief"]
+        await self._journal.mission_finished(
+            run.id,
+            outcome,
+            debrief,
+            AuditEntry(
+                AuditEvent.MISSION_FINISHED,
+                actor_id,
+                run.id,
+                {"outcome": outcome.value, "debrief": debrief},
+                FactType.MISSION_FINISHED,
+            ),
+        )
+        log.info("mission_finished", mission_id=run.id, outcome=outcome.value)
 
     async def _run_until_end(self, run: MissionRun) -> None:
         while run.active:
@@ -183,13 +222,20 @@ class Missions:
             raise MissionEnded(mission_id=mission_id)
         return run
 
-    async def stop(self, mission_id: str) -> None:
+    async def stop(self, mission_id: str, *, actor_id: str) -> None:
         run = self.read(mission_id)
+        was_active = run.active
         run.stopped = True
         if run.task is not None:
             run.task.cancel()
         await self._simulator.clear()
-        log.info("mission_stopped", mission_id=mission_id)
+        if was_active:
+            await self._finish(run, MissionOutcome.INTERRUPTED, actor_id)
+
+    async def interrupt_unfinished(self) -> None:
+        interrupted = await self._journal.interrupt_unfinished()
+        if interrupted:
+            log.warning("missions_interrupted_by_restart", mission_ids=interrupted)
 
     async def shutdown(self) -> None:
         for run in self._runs_by_id.values():
@@ -197,8 +243,19 @@ class Missions:
             if run.task is not None:
                 run.task.cancel()
 
-    def submit_order(self, mission_id: str, text: str) -> dict[str, Any]:
-        return self._read_active(mission_id).engine.player_order(text)
+    async def submit_order(self, mission_id: str, text: str, *, actor_id: str) -> dict[str, Any]:
+        result = self._read_active(mission_id).engine.player_order(text)
+        if result["ok"]:
+            await self._journal.record(
+                AuditEntry(
+                    AuditEvent.APPROVED,
+                    actor_id,
+                    mission_id,
+                    {"source": "keyboard", "text_en": result["en"], "text_fr": result["fr"]},
+                    FactType.COMMAND_APPROVED,
+                )
+            )
+        return result
 
     def simulate_order(self, mission_id: str, text: str) -> dict[str, Any]:
         return self.read(mission_id).engine.simulate(text)
@@ -206,20 +263,54 @@ class Missions:
     def recommend(self, mission_id: str) -> list[dict[str, str]]:
         return self.read(mission_id).engine.recommend()
 
-    def set_helm(self, mission_id: str, change: dict[str, float]) -> dict[str, Any]:
+    async def set_helm(self, mission_id: str, change: dict[str, float], *, actor_id: str) -> dict[str, Any]:
         result = self._read_active(mission_id).engine.helm(change)
         if not result["ok"]:
             raise ManualHelmInactive
-        return dict(result["helm"])
+        helm = dict(result["helm"])
+        await self._journal.record(
+            AuditEntry(
+                AuditEvent.HELM,
+                actor_id,
+                mission_id,
+                {
+                    "change": change,
+                    "course_deg": helm["cap"],
+                    "speed_kn": helm["kn"],
+                    "rudder": helm["rudder"],
+                },
+            )
+        )
+        return helm
 
-    def classify_contact(self, mission_id: str, contact_id: str, classification: str) -> None:
+    async def classify_contact(
+        self, mission_id: str, contact_id: str, classification: str, *, actor_id: str
+    ) -> None:
         if not self.read(mission_id).engine.classify(contact_id, classification):
             raise ContactNotFound(contact_id=contact_id)
+        await self._journal.record(
+            AuditEntry(
+                AuditEvent.CONTACT_CLASSIFIED,
+                actor_id,
+                mission_id,
+                {"contact_id": contact_id, "classification": classification},
+                FactType.CONTACT_CLASSIFIED,
+            )
+        )
 
-    def reply_request(self, mission_id: str, ship: str, approve: bool) -> str:
+    async def reply_request(self, mission_id: str, ship: str, approve: bool, *, actor_id: str) -> str:
         result = self._read_active(mission_id).engine.reply(ship, approve)
         if not result["ok"]:
             raise NoPendingRequest(ship=ship)
+        await self._journal.record(
+            AuditEntry(
+                AuditEvent.APPROVED if approve else AuditEvent.REJECTED,
+                actor_id,
+                mission_id,
+                {"source": "authorization_request", "ship": ship, "text_en": result["en"]},
+                FactType.COMMAND_APPROVED if approve else FactType.COMMAND_REJECTED,
+            )
+        )
         return str(result["en"])
 
     def set_autopilot(self, mission_id: str, enabled: bool) -> None:

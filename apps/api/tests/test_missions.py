@@ -210,5 +210,47 @@ def test_runner_advances_missions_by_itself() -> None:
         assert guide_speed() > 0
 
 
+def test_actions_are_audited_with_their_author(harness: MissionHarness) -> None:
+    alice = {"X-Hx-User": "alice"}
+    mission = harness.client.post(
+        "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal"}, headers=alice
+    ).json()
+    harness.advance(mission["id"], 40)
+    harness.client.post(
+        f"/v1/missions/{mission['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"}, headers=alice
+    )
+    harness.client.post(f"/v1/missions/{mission['id']}/orders", json={"text": "BONJOUR"}, headers=alice)
+    harness.client.post(
+        f"/v1/missions/{mission['id']}/contacts/TRK017/classification",
+        json={"classification": "hostile"},
+        headers=alice,
+    )
+    harness.advance(mission["id"], 420)
+
+    page = harness.client.get("/v1/audit", params={"mission_id": mission["id"]}).json()
+    assert [(event["event"], event["actor_id"]) for event in page["events"]] == [
+        ("mission_started", "alice"),
+        ("approved", "alice"),
+        ("contact_classified", "alice"),
+        ("mission_finished", None),
+    ]
+    assert page["next_after_seq"] is None
+    assert harness.client.get("/v1/audit", params={"limit": 2}).json()["next_after_seq"] == 2
+    assert harness.client.get("/v1/audit", params={"mission_id": "pas-un-uuid"}).status_code == 422
+    assert harness.client.get("/v1/audit/integrity").json()["checked_events"] == 4
+
+
+def test_events_stream_ends_with_phase(harness: MissionHarness) -> None:
+    mission = harness.start()
+    harness.client.delete(f"/v1/missions/{mission['id']}")
+    with harness.client.stream("GET", f"/v1/missions/{mission['id']}/events") as response:
+        assert response.headers["content-type"].startswith("text/event-stream")
+        body = response.read().decode()
+    events = [block.split("\n") for block in body.strip().split("\n\n")]
+    assert [lines[0] for lines in events] == ["event: situation", "event: phase"]
+    assert '"phase":"ended"' in events[0][1]
+    assert events[1][1] == 'data: {"phase": "ended"}'
+
+
 def test_openapi_file_is_up_to_date() -> None:
     assert OPENAPI_FILE.read_text(encoding="utf-8") == render(), "relancer `uv run hx-export-openapi`"

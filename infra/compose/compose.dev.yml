@@ -14,7 +14,7 @@ services:
       POSTGRES_DB: hannibal
       POSTGRES_USER: hannibal
       POSTGRES_PASSWORD: ${HX_DEV_DB_PASSWORD:?définir HX_DEV_DB_PASSWORD dans dev.env}
-    ports: ["127.0.0.1:5432:5432"]
+    ports: ["127.0.0.1:${HX_DEV_DB_PORT:-5432}:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hannibal -d hannibal"]
@@ -23,6 +23,24 @@ services:
       retries: 20
     shm_size: 256m
     mem_limit: 4g
+    logging: *logging
+
+  migrate:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+      args: { VERSION: "${HX_VERSION:-0.1.0}" }
+    image: hannibal/api:${HX_VERSION:-0.1.0}-dev
+    command: ["hx-api-migrate"]
+    healthcheck: { disable: true }
+    environment:
+      HX_API_DATABASE_URL: postgresql://hannibal:${HX_DEV_DB_PASSWORD}@postgres:5432/hannibal
+    depends_on:
+      postgres: { condition: service_healthy }
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
     logging: *logging
 
   api:
@@ -40,6 +58,7 @@ services:
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]

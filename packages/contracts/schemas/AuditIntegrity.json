@@ -1,0 +1,45 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:AuditIntegrity",
+  "additionalProperties": false,
+  "properties": {
+    "checked_events": {
+      "title": "Checked Events",
+      "type": "integer"
+    },
+    "first_broken_seq": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Première ligne modifiée, insérée ou retirée après coup",
+      "title": "First Broken Seq"
+    },
+    "head_seq": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Head Seq"
+    },
+    "intact": {
+      "title": "Intact",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "intact",
+    "checked_events",
+    "first_broken_seq"
+  ],
+  "title": "AuditIntegrity",
+  "type": "object"
+}

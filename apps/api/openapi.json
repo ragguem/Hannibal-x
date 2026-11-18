@@ -1,6 +1,146 @@
 {
   "components": {
     "schemas": {
+      "AuditEventView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Utilisateur à l'origine de l'événement ; absent pour le système",
+            "title": "Actor Id"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "command_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Command Id"
+          },
+          "event": {
+            "title": "Event",
+            "type": "string"
+          },
+          "mission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mission Id"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "seq": {
+            "description": "Numéro d'ordre attribué par la base, sans trou",
+            "title": "Seq",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "actor_id",
+          "event",
+          "payload"
+        ],
+        "title": "AuditEventView",
+        "type": "object"
+      },
+      "AuditIntegrity": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_events": {
+            "title": "Checked Events",
+            "type": "integer"
+          },
+          "first_broken_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Première ligne modifiée, insérée ou retirée après coup",
+            "title": "First Broken Seq"
+          },
+          "head_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head Seq"
+          },
+          "intact": {
+            "title": "Intact",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "intact",
+          "checked_events",
+          "first_broken_seq"
+        ],
+        "title": "AuditIntegrity",
+        "type": "object"
+      },
+      "AuditPage": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "next_after_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "À passer en `after_seq` pour la page suivante ; absent à la fin",
+            "title": "Next After Seq"
+          }
+        },
+        "required": [
+          "events",
+          "next_after_seq"
+        ],
+        "title": "AuditPage",
+        "type": "object"
+      },
       "AuthorizationRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1267,6 +1407,210 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/v1/audit": {
+      "get": {
+        "operationId": "read_audit_v1_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mission_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mission Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after_seq",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After Seq",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Read Audit",
+        "tags": [
+          "registre"
+        ]
+      }
+    },
+    "/v1/audit/integrity": {
+      "get": {
+        "operationId": "verify_audit_v1_audit_integrity_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditIntegrity"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Verify Audit",
+        "tags": [
+          "registre"
+        ]
+      }
+    },
     "/v1/health": {
       "get": {
         "operationId": "health_v1_health_get",
@@ -1403,6 +1747,18 @@
             "required": true,
             "schema": {
               "title": "Mission Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
               "type": "string"
             }
           }
@@ -1684,6 +2040,18 @@
               "title": "Contact Id",
               "type": "string"
             }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1767,6 +2135,94 @@
         ]
       }
     },
+    "/v1/missions/{mission_id}/events": {
+      "get": {
+        "operationId": "mission_events_v1_missions__mission_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mission_id",
+            "required": true,
+            "schema": {
+              "title": "Mission Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Événements `situation` (une `Mission` complète, 4 par seconde) puis `phase` (`{\"phase\": \"ended\"}`) à la fin de la mission, qui ferme le flux."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Mission Events",
+        "tags": [
+          "missions"
+        ]
+      }
+    },
     "/v1/missions/{mission_id}/helm": {
       "post": {
         "operationId": "set_helm_v1_missions__mission_id__helm_post",
@@ -1777,6 +2233,18 @@
             "required": true,
             "schema": {
               "title": "Mission Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
               "type": "string"
             }
           }
@@ -1879,6 +2347,18 @@
             "required": true,
             "schema": {
               "title": "Mission Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
               "type": "string"
             }
           }
@@ -2086,6 +2566,18 @@
             "required": true,
             "schema": {
               "title": "Ship",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
               "type": "string"
             }
           }
