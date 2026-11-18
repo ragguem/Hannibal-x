@@ -91,7 +91,7 @@ class ScenarioEngine:
         )
 
     @staticmethod
-    def initial_positions(sc):
+    def initial_positions(sc: dict[str, Any]) -> dict[str, tuple[float, float]]:
         """Positions de création des navires (repère local du monde), au poste de la formation de départ."""
         cap = float(sc.get("cap_initial", 0))
         f0 = sc.get("formation_depart", "column")
@@ -237,7 +237,7 @@ class ScenarioEngine:
                 else:
                     self._free(run, n, o)
 
-    def player_order(self, text, force_to=None):
+    def player_order(self, text: str, force_to: list[str] | None = None) -> dict[str, Any]:
         run = self.run
         me, guide = run["player"], run["guide"]
         pr = mtp.parse(text, list(run["ships"]))
@@ -264,7 +264,7 @@ class ScenarioEngine:
         self.say(me.upper(), "TOUS" if to == ["TOUS"] else to[0], txt_en, fr, "joueur")
         return {"ok": True, "fr": fr, "en": txt_en}
 
-    def classify(self, cid, cls):
+    def classify(self, cid: str, cls: str) -> bool:
         c = self.run["contacts"].get(cid)
         if not c or cls not in ("ami", "neutre", "hostile", "inconnu"):
             return False
@@ -321,7 +321,7 @@ class ScenarioEngine:
         return en
 
     # --- boucle à 2 Hz
-    def tick(self, states):
+    def tick(self, states: dict[str, dict[str, float]]) -> dict[str, tuple[float, float]]:
         """Un pas : `states` = état des navires (x, y, lat, lon, sog, hdg) -> points de route {navire: (lat, lon)}."""
         self.st = states
         run = self.run
@@ -359,7 +359,7 @@ class ScenarioEngine:
             if t - p["t"] > 5 and p in run["pending"]:
                 self.player_order(mtp.to_text([me.upper()], p["orders"], me))
 
-    def set_auto(self, on):
+    def set_auto(self, on: bool) -> bool:
         self.run["auto"] = bool(on)
         return True
 
@@ -605,7 +605,7 @@ class ScenarioEngine:
             run["end_at"] = t + 5
 
     # --- barre manuelle
-    def helm(self, b):
+    def helm(self, b: dict[str, float]) -> dict[str, Any]:
         run = self.run
         if not run.get("manual"):
             return {"ok": False, "error": "La barre manuelle n'est pas active."}
@@ -810,7 +810,7 @@ class ScenarioEngine:
                         run["requests"].pop(n, None)
                         self._radio(run, n, "ROGER", "bien reçu, je reste à mon poste.", delay=3)
 
-    def reply(self, ship, yes):
+    def reply(self, ship: str, yes: bool) -> dict[str, Any]:
         """Réponse de l'opérateur à une demande d'autorisation (bouton de la console). Le registre est à l'appelant."""
         run = self.run
         if ship not in run.get("requests", {}):
@@ -1028,7 +1028,7 @@ class ScenarioEngine:
         self.say("SYSTÈME", "TOUS", "", "Fin du scénario.", "info")
 
     # --- état pour l'interface et calculs à la demande
-    def state(self):
+    def state(self) -> dict[str, Any]:
         run = self.run
         t = self._t()
         me = run["player"]
@@ -1133,7 +1133,7 @@ class ScenarioEngine:
         ]
         return ships, contacts
 
-    def simulate(self, text):
+    def simulate(self, text: str) -> dict[str, Any]:
         run = self.run
         pr = mtp.parse(text, list(run["ships"]))
         if not pr["ok"]:
@@ -1152,14 +1152,17 @@ class ScenarioEngine:
         g = sim.ghost(ships, to, mot, contacts, 900)
         return {"ok": True, "to": to, "fr": mtp.fr_message(pr["to"], pr["orders"]), **g}
 
-    def recommend(self):
+    def recommend(self) -> list[dict[str, str]]:
         run = self.run
         ships, contacts = self.sim_state_for_calc()
         for c in contacts:
             c["cls"] = run["contacts"][c["id"]]["cls"]
         etats = {x["name"]: x["etat"] for x in self.state()["ships"]}
         st = {"ships": [dict(s, etat=etats.get(s["name"], "")) for s in ships], "contacts": contacts}
-        return reco.recommend(st, run["player"], run["guide"], run["pending"], run["reported"])
+        return cast(
+            list[dict[str, str]],
+            reco.recommend(st, run["player"], run["guide"], run["pending"], run["reported"]),
+        )
 
 
 __all__ = ["ScenarioEngine", "slots"]

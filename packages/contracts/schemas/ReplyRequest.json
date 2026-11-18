@@ -1,0 +1,15 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ReplyRequest",
+  "additionalProperties": false,
+  "properties": {
+    "approve": {
+      "title": "Approve",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "approve"
+  ],
+  "title": "ReplyRequest",
+  "type": "object"
+}

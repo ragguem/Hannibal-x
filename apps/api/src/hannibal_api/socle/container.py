@@ -1,13 +1,19 @@
+import time
+
 from dependency_injector import containers, providers
 
 from hannibal_api.application.check_readiness import CheckReadiness
+from hannibal_api.application.missions import Missions
 from hannibal_api.domain.readiness import ProbeState
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
+from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
+from hannibal_api.infrastructure.simulator import FakeSimulator, UnavailableSimulator
 from hannibal_api.socle.settings import AdapterMode, ApiSettings
 
 
 class Container(containers.DeclarativeContainer):
     settings = providers.Dependency(instance_of=ApiSettings)
+    mode = providers.Callable(lambda s: AdapterMode(s.adapters).value, settings)
 
     real_probes = providers.List(
         providers.Singleton(
@@ -26,14 +32,25 @@ class Container(containers.DeclarativeContainer):
         providers.Singleton(FakeProbe, name="postgres"),
         providers.Singleton(FakeProbe, name="ollama", state=ProbeState.DISABLED, required=False),
     )
-    probes = providers.Selector(
-        providers.Callable(lambda s: AdapterMode(s.adapters).value, settings),
-        fake=fake_probes,
-        real=real_probes,
-    )
+    probes = providers.Selector(mode, fake=fake_probes, real=real_probes)
 
     check_readiness = providers.Singleton(
         CheckReadiness,
         probes=probes,
         timeout_s=settings.provided.readiness_timeout_s,
+    )
+
+    clock = providers.Object(time.monotonic)
+    simulator = providers.Selector(
+        mode,
+        fake=providers.Singleton(FakeSimulator, origin=settings.provided.sim_origin, clock=clock),
+        real=providers.Singleton(UnavailableSimulator),
+    )
+    scenarios = providers.Singleton(YamlScenarioCatalog, directory=settings.provided.scenarios_dir)
+    missions = providers.Singleton(
+        Missions,
+        catalog=scenarios,
+        simulator=simulator,
+        clock=clock,
+        tick_s=settings.provided.mission_tick_s,
     )

@@ -12,11 +12,13 @@ WORKDIR /src
 COPY pyproject.toml uv.lock ./
 COPY packages/platform/pyproject.toml packages/platform/
 COPY packages/contracts/pyproject.toml packages/contracts/
+COPY packages/core/pyproject.toml packages/core/
 COPY apps/api/pyproject.toml apps/api/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package hannibal-api
 COPY packages/platform packages/platform
 COPY packages/contracts packages/contracts
+COPY packages/core packages/core
 COPY apps/api apps/api
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable --package hannibal-api
@@ -26,7 +28,8 @@ ARG VERSION=0.1.0
 LABEL org.opencontainers.image.title="hannibal-api" org.opencontainers.image.version="${VERSION}"
 RUN groupadd --system --gid 10001 hx && useradd --system --uid 10001 --gid hx --no-create-home hx
 COPY --from=build /opt/venv /opt/venv
-ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+COPY apps/api/scenarios /app/scenarios
+ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 HX_API_SCENARIOS_DIR=/app/scenarios
 USER hx
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \

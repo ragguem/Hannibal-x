@@ -1,0 +1,70 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:SetHelm",
+  "additionalProperties": false,
+  "properties": {
+    "course": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Course"
+    },
+    "course_delta": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Course Delta"
+    },
+    "rudder": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": -1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rudder"
+    },
+    "speed_delta": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Speed Delta"
+    },
+    "speed_kn": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Speed Kn"
+    }
+  },
+  "title": "SetHelm",
+  "type": "object"
+}

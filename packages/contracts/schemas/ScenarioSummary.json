@@ -1,0 +1,75 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ScenarioSummary",
+  "additionalProperties": false,
+  "properties": {
+    "briefing": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Briefing"
+    },
+    "duration_s": {
+      "title": "Duration S",
+      "type": "integer"
+    },
+    "guide": {
+      "title": "Guide",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "level": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Level"
+    },
+    "ships": {
+      "description": "Navires jouables, le guide en premier",
+      "items": {
+        "type": "string"
+      },
+      "title": "Ships",
+      "type": "array"
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Summary"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "duration_s",
+    "ships",
+    "guide"
+  ],
+  "title": "ScenarioSummary",
+  "type": "object"
+}

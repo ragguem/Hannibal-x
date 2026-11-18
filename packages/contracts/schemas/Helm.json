@@ -1,0 +1,28 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:Helm",
+  "additionalProperties": false,
+  "properties": {
+    "course": {
+      "title": "Course",
+      "type": "number"
+    },
+    "rudder": {
+      "description": "-1 bâbord, 0 droit, 1 tribord",
+      "maximum": 1,
+      "minimum": -1,
+      "title": "Rudder",
+      "type": "integer"
+    },
+    "speed_kn": {
+      "title": "Speed Kn",
+      "type": "number"
+    }
+  },
+  "required": [
+    "course",
+    "speed_kn",
+    "rudder"
+  ],
+  "title": "Helm",
+  "type": "object"
+}

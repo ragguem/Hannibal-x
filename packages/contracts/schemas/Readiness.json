@@ -40,7 +40,7 @@
       "type": "object"
     }
   },
-  "$id": "urn:hannibal-x:contracts:0.1.0:Readiness",
+  "$id": "urn:hannibal-x:contracts:1.0.0:Readiness",
   "additionalProperties": false,
   "properties": {
     "dependencies": {

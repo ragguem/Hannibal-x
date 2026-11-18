@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "Classification": {
+      "enum": [
+        "ami",
+        "neutre",
+        "hostile",
+        "inconnu"
+      ],
+      "title": "Classification",
+      "type": "string"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:ClassifyContact",
+  "additionalProperties": false,
+  "properties": {
+    "classification": {
+      "$ref": "#/$defs/Classification"
+    }
+  },
+  "required": [
+    "classification"
+  ],
+  "title": "ClassifyContact",
+  "type": "object"
+}

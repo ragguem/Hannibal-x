@@ -1,0 +1,618 @@
+{
+  "$defs": {
+    "AuthorizationRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "contact_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact Id"
+        },
+        "fr": {
+          "title": "Fr",
+          "type": "string"
+        },
+        "ship": {
+          "title": "Ship",
+          "type": "string"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        }
+      },
+      "required": [
+        "ship",
+        "t",
+        "fr"
+      ],
+      "title": "AuthorizationRequest",
+      "type": "object"
+    },
+    "Classification": {
+      "enum": [
+        "ami",
+        "neutre",
+        "hostile",
+        "inconnu"
+      ],
+      "title": "Classification",
+      "type": "string"
+    },
+    "ClassificationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "actual": {
+          "title": "Actual",
+          "type": "string"
+        },
+        "chosen": {
+          "title": "Chosen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chosen",
+        "actual"
+      ],
+      "title": "ClassificationResult",
+      "type": "object"
+    },
+    "Contact": {
+      "additionalProperties": false,
+      "properties": {
+        "bearing": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bearing"
+        },
+        "classification": {
+          "$ref": "#/$defs/Classification"
+        },
+        "course": {
+          "title": "Course",
+          "type": "number"
+        },
+        "cpa_nm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cpa Nm"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "range_nm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range Nm"
+        },
+        "speed_kn": {
+          "title": "Speed Kn",
+          "type": "number"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "State"
+        },
+        "tcpa_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tcpa Min"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "x",
+        "y",
+        "course",
+        "speed_kn",
+        "classification"
+      ],
+      "title": "Contact",
+      "type": "object"
+    },
+    "Debrief": {
+      "additionalProperties": false,
+      "properties": {
+        "classifications": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ClassificationResult"
+          },
+          "title": "Classifications",
+          "type": "object"
+        },
+        "min_cpa_nm": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Min Cpa Nm",
+          "type": "object"
+        },
+        "min_ship_distance_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Ship Distance M"
+        },
+        "objectives": {
+          "items": {
+            "$ref": "#/$defs/Objective"
+          },
+          "title": "Objectives",
+          "type": "array"
+        },
+        "score": {
+          "title": "Score",
+          "type": "integer"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "objectives",
+        "score",
+        "total",
+        "min_cpa_nm",
+        "classifications"
+      ],
+      "title": "Debrief",
+      "type": "object"
+    },
+    "Helm": {
+      "additionalProperties": false,
+      "properties": {
+        "course": {
+          "title": "Course",
+          "type": "number"
+        },
+        "rudder": {
+          "description": "-1 bâbord, 0 droit, 1 tribord",
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Rudder",
+          "type": "integer"
+        },
+        "speed_kn": {
+          "title": "Speed Kn",
+          "type": "number"
+        }
+      },
+      "required": [
+        "course",
+        "speed_kn",
+        "rudder"
+      ],
+      "title": "Helm",
+      "type": "object"
+    },
+    "MissionPhase": {
+      "enum": [
+        "running",
+        "ended"
+      ],
+      "title": "MissionPhase",
+      "type": "string"
+    },
+    "Objective": {
+      "additionalProperties": false,
+      "properties": {
+        "deadline_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadline S"
+        },
+        "done": {
+          "title": "Done",
+          "type": "boolean"
+        },
+        "t": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Instant où l'objectif a été atteint",
+          "title": "T"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "done"
+      ],
+      "title": "Objective",
+      "type": "object"
+    },
+    "PlannedOrder": {
+      "additionalProperties": false,
+      "properties": {
+        "en": {
+          "title": "En",
+          "type": "string"
+        },
+        "fr": {
+          "title": "Fr",
+          "type": "string"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        }
+      },
+      "required": [
+        "t",
+        "en",
+        "fr"
+      ],
+      "title": "PlannedOrder",
+      "type": "object"
+    },
+    "RadioMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "en": {
+          "title": "En",
+          "type": "string"
+        },
+        "fr": {
+          "title": "Fr",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "recipient": {
+          "title": "Recipient",
+          "type": "string"
+        },
+        "sender": {
+          "title": "Sender",
+          "type": "string"
+        },
+        "t": {
+          "title": "T",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "sender",
+        "recipient",
+        "en",
+        "fr",
+        "kind"
+      ],
+      "title": "RadioMessage",
+      "type": "object"
+    },
+    "Ship": {
+      "additionalProperties": false,
+      "properties": {
+        "heading": {
+          "description": "Cap en degrés",
+          "title": "Heading",
+          "type": "number"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "speed_mps": {
+          "title": "Speed Mps",
+          "type": "number"
+        },
+        "status": {
+          "description": "Libellé affiché vu par le joueur (« Vous », « En station »…)",
+          "title": "Status",
+          "type": "string"
+        },
+        "status_fleet": {
+          "description": "Libellé vu par la flotte",
+          "title": "Status Fleet",
+          "type": "string"
+        },
+        "x": {
+          "description": "Est, en mètres, repère local du monde",
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "description": "Nord, en mètres, repère local du monde",
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "role",
+        "x",
+        "y",
+        "heading",
+        "speed_mps",
+        "status",
+        "status_fleet"
+      ],
+      "title": "Ship",
+      "type": "object"
+    },
+    "Station": {
+      "additionalProperties": false,
+      "properties": {
+        "error_m": {
+          "title": "Error M",
+          "type": "number"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "error_m"
+      ],
+      "title": "Station",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:Mission",
+  "additionalProperties": false,
+  "properties": {
+    "autopilot": {
+      "title": "Autopilot",
+      "type": "boolean"
+    },
+    "contacts": {
+      "items": {
+        "$ref": "#/$defs/Contact"
+      },
+      "title": "Contacts",
+      "type": "array"
+    },
+    "debrief": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Debrief"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "detached": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Navire → piste qu'il reconnaît",
+      "title": "Detached",
+      "type": "object"
+    },
+    "duration_s": {
+      "title": "Duration S",
+      "type": "number"
+    },
+    "formation": {
+      "title": "Formation",
+      "type": "string"
+    },
+    "guide": {
+      "title": "Guide",
+      "type": "string"
+    },
+    "guide_course": {
+      "title": "Guide Course",
+      "type": "number"
+    },
+    "guide_speed_kn": {
+      "title": "Guide Speed Kn",
+      "type": "number"
+    },
+    "helm": {
+      "$ref": "#/$defs/Helm"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "manual": {
+      "title": "Manual",
+      "type": "boolean"
+    },
+    "messages": {
+      "description": "Les 40 derniers messages radio",
+      "items": {
+        "$ref": "#/$defs/RadioMessage"
+      },
+      "title": "Messages",
+      "type": "array"
+    },
+    "objectives": {
+      "items": {
+        "$ref": "#/$defs/Objective"
+      },
+      "title": "Objectives",
+      "type": "array"
+    },
+    "pending_orders": {
+      "description": "Ordres reçus du guide, pas encore exécutés",
+      "items": {
+        "type": "string"
+      },
+      "title": "Pending Orders",
+      "type": "array"
+    },
+    "phase": {
+      "$ref": "#/$defs/MissionPhase"
+    },
+    "plan": {
+      "items": {
+        "$ref": "#/$defs/PlannedOrder"
+      },
+      "title": "Plan",
+      "type": "array"
+    },
+    "player": {
+      "title": "Player",
+      "type": "string"
+    },
+    "requests": {
+      "items": {
+        "$ref": "#/$defs/AuthorizationRequest"
+      },
+      "title": "Requests",
+      "type": "array"
+    },
+    "scenario_id": {
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "ships": {
+      "items": {
+        "$ref": "#/$defs/Ship"
+      },
+      "title": "Ships",
+      "type": "array"
+    },
+    "station": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Station"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "t": {
+      "description": "Temps de mission en secondes",
+      "title": "T",
+      "type": "number"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "scenario_id",
+    "title",
+    "player",
+    "guide",
+    "phase",
+    "t",
+    "duration_s",
+    "formation",
+    "guide_course",
+    "guide_speed_kn",
+    "ships",
+    "contacts",
+    "messages",
+    "plan",
+    "pending_orders",
+    "objectives",
+    "autopilot",
+    "manual",
+    "helm",
+    "requests",
+    "detached"
+  ],
+  "title": "Mission",
+  "type": "object"
+}

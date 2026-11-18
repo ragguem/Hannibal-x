@@ -1,6 +1,7 @@
 from enum import StrEnum
+from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import SettingsConfigDict
 
 from hannibal_platform.settings import BaseServiceSettings
@@ -19,6 +20,9 @@ class ApiSettings(BaseServiceSettings):
     database_url: SecretStr | None = None
     ollama_url: str | None = None
     readiness_timeout_s: float = 2.0
+    scenarios_dir: Path = Path(__file__).resolve().parents[3] / "scenarios"
+    mission_tick_s: float = Field(default=0.5, ge=0, description="Pas du MissionRunner ; 0 le coupe (tests)")
+    sim_origin: tuple[float, float] = (43.0, 6.0)
 
     @property
     def database_dsn(self) -> str | None:

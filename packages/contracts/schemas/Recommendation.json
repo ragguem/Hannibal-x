@@ -1,0 +1,26 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:Recommendation",
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "title": "Kind",
+      "type": "string"
+    },
+    "reason": {
+      "title": "Reason",
+      "type": "string"
+    },
+    "text": {
+      "description": "Message MTP proposé",
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "text",
+    "reason"
+  ],
+  "title": "Recommendation",
+  "type": "object"
+}

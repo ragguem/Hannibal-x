@@ -10,7 +10,7 @@
       "type": "string"
     }
   },
-  "$id": "urn:hannibal-x:contracts:0.1.0:DependencyStatus",
+  "$id": "urn:hannibal-x:contracts:1.0.0:DependencyStatus",
   "additionalProperties": false,
   "properties": {
     "latency_ms": {

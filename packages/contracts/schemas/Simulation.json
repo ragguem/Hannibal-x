@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "ContactCpa": {
+      "additionalProperties": false,
+      "properties": {
+        "contact": {
+          "title": "Contact",
+          "type": "string"
+        },
+        "cpa_nm": {
+          "title": "Cpa Nm",
+          "type": "number"
+        },
+        "cpa_nm_without_order": {
+          "title": "Cpa Nm Without Order",
+          "type": "number"
+        },
+        "risk": {
+          "title": "Risk",
+          "type": "boolean"
+        },
+        "ship": {
+          "title": "Ship",
+          "type": "string"
+        },
+        "tcpa_s": {
+          "title": "Tcpa S",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "ship",
+        "contact",
+        "cpa_nm",
+        "tcpa_s",
+        "cpa_nm_without_order",
+        "risk"
+      ],
+      "title": "ContactCpa",
+      "type": "object"
+    },
+    "ShipsPassing": {
+      "additionalProperties": false,
+      "properties": {
+        "a": {
+          "title": "A",
+          "type": "string"
+        },
+        "b": {
+          "title": "B",
+          "type": "string"
+        },
+        "distance_m": {
+          "title": "Distance M",
+          "type": "integer"
+        },
+        "risk": {
+          "title": "Risk",
+          "type": "boolean"
+        },
+        "t_s": {
+          "title": "T S",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "a",
+        "b",
+        "distance_m",
+        "t_s",
+        "risk"
+      ],
+      "title": "ShipsPassing",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:Simulation",
+  "additionalProperties": false,
+  "properties": {
+    "accepted": {
+      "title": "Accepted",
+      "type": "boolean"
+    },
+    "cpa": {
+      "items": {
+        "$ref": "#/$defs/ContactCpa"
+      },
+      "title": "Cpa",
+      "type": "array"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "fr": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fr"
+    },
+    "hint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hint"
+    },
+    "paths": {
+      "additionalProperties": {
+        "items": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "type": "array"
+        },
+        "type": "array"
+      },
+      "description": "Navire → points `[x, y, t]` sur 15 min",
+      "title": "Paths",
+      "type": "object"
+    },
+    "recipients": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Recipients",
+      "type": "array"
+    },
+    "ships_min": {
+      "items": {
+        "$ref": "#/$defs/ShipsPassing"
+      },
+      "title": "Ships Min",
+      "type": "array"
+    }
+  },
+  "required": [
+    "accepted"
+  ],
+  "title": "Simulation",
+  "type": "object"
+}

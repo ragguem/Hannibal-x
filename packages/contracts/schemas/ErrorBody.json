@@ -1,5 +1,5 @@
 {
-  "$id": "urn:hannibal-x:contracts:0.1.0:ErrorBody",
+  "$id": "urn:hannibal-x:contracts:1.0.0:ErrorBody",
   "additionalProperties": false,
   "properties": {
     "code": {

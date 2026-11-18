@@ -5,6 +5,15 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 
 ## [Non publié]
 
+### Ajouté
+
+- Contrat HTTP public 1.0.0 (`apps/api/openapi.json`, contrats `hannibal_contracts.missions`) : scénarios, missions,
+  ordres directs, simulation d'un ordre, recommandations, barre manuelle, classification, réponse aux demandes,
+  pilote automatique. Test de dérive : `uv run hx-export-openapi`.
+- `apps/api` : handlers de mission sur le moteur `core.scenario`, `MissionRunner` à 2 Hz, catalogue YAML validé au
+  démarrage, simulateur en mémoire (mode `fake`) ; une mission se joue de bout en bout sans écran. En mode `real`,
+  une mission échoue en `dependency_unavailable` tant que le client `sim-bridge` n'est pas livré.
+
 ## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait
 
 Recette : faite sur poste par caractérisation contre l'ancien code exécuté en boucle fermée (goldens `legacy` et

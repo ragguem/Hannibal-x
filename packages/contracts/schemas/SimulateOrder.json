@@ -1,0 +1,17 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:SimulateOrder",
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text"
+  ],
+  "title": "SimulateOrder",
+  "type": "object"
+}
