@@ -66,6 +66,28 @@ services:
     mem_limit: 1g
     logging: *logging
 
+  backoffice-migrate:
+    build:
+      context: ../..
+      dockerfile: apps/backoffice/Dockerfile
+      args: { VERSION: "${HX_VERSION:-0.2.0}" }
+    image: hannibal/backoffice:${HX_VERSION:-0.2.0}-dev
+    command: ["migratedb"]
+    environment:
+      HX_BACKOFFICE_ENVIRONMENT: dev
+      HX_BACKOFFICE_ADAPTERS: real
+      HX_BACKOFFICE_DATABASE_URL: Host=postgres;Port=5432;Database=hannibal;Username=hannibal;Password=${HX_DEV_DB_PASSWORD}
+      HX_BACKOFFICE_API_URL: http://api:8000
+      HX_BACKOFFICE_INITIAL_ADMIN_PASSWORD: ${HX_DEV_ADMIN_PASSWORD:-}
+    depends_on:
+      postgres: { condition: service_healthy }
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+    logging: *logging
+
   backoffice:
     build:
       context: ../..
@@ -80,6 +102,7 @@ services:
     ports: ["127.0.0.1:8080:8080"]
     depends_on:
       postgres: { condition: service_healthy }
+      backoffice-migrate: { condition: service_completed_successfully }
       api: { condition: service_started }
     read_only: true
     tmpfs: [/tmp]

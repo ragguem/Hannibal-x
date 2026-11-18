@@ -14,7 +14,7 @@ public sealed class ArchitectureTests
     public void Le_domaine_ne_depend_de_rien()
     {
         var result = Types.InAssembly(typeof(ReadinessReport).Assembly)
-            .ShouldNot().HaveDependencyOnAny($"{Ns}.Application", $"{Ns}.Infrastructure", $"{Ns}.Api", "Microsoft.AspNetCore", "Npgsql", "System.Net.Http")
+            .ShouldNot().HaveDependencyOnAny($"{Ns}.Application", $"{Ns}.Infrastructure", $"{Ns}.Api", "Microsoft.AspNetCore", "Microsoft.EntityFrameworkCore", "Npgsql", "System.Net.Http")
             .GetResult();
         Assert.True(result.IsSuccessful, string.Join(", ", result.FailingTypeNames ?? []));
     }
@@ -23,7 +23,7 @@ public sealed class ArchitectureTests
     public void L_application_ne_connait_ni_le_web_ni_la_base()
     {
         var result = Types.InAssembly(typeof(CheckReadiness).Assembly)
-            .ShouldNot().HaveDependencyOnAny($"{Ns}.Infrastructure", $"{Ns}.Api", "Microsoft.AspNetCore", "Npgsql", "System.Net.Http")
+            .ShouldNot().HaveDependencyOnAny($"{Ns}.Infrastructure", $"{Ns}.Api", "Microsoft.AspNetCore", "Microsoft.EntityFrameworkCore", "Npgsql", "System.Net.Http")
             .GetResult();
         Assert.True(result.IsSuccessful, string.Join(", ", result.FailingTypeNames ?? []));
     }

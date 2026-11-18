@@ -16,6 +16,11 @@ builder.Services.AddBackoffice();
 
 var app = builder.Build();
 app.Services.GetRequiredService<BackofficeSettings>();
+if (args.Contains("migratedb", StringComparer.Ordinal))
+{
+    await app.Services.InitializeDatabaseAsync(app.Lifetime.ApplicationStopping).ConfigureAwait(false);
+    return;
+}
 app.UseRequestId();
 app.UseErrorBodies();
 app.UseRouting();

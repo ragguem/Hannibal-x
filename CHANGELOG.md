@@ -26,6 +26,12 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   de fond (un envoi à la fois, attente croissante, 5 tentatives, validité de 30 s), réconciliation des envois
   restés `in_flight` au redémarrage. L'ordre n'est appliqué au moteur qu'une fois accepté par le simulateur ;
   en mode `real`, l'envoi échoue en transitoire tant que le client `sim-bridge` n'est pas livré.
+- `apps/backoffice` : schéma `identity` (EF Core, migration `IdentityInitial`) : rôles et permissions, rôles de
+  jeu (guide, escorte), comptes, sessions ; mots de passe en Argon2id (format PHC). Seeders `IDataSeeder`
+  exécutés par `DataSeederOrchestrator` (ordre, transaction par seeder, UPSERT par clé métier, échecs agrégés en
+  fin de chaîne) : `RoleSeeder`, `GameRoleSeeder`, `InitialAdminSeeder` (créé si absent, jamais modifié ;
+  mot de passe par `HX_BACKOFFICE_INITIAL_ADMIN_PASSWORD`). Mode `migratedb` et service compose
+  `backoffice-migrate` ; le serveur ne migre pas au démarrage.
 - Tests `-m postgres` sur une base jetable désignée par `HX_TEST_DATABASE_URL` (ignorés sinon).
 
 ## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait

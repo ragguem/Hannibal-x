@@ -21,6 +21,8 @@ public sealed record BackofficeSettings
     public string? DatabaseUrl { get; init; }
     public Uri? ApiUrl { get; init; }
     public TimeSpan ProbeTimeout { get; init; } = TimeSpan.FromSeconds(2);
+    public string InitialAdminUsername { get; init; } = "admin";
+    public string? InitialAdminPassword { get; init; }
 
     public bool IsLocal => Environment is HxEnvironment.Dev or HxEnvironment.Test;
 
@@ -42,6 +44,8 @@ public sealed record BackofficeSettings
             FakeAdapters = adapters == "fake",
             DatabaseUrl = Get("DATABASE_URL"),
             ApiUrl = Get("API_URL") is { } url ? new Uri(url) : null,
+            InitialAdminUsername = Get("INITIAL_ADMIN_USERNAME") ?? "admin",
+            InitialAdminPassword = Get("INITIAL_ADMIN_PASSWORD"),
         };
         if (!settings.FakeAdapters && (settings.DatabaseUrl is null || settings.ApiUrl is null))
         {
