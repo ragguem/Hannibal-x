@@ -2,6 +2,8 @@
 
 import re
 
+from hannibal_core.orders.limits import DEFAULT_SPEED, SpeedLimits
+
 FORMS = {"COLUMN": "column", "LINE ABREAST": "line_abreast", "SCREEN": "screen"}
 FORM_FR = {
     "column": "colonne",
@@ -19,8 +21,9 @@ def _norm(text):
     return re.sub(r"\s+", " ", t).strip()
 
 
-def parse(text, ships, sender=None):
-    """-> dict(ok, to, orders, error, hint). ships = noms en minuscules."""
+def parse(text, ships, sender=None, speed: SpeedLimits = DEFAULT_SPEED):
+    """-> dict(ok, to, orders, notes, error, hint). ships = noms en minuscules."""
+    notes: list[str] = []
     t = _norm(text)
     names = [s.upper() for s in ships]
     to = ["TOUS"]
@@ -72,8 +75,9 @@ def parse(text, ships, sender=None):
             i += 2
             if i < len(toks) and toks[i] in ("KNOTS", "KTS", "KN"):
                 i += 1
-            if kn < 3 or kn > 18:
-                return _err(f"Vitesse {kn} nœuds hors limites (3 à 18).", "Exemple : SPEED 12")
+            kn, note = speed.clamp(kn)
+            if note:
+                notes.append(note)
             orders.append({"type": "SPEED", "kn": kn})
         elif k == "FORM":
             rest = " ".join(toks[i + 1 :])
@@ -98,11 +102,11 @@ def parse(text, ships, sender=None):
             )
     if not orders:
         return _err("Aucun ordre reconnu.", "Exemple : CORPEN 090 SPEED 12")
-    return {"ok": True, "to": to, "orders": orders, "error": None, "hint": None}
+    return {"ok": True, "to": to, "orders": orders, "notes": notes, "error": None, "hint": None}
 
 
 def _err(msg, hint):
-    return {"ok": False, "to": [], "orders": [], "error": msg, "hint": hint}
+    return {"ok": False, "to": [], "orders": [], "notes": [], "error": msg, "hint": hint}
 
 
 def fr_order(o):

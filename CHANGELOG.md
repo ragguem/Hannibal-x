@@ -11,7 +11,9 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 - `tools/check.ps1` et `tools/check.sh` : contrôle complet local (équivalent de la CI), seuil de couverture 85 %.
 - `tools/backup.ps1` : sauvegarde du dépôt par `git bundle`.
 - Lot 1 (en cours) : `packages/core` (`hannibal-core`), avec `signals` (interpréteur) et `orders` (`grammar`, `kinematics`, `recommendations`, `mtp_mapping`), copiés de l’ancien code sans entrée-sortie ; contrat import-linter « Core : aucune entrée-sortie ».
-- Goldens de caractérisation exécutés sur `legacy` et sur `core`.
+- Goldens de caractérisation exécutés sur `legacy` et sur `core` ; écarts voulus du cœur dans `golden/core/`.
+- Limite de vitesse unique `SpeedLimits` (3 à 28 nœuds par défaut) pour le clavier et les signaux : un ordre hors
+  bornes est ramené à la borne avec une note (le clavier refusait au-delà de 18 nœuds).
 - ADR 0007 : back-office métier en .NET 10 (`apps/backoffice`), cœur tactique et IA en Python.
 - Socle `apps/backoffice` (.NET 10) : couches Domain / Application / Infrastructure / Api, `/v1/health`, `/v1/ready`
   (sondes PostgreSQL et API, adaptateurs faux ou réels), `/metrics` protégé, `request_id`, `ErrorBody`, jeton interne,

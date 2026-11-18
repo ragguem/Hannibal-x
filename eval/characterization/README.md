@@ -56,6 +56,15 @@ Ces fichiers contiennent des messages et des citations de publications : ils res
 
 Les goldens les figent tels quels ; la décision de les corriger se prend dans le lot concerné.
 
-- Plage de vitesse : `mtp.parse` refuse au-delà de 18 nœuds, `hxbridge.to_orders` ramène à 28 nœuds (le plan prévoit une seule limite, en configuration).
+- Plage de vitesse : `mtp.parse` refuse au-delà de 18 nœuds, `hxbridge.to_orders` ramène à 28 nœuds. Corrigé dans le cœur (voir ci-dessous).
 - `mtp.parse` exige un cap de 1 à 3 chiffres pour CORPEN mais accepte `CORPEN 5` (cap 005).
 - `interpret` : `TURN STBD 9 I SAY AGAIN TURN STBD 8` garde le premier énoncé et ne fait qu'avertir.
+
+## Écarts voulus du cœur
+
+L'ancien code reste vérifié contre `golden/<nom>.json`. Quand le cœur doit s'en écarter, son golden est dans
+`golden/core/<nom>.json` (`regenerate.py --core <nom>`) et l'écart est décrit ici.
+
+| Module | Écart | Décision |
+|---|---|---|
+| `mtp` → `orders.grammar` | Vitesse : une seule limite `SpeedLimits` (3 à 28 nœuds par défaut, fournie par l'appelant) pour le clavier et les signaux ; hors bornes, l'ordre est ramené à la borne avec une note, au lieu d'être refusé. Nouveau champ `notes` dans le résultat. Seuls changent `SPEED 25` (accepté) et `SPEED 2` (ramené à 3). | 2026-11-18, Lot 1 |

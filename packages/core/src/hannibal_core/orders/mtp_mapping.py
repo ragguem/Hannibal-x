@@ -5,7 +5,7 @@ Repris de legacy/app_v3/hxbridge.py sans l'appel au service voix ni le registre 
 
 import re
 
-KN_MIN, KN_MAX = 3, 28
+from hannibal_core.orders.limits import DEFAULT_SPEED, SpeedLimits
 
 STATUS_FR = {
     "ok": "Signal reconnu",
@@ -84,19 +84,17 @@ def destination(interp, ships, default):
     ), "Destinataire non énoncé : celui sélectionné à l'écran est utilisé."
 
 
-def to_orders(interp, speed_kn):
+def to_orders(interp, speed_kn, speed: SpeedLimits = DEFAULT_SPEED):
     """Signal MTP reconnu -> (ordres du simulateur, note). speed_kn = vitesse actuelle visee."""
     if interp.get("status") != "ok":
         return [], None
     head, p, extra = interp.get("signal") or "", interp.get("params") or {}, interp.get("extra") or []
     num = next((int(x) for x in extra if str(x).isdigit()), None)
 
-    def spd(kn, note=None):
+    def spd(kn):
         if kn > 45 or kn < 0:
             return None, f"Vitesse de {kn} nœuds invraisemblable."
-        k = max(KN_MIN, min(KN_MAX, int(round(kn))))
-        if k != kn:
-            note = f"Vitesse ramenée à {k} nœuds (limites du simulateur : {KN_MIN} à {KN_MAX})."
+        k, note = speed.clamp(kn)
         return [{"type": "SPEED", "kn": k}], note
 
     if head.startswith(("TURN [", "CORPEN [")):
@@ -130,7 +128,9 @@ def to_orders(interp, speed_kn):
     if head in ("SPEED D", "SPEED R") and num is not None:
         return spd(speed_kn - num)
     if head in ("SPEED 0", "SPEED S", "SPEED A"):
-        return [{"type": "SPEED", "kn": KN_MIN}], f"Arrêt non simulé : vitesse minimale de {KN_MIN} nœuds."
+        return [
+            {"type": "SPEED", "kn": speed.min_kn}
+        ], f"Arrêt non simulé : vitesse minimale de {speed.min_kn} nœuds."
     if head in ("FORM 1", "FORM 2"):
         return [{"type": "FORM", "name": "column"}], "Formation en colonne."
     if head == "FORM 3":

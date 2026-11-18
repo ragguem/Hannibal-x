@@ -168,7 +168,7 @@ def run_hxbridge(impl: str = "legacy") -> dict[str, Any]:
     )
 
 
-RUNNERS: dict[str, Callable[[], Any]] = {
+RUNNERS: dict[str, Callable[[str], Any]] = {
     "interpret": run_interpret,
     "mtp": run_mtp,
     "sim": run_sim,
@@ -177,12 +177,14 @@ RUNNERS: dict[str, Callable[[], Any]] = {
 }
 
 
-def golden_path(name: str) -> Path:
-    return GOLDEN / f"{name}.json"
+def golden_path(name: str, impl: str = "legacy") -> Path:
+    """`golden/core/<nom>.json` fige un écart voulu du cœur (README, « Écarts voulus »)."""
+    override = GOLDEN / "core" / f"{name}.json"
+    return override if impl == "core" and override.exists() else GOLDEN / f"{name}.json"
 
 
-def read_golden(name: str) -> Any:
-    return json.loads(golden_path(name).read_text(encoding="utf-8"))
+def read_golden(name: str, impl: str = "legacy") -> Any:
+    return json.loads(golden_path(name, impl).read_text(encoding="utf-8"))
 
 
 def dump(value: Any) -> str:
