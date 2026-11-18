@@ -4,7 +4,10 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from hannibal_api.application.dispatch import Dispatcher
 from hannibal_api.application.missions import Missions
+from hannibal_api.infrastructure.fleet import InMemoryFleet
+from hannibal_api.infrastructure.persistence.memory import InMemoryCommandStore
 from hannibal_api.socle.container import Container
 from hannibal_api.socle.main import create_app
 from hannibal_api.socle.openapi import OPENAPI_FILE, render
@@ -31,6 +34,7 @@ class MissionHarness:
                 "adapters": AdapterMode.FAKE,
                 "log_json": True,
                 "mission_runner_period_s": 0,
+                "dispatch_poll_period_s": 0,
                 **settings_overrides,
             }  # type: ignore[arg-type]
         )
@@ -39,6 +43,12 @@ class MissionHarness:
         container.clock.override(self.clock)
         self.client = TestClient(create_app(settings, container), raise_server_exceptions=False)
         self.missions: Missions = container.missions()
+        self.dispatcher: Dispatcher = container.dispatcher()
+        self.fleet: InMemoryFleet = container.fleet()
+        self.command_store: InMemoryCommandStore = container.command_store()
+
+    def dispatch_next(self) -> bool:
+        return asyncio.run(self.dispatcher.dispatch_next())
 
     def start(self, **body: Any) -> dict[str, Any]:
         response = self.client.post(
@@ -250,6 +260,149 @@ def test_events_stream_ends_with_phase(harness: MissionHarness) -> None:
     assert [lines[0] for lines in events] == ["event: situation", "event: phase"]
     assert '"phase":"ended"' in events[0][1]
     assert events[1][1] == 'data: {"phase": "ended"}'
+
+
+TURN_ORDER = "ALL SHIPS TURN 30 STBD"
+UNKNOWN_ID = "00000000-0000-4000-8000-000000000000"
+
+
+def submit_for_review(harness: MissionHarness, **body: Any) -> tuple[str, dict[str, Any]]:
+    mission = harness.start()
+    harness.advance(mission["id"], 40)
+    outcome = harness.client.post(
+        f"/v1/missions/{mission['id']}/orders",
+        json={"text": TURN_ORDER, "mode": "review", **body},
+        headers={"X-Hx-User": "alice"},
+    ).json()
+    return mission["id"], outcome
+
+
+def decide(harness: MissionHarness, command_id: str, decision: str) -> Any:
+    return harness.client.post(
+        f"/v1/commands/{command_id}/decision", json={"decision": decision}, headers={"X-Hx-User": "bob"}
+    )
+
+
+def player_radio_count(harness: MissionHarness, mission_id: str) -> int:
+    messages = harness.client.get(f"/v1/missions/{mission_id}").json()["radio_messages"]
+    return sum(message["kind"] == "joueur" for message in messages)
+
+
+def test_reviewed_order_is_applied_only_once_dispatched(harness: MissionHarness) -> None:
+    mission_id, outcome = submit_for_review(harness)
+    assert outcome["accepted"] is True
+    assert outcome["command_state"] == "awaiting_review"
+    assert player_radio_count(harness, mission_id) == 0
+
+    response = decide(harness, outcome["command_id"], "approve")
+    assert response.status_code == 202
+    assert response.json()["state"] == "dispatching"
+    assert response.json()["decided_by"] == "bob"
+    assert player_radio_count(harness, mission_id) == 0
+
+    assert harness.dispatch_next() is True
+    assert harness.dispatch_next() is False
+    command = harness.client.get(f"/v1/commands/{outcome['command_id']}").json()
+    assert command["state"] == "dispatched"
+    assert outcome["command_id"] in harness.fleet.maneuver_by_command
+    assert player_radio_count(harness, mission_id) == 1
+
+    audit = harness.client.get("/v1/audit", params={"mission_id": mission_id}).json()["events"]
+    assert [(event["event"], event["command_id"]) for event in audit if event["command_id"]] == [
+        ("awaiting_review", outcome["command_id"]),
+        ("approved", outcome["command_id"]),
+        ("simulator_dispatched", outcome["command_id"]),
+    ]
+
+
+def test_rejected_order_is_never_sent(harness: MissionHarness) -> None:
+    mission_id, outcome = submit_for_review(harness)
+    assert decide(harness, outcome["command_id"], "reject").json()["state"] == "rejected"
+    second = decide(harness, outcome["command_id"], "approve")
+    assert second.status_code == 409
+    assert second.json()["code"] == "decision_not_allowed"
+    assert harness.dispatch_next() is False
+    assert harness.fleet.dispatch_calls == 0
+    assert player_radio_count(harness, mission_id) == 0
+
+
+def test_invalid_order_creates_no_command(harness: MissionHarness) -> None:
+    mission = harness.start()
+    outcome = harness.client.post(
+        f"/v1/missions/{mission['id']}/orders", json={"text": "BONJOUR", "mode": "review"}
+    ).json()
+    assert outcome["accepted"] is False
+    assert outcome["command_id"] is None
+    assert harness.client.get(f"/v1/commands/{UNKNOWN_ID}").status_code == 404
+
+
+def test_transient_failure_is_retried_without_double_execution(harness: MissionHarness) -> None:
+    mission_id, outcome = submit_for_review(harness)
+    decide(harness, outcome["command_id"], "approve")
+    harness.fleet.failures_before_success = 1
+
+    assert harness.dispatch_next() is True
+    command = harness.client.get(f"/v1/commands/{outcome['command_id']}").json()
+    assert command["state"] == "dispatching"
+    assert command["last_error"] == "sim-bridge injoignable"
+    assert harness.dispatch_next() is False
+
+    harness.clock.now += 1.0
+    assert harness.dispatch_next() is True
+    assert harness.client.get(f"/v1/commands/{outcome['command_id']}").json()["state"] == "dispatched"
+    assert harness.fleet.dispatch_calls == 2
+    assert player_radio_count(harness, mission_id) == 1
+
+
+def test_failed_dispatch_can_be_retried_until_its_deadline() -> None:
+    harness = MissionHarness(dispatch_max_attempts=1, command_validity_s=30)
+    _, outcome = submit_for_review(harness)
+    decide(harness, outcome["command_id"], "approve")
+    harness.fleet.failures_before_success = 1
+    harness.dispatch_next()
+    command = harness.client.get(f"/v1/commands/{outcome['command_id']}").json()
+    assert command["state"] == "dispatch_failed"
+    assert command["last_error"].startswith("attempts_exhausted")
+
+    assert decide(harness, outcome["command_id"], "retry").json()["state"] == "dispatching"
+    harness.dispatch_next()
+    assert harness.client.get(f"/v1/commands/{outcome['command_id']}").json()["state"] == "dispatched"
+
+
+def test_expired_order_is_not_sent() -> None:
+    harness = MissionHarness(command_validity_s=30)
+    _, outcome = submit_for_review(harness)
+    decide(harness, outcome["command_id"], "approve")
+    harness.clock.now += 31
+    harness.dispatch_next()
+    command = harness.client.get(f"/v1/commands/{outcome['command_id']}").json()
+    assert command["state"] == "dispatch_failed"
+    assert command["last_error"] == "deadline_passed"
+    assert harness.fleet.dispatch_calls == 0
+    retry = decide(harness, outcome["command_id"], "retry")
+    assert retry.status_code == 409
+    assert retry.json()["code"] == "command_expired"
+
+
+@pytest.mark.parametrize(
+    ("already_executed", "expected_state"), [(True, "dispatched"), (False, "dispatching")]
+)
+def test_restart_reconciles_dispatches_left_in_flight(
+    harness: MissionHarness, already_executed: bool, expected_state: str
+) -> None:
+    _, outcome = submit_for_review(harness)
+    decide(harness, outcome["command_id"], "approve")
+    claimed = asyncio.run(harness.command_store.claim_next())
+    assert claimed is not None
+    if already_executed:
+        asyncio.run(harness.fleet.dispatch(claimed.command_id, claimed.maneuver))
+
+    asyncio.run(harness.dispatcher.reconcile())
+
+    assert harness.client.get(f"/v1/commands/{outcome['command_id']}").json()["state"] == expected_state
+    assert harness.dispatch_next() is not already_executed
+    assert harness.client.get(f"/v1/commands/{outcome['command_id']}").json()["state"] == "dispatched"
+    assert harness.fleet.dispatch_calls == 1
 
 
 def test_openapi_file_is_up_to_date() -> None:

@@ -5,11 +5,14 @@ import json
 from collections.abc import AsyncIterator
 from http import HTTPStatus
 from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from hannibal_api.application.commands import Commands
 from hannibal_api.application.missions import MissionError, MissionRun, Missions, NotFound
+from hannibal_api.domain.commands import Command, CommandDecision
 from hannibal_contracts import missions as contracts
 from hannibal_contracts.common import ErrorBody
 from hannibal_platform.errors import error_body
@@ -238,8 +241,23 @@ def server_sent_event(event: str, data: str) -> str:
     return f"event: {event}\ndata: {data}\n\n"
 
 
+def to_command(command: Command) -> contracts.Command:
+    return contracts.Command(
+        id=UUID(command.id),
+        mission_id=UUID(command.mission_id),
+        text=command.text,
+        text_en=command.text_en,
+        text_fr=command.text_fr,
+        state=contracts.CommandState(command.state.value),
+        submitted_by=command.submitted_by,
+        decided_by=command.decided_by,
+        parent_id=None if command.parent_id is None else UUID(command.parent_id),
+        last_error=command.last_error,
+    )
+
+
 def missions_router(
-    missions: Missions, settings: BaseServiceSettings, *, stream_period_s: float
+    missions: Missions, commands: Commands, settings: BaseServiceSettings, *, stream_period_s: float
 ) -> APIRouter:
     router = APIRouter(
         prefix="/v1", tags=["missions"], dependencies=[Depends(require_internal_token(settings))]
@@ -313,7 +331,40 @@ def missions_router(
     async def submit_order(
         mission_id: str, body: contracts.SubmitOrder, user: AuthenticatedUser = "local"
     ) -> contracts.OrderOutcome:
-        return to_order_outcome(await missions.submit_order(mission_id, body.text, actor_id=user))
+        if body.mode is contracts.OrderMode.DIRECT:
+            return to_order_outcome(await missions.submit_order(mission_id, body.text, actor_id=user))
+        result, command = await commands.submit_for_review(
+            mission_id,
+            body.text,
+            actor_id=user,
+            parent_id=None if body.parent_id is None else str(body.parent_id),
+        )
+        outcome = to_order_outcome(result)
+        if command is None:
+            return outcome
+        return outcome.model_copy(
+            update={
+                "command_id": UUID(command.id),
+                "command_state": contracts.CommandState(command.state.value),
+            }
+        )
+
+    @router.get("/commands/{command_id}", response_model=contracts.Command, responses=ERROR_RESPONSES)
+    async def read_command(command_id: UUID) -> contracts.Command:
+        return to_command(await commands.read(str(command_id)))
+
+    @router.post(
+        "/commands/{command_id}/decision",
+        status_code=HTTPStatus.ACCEPTED,
+        response_model=contracts.Command,
+        responses=ERROR_RESPONSES,
+        summary="DecideCommand : `202`, l'envoi au simulateur suit en tâche de fond",
+    )
+    async def decide_command(
+        command_id: UUID, body: contracts.DecideCommand, user: AuthenticatedUser = "local"
+    ) -> contracts.Command:
+        decided = await commands.decide(str(command_id), CommandDecision(body.decision.value), actor_id=user)
+        return to_command(decided)
 
     @router.post(
         "/missions/{mission_id}/simulations", response_model=contracts.Simulation, responses=ERROR_RESPONSES

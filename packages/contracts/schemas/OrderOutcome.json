@@ -1,10 +1,48 @@
 {
+  "$defs": {
+    "CommandState": {
+      "enum": [
+        "awaiting_review",
+        "rejected",
+        "dispatching",
+        "dispatched",
+        "dispatch_failed"
+      ],
+      "title": "CommandState",
+      "type": "string"
+    }
+  },
   "$id": "urn:hannibal-x:contracts:1.0.0:OrderOutcome",
   "additionalProperties": false,
   "properties": {
     "accepted": {
       "title": "Accepted",
       "type": "boolean"
+    },
+    "command_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Commande créée en mode `review`",
+      "title": "Command Id"
+    },
+    "command_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CommandState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "hint": {
       "anyOf": [

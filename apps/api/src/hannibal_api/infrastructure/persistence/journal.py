@@ -27,7 +27,7 @@ class MissionAlreadyRecorded(Conflict):
 
 
 @asynccontextmanager
-async def _transaction(engine: AsyncEngine | None) -> AsyncIterator[AsyncConnection]:
+async def transaction(engine: AsyncEngine | None) -> AsyncIterator[AsyncConnection]:
     if engine is None:
         raise DatabaseUnavailable("HX_API_DATABASE_URL non défini")
     try:
@@ -39,7 +39,7 @@ async def _transaction(engine: AsyncEngine | None) -> AsyncIterator[AsyncConnect
         raise DatabaseUnavailable(type(error).__name__) from error
 
 
-async def _write_audit(connection: AsyncConnection, entry: AuditEntry) -> None:
+async def write_audit(connection: AsyncConnection, entry: AuditEntry) -> None:
     if entry.fact is not None:
         await connection.execute(
             insert(integration_outbox).values(
@@ -55,6 +55,7 @@ async def _write_audit(connection: AsyncConnection, entry: AuditEntry) -> None:
         insert(audit_events).values(
             actor_id=entry.actor_id,
             mission_id=entry.mission_id,
+            command_id=entry.command_id,
             event=entry.event.value,
             payload=entry.payload,
         )
@@ -69,7 +70,7 @@ class PostgresMissionJournal:
         self, mission_id: str, scenario_id: str, player_ship: str, owner_id: str, entry: AuditEntry
     ) -> None:
         try:
-            async with _transaction(self._engine) as connection:
+            async with transaction(self._engine) as connection:
                 await connection.execute(
                     insert(missions).values(
                         id=mission_id,
@@ -79,27 +80,27 @@ class PostgresMissionJournal:
                         owner_id=owner_id,
                     )
                 )
-                await _write_audit(connection, entry)
+                await write_audit(connection, entry)
         except IntegrityError as error:
             raise MissionAlreadyRecorded(mission_id=mission_id) from error
 
     async def mission_finished(
         self, mission_id: str, outcome: MissionOutcome, debrief: dict[str, Any] | None, entry: AuditEntry
     ) -> None:
-        async with _transaction(self._engine) as connection:
+        async with transaction(self._engine) as connection:
             await connection.execute(
                 update(missions)
                 .where(missions.c.id == mission_id)
                 .values(phase=outcome.value, finished_at=func.now(), debrief=debrief)
             )
-            await _write_audit(connection, entry)
+            await write_audit(connection, entry)
 
     async def record(self, entry: AuditEntry) -> None:
-        async with _transaction(self._engine) as connection:
-            await _write_audit(connection, entry)
+        async with transaction(self._engine) as connection:
+            await write_audit(connection, entry)
 
     async def interrupt_unfinished(self) -> list[str]:
-        async with _transaction(self._engine) as connection:
+        async with transaction(self._engine) as connection:
             rows = await connection.execute(
                 update(missions)
                 .where(missions.c.phase == "running")
@@ -108,7 +109,7 @@ class PostgresMissionJournal:
             )
             interrupted = [str(mission_id) for (mission_id,) in rows]
             for mission_id in interrupted:
-                await _write_audit(
+                await write_audit(
                     connection,
                     AuditEntry(
                         AuditEvent.MISSION_FINISHED,
@@ -133,7 +134,7 @@ class PostgresAuditReader:
         )
         if mission_id is not None:
             query = query.where(audit_events.c.mission_id == mission_id)
-        async with _transaction(self._engine) as connection:
+        async with transaction(self._engine) as connection:
             rows = (await connection.execute(query)).mappings().all()
         return [
             AuditRecord(
@@ -149,7 +150,7 @@ class PostgresAuditReader:
         ]
 
     async def verify(self) -> ChainVerification:
-        async with _transaction(self._engine) as connection:
+        async with transaction(self._engine) as connection:
             checked, first_broken = (
                 await connection.execute(
                     text("SELECT checked_events, first_broken_seq FROM ops.verify_audit_chain()")

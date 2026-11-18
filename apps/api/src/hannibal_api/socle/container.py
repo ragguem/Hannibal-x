@@ -4,11 +4,15 @@ from dependency_injector import containers, providers
 
 from hannibal_api.application.audit import AuditTrail
 from hannibal_api.application.check_readiness import CheckReadiness
+from hannibal_api.application.commands import Commands
+from hannibal_api.application.dispatch import Dispatcher
 from hannibal_api.application.missions import Missions
 from hannibal_api.domain.readiness import ProbeState
+from hannibal_api.infrastructure.fleet import InMemoryFleet, UnavailableFleet
+from hannibal_api.infrastructure.persistence.commands import PostgresCommandStore
 from hannibal_api.infrastructure.persistence.database import create_database_engine
 from hannibal_api.infrastructure.persistence.journal import PostgresAuditReader, PostgresMissionJournal
-from hannibal_api.infrastructure.persistence.memory import InMemoryMissionJournal
+from hannibal_api.infrastructure.persistence.memory import InMemoryCommandStore, InMemoryMissionJournal
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
 from hannibal_api.infrastructure.simulator import InMemorySimulator, UnavailableSimulator
@@ -75,4 +79,29 @@ class Container(containers.DeclarativeContainer):
         journal=journal,
         clock=clock,
         runner_period_s=settings.provided.mission_runner_period_s,
+    )
+
+    fleet = providers.Selector(
+        mode, fake=providers.Singleton(InMemoryFleet), real=providers.Singleton(UnavailableFleet)
+    )
+    command_store = providers.Selector(
+        mode,
+        fake=providers.Singleton(InMemoryCommandStore, journal=in_memory_journal, clock=clock),
+        real=providers.Singleton(PostgresCommandStore, engine=database_engine),
+    )
+    dispatcher = providers.Singleton(
+        Dispatcher,
+        store=command_store,
+        fleet=fleet,
+        missions=missions,
+        max_attempts=settings.provided.dispatch_max_attempts,
+        attempt_timeout_s=settings.provided.dispatch_attempt_timeout_s,
+        poll_period_s=settings.provided.dispatch_poll_period_s,
+    )
+    commands = providers.Singleton(
+        Commands,
+        missions=missions,
+        store=command_store,
+        wake_dispatcher=dispatcher.provided.wake,
+        validity_s=settings.provided.command_validity_s,
     )

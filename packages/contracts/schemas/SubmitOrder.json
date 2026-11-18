@@ -1,13 +1,35 @@
 {
+  "$defs": {
+    "OrderMode": {
+      "enum": [
+        "direct",
+        "review"
+      ],
+      "title": "OrderMode",
+      "type": "string"
+    }
+  },
   "$id": "urn:hannibal-x:contracts:1.0.0:SubmitOrder",
   "additionalProperties": false,
   "properties": {
     "mode": {
-      "const": "direct",
+      "$ref": "#/$defs/OrderMode",
       "default": "direct",
-      "description": "`direct` : émis sans revue. La revue arrive avec l'interprétation vocale.",
-      "title": "Mode",
-      "type": "string"
+      "description": "`direct` : émis sans revue. `review` : attend `POST /commands/{id}/decision`."
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Commande que cet ordre corrige (mode `review`)",
+      "title": "Parent Id"
     },
     "text": {
       "description": "Message MTP, ex. `ALL SHIPS TURN 30 STBD`",

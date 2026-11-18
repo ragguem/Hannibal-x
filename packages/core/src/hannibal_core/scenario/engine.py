@@ -238,6 +238,23 @@ class ScenarioEngine:
                     self._free(run, n, o)
 
     def player_order(self, text: str, force_to: list[str] | None = None) -> dict[str, Any]:
+        checked = self.check_order(text)
+        if not checked["ok"]:
+            return checked
+        run = self.run
+        me = run["player"]
+        to, orders = checked["to"], checked["orders"]
+        self.execute(to, orders, me, True)
+        run["plog"].append({"t": self._t(), "to": to, "orders": orders})
+        for o in orders:
+            if o["type"] == "EMERG":
+                for c in run["contacts"]:
+                    run["reported"].add(c)
+        self.say(me.upper(), "TOUS" if to == ["TOUS"] else to[0], checked["en"], checked["fr"], "joueur")
+        return {"ok": True, "fr": checked["fr"], "en": checked["en"]}
+
+    def check_order(self, text: str) -> dict[str, Any]:
+        """Valide un ordre du joueur sans rien appliquer : destinataires, ordres, textes EN et FR."""
         run = self.run
         me, guide = run["player"], run["guide"]
         pr = mtp.parse(text, list(run["ships"]))
@@ -253,16 +270,13 @@ class ScenarioEngine:
             }
         if me != guide and motion and to == ["TOUS"]:
             to = [me.upper()]
-        txt_en = mtp.to_text(to, orders, me)
-        fr = mtp.fr_message(to, orders)
-        self.execute(to, orders, me, True)
-        run["plog"].append({"t": self._t(), "to": to, "orders": orders})
-        for o in orders:
-            if o["type"] == "EMERG":
-                for c in run["contacts"]:
-                    run["reported"].add(c)
-        self.say(me.upper(), "TOUS" if to == ["TOUS"] else to[0], txt_en, fr, "joueur")
-        return {"ok": True, "fr": fr, "en": txt_en}
+        return {
+            "ok": True,
+            "to": to,
+            "orders": orders,
+            "en": mtp.to_text(to, orders, me),
+            "fr": mtp.fr_message(to, orders),
+        }
 
     def classify(self, cid: str, cls: str) -> bool:
         c = self.run["contacts"].get(cid)

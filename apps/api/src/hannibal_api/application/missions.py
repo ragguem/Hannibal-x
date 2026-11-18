@@ -257,6 +257,17 @@ class Missions:
             )
         return result
 
+    def check_order(self, mission_id: str, text: str) -> dict[str, Any]:
+        return self._read_active(mission_id).engine.check_order(text)
+
+    def is_active(self, mission_id: str) -> bool:
+        run = self._runs_by_id.get(mission_id)
+        return run is not None and run.active
+
+    def apply_dispatched_order(self, mission_id: str, text: str) -> dict[str, Any]:
+        """Applique au moteur un ordre que le simulateur a accepté (le pilotage vit encore dans le moteur)."""
+        return self._read_active(mission_id).engine.player_order(text)
+
     def simulate_order(self, mission_id: str, text: str) -> dict[str, Any]:
         return self.read(mission_id).engine.simulate(text)
 

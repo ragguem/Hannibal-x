@@ -23,6 +23,8 @@ MODELS: tuple[type[BaseModel], ...] = (
     m.Mission,
     m.SubmitOrder,
     m.OrderOutcome,
+    m.DecideCommand,
+    m.Command,
     m.SetHelm,
     m.Helm,
     m.ClassifyContact,

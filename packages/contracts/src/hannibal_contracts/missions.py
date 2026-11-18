@@ -7,7 +7,7 @@ CPA : distance au point de rapprochement maximal ; TCPA : temps restant avant ce
 """
 
 from enum import StrEnum
-from typing import Literal
+from uuid import UUID
 
 from pydantic import Field
 
@@ -159,12 +159,26 @@ class Mission(ContractModel):
     )
 
 
+class OrderMode(StrEnum):
+    DIRECT = "direct"
+    REVIEW = "review"
+
+
+class CommandState(StrEnum):
+    AWAITING_REVIEW = "awaiting_review"
+    REJECTED = "rejected"
+    DISPATCHING = "dispatching"
+    DISPATCHED = "dispatched"
+    DISPATCH_FAILED = "dispatch_failed"
+
+
 class SubmitOrder(ContractModel):
     text: str = Field(min_length=1, max_length=500, description="Message MTP, ex. `ALL SHIPS TURN 30 STBD`")
-    mode: Literal["direct"] = Field(
-        default="direct",
-        description="`direct` : émis sans revue. La revue arrive avec l'interprétation vocale.",
+    mode: OrderMode = Field(
+        default=OrderMode.DIRECT,
+        description="`direct` : émis sans revue. `review` : attend `POST /commands/{id}/decision`.",
     )
+    parent_id: UUID | None = Field(default=None, description="Commande que cet ordre corrige (mode `review`)")
 
 
 class OrderOutcome(ContractModel):
@@ -173,6 +187,33 @@ class OrderOutcome(ContractModel):
     text_fr: str | None = None
     refusal_reason: str | None = Field(default=None, description="Motif du refus, lisible par l'opérateur")
     hint: str | None = None
+    command_id: UUID | None = Field(default=None, description="Commande créée en mode `review`")
+    command_state: CommandState | None = None
+
+
+class CommandDecision(StrEnum):
+    APPROVE = "approve"
+    REJECT = "reject"
+    RETRY = "retry"
+
+
+class DecideCommand(ContractModel):
+    decision: CommandDecision = Field(
+        description="`retry` : renvoyer une commande `dispatch_failed` avant son échéance de validité"
+    )
+
+
+class Command(ContractModel):
+    id: UUID
+    mission_id: UUID
+    text: str
+    text_en: str
+    text_fr: str
+    state: CommandState
+    submitted_by: str
+    decided_by: str | None = None
+    parent_id: UUID | None = None
+    last_error: str | None = Field(default=None, description="Motif du dernier échec d'envoi")
 
 
 class SetHelm(ContractModel):

@@ -218,6 +218,106 @@
         "title": "ClassifyContact",
         "type": "object"
       },
+      "Command": {
+        "additionalProperties": false,
+        "properties": {
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motif du dernier échec d'envoi",
+            "title": "Last Error"
+          },
+          "mission_id": {
+            "format": "uuid",
+            "title": "Mission Id",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CommandState"
+          },
+          "submitted_by": {
+            "title": "Submitted By",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "text_en": {
+            "title": "Text En",
+            "type": "string"
+          },
+          "text_fr": {
+            "title": "Text Fr",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mission_id",
+          "text",
+          "text_en",
+          "text_fr",
+          "state",
+          "submitted_by"
+        ],
+        "title": "Command",
+        "type": "object"
+      },
+      "CommandDecision": {
+        "enum": [
+          "approve",
+          "reject",
+          "retry"
+        ],
+        "title": "CommandDecision",
+        "type": "string"
+      },
+      "CommandState": {
+        "enum": [
+          "awaiting_review",
+          "rejected",
+          "dispatching",
+          "dispatched",
+          "dispatch_failed"
+        ],
+        "title": "CommandState",
+        "type": "string"
+      },
       "Contact": {
         "additionalProperties": false,
         "properties": {
@@ -413,6 +513,20 @@
           "classification_by_contact"
         ],
         "title": "Debrief",
+        "type": "object"
+      },
+      "DecideCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/CommandDecision",
+            "description": "`retry` : renvoyer une commande `dispatch_failed` avant son échéance de validité"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "DecideCommand",
         "type": "object"
       },
       "DependencyState": {
@@ -763,12 +877,43 @@
         "title": "Objective",
         "type": "object"
       },
+      "OrderMode": {
+        "enum": [
+          "direct",
+          "review"
+        ],
+        "title": "OrderMode",
+        "type": "string"
+      },
       "OrderOutcome": {
         "additionalProperties": false,
         "properties": {
           "accepted": {
             "title": "Accepted",
             "type": "boolean"
+          },
+          "command_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Commande créée en mode `review`",
+            "title": "Command Id"
+          },
+          "command_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CommandState"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "hint": {
             "anyOf": [
@@ -1355,11 +1500,22 @@
         "additionalProperties": false,
         "properties": {
           "mode": {
-            "const": "direct",
+            "$ref": "#/components/schemas/OrderMode",
             "default": "direct",
-            "description": "`direct` : émis sans revue. La revue arrive avec l'interprétation vocale.",
-            "title": "Mode",
-            "type": "string"
+            "description": "`direct` : émis sans revue. `review` : attend `POST /commands/{id}/decision`."
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Commande que cet ordre corrige (mode `review`)",
+            "title": "Parent Id"
           },
           "text": {
             "description": "Message MTP, ex. `ALL SHIPS TURN 30 STBD`",
@@ -1608,6 +1764,214 @@
         "summary": "Verify Audit",
         "tags": [
           "registre"
+        ]
+      }
+    },
+    "/v1/commands/{command_id}": {
+      "get": {
+        "operationId": "read_command_v1_commands__command_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "command_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Command Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Command"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Read Command",
+        "tags": [
+          "missions"
+        ]
+      }
+    },
+    "/v1/commands/{command_id}/decision": {
+      "post": {
+        "operationId": "decide_command_v1_commands__command_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "command_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Command Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Command"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "DecideCommand : `202`, l'envoi au simulateur suit en tâche de fond",
+        "tags": [
+          "missions"
         ]
       }
     },

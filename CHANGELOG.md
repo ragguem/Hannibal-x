@@ -20,6 +20,12 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   l'en-tête `X-Hx-User` ; flux SSE `GET /v1/missions/{id}/events` (`situation`, puis `phase` en fin de mission).
 - Compose : service `migrate` exécuté avant l'API ; port hôte PostgreSQL réglable par `HX_DEV_DB_PORT`
   (5432 est souvent pris par un PostgreSQL local).
+- Revue des ordres : `POST /v1/missions/{id}/orders` en mode `review` (`awaiting_review`, `parent_id`),
+  `GET /v1/commands/{id}`, `POST /v1/commands/{id}/decision` (`approve`, `reject`, `retry`, réponse `202`).
+- Envoi fiable (migration `0002_ops_commands`) : `ops.commands`, `ops.command_dispatches`, répartiteur en tâche
+  de fond (un envoi à la fois, attente croissante, 5 tentatives, validité de 30 s), réconciliation des envois
+  restés `in_flight` au redémarrage. L'ordre n'est appliqué au moteur qu'une fois accepté par le simulateur ;
+  en mode `real`, l'envoi échoue en transitoire tant que le client `sim-bridge` n'est pas livré.
 - Tests `-m postgres` sur une base jetable désignée par `HX_TEST_DATABASE_URL` (ignorés sinon).
 
 ## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait

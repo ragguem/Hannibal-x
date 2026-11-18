@@ -13,6 +13,10 @@ class AuditEvent(StrEnum):
     REJECTED = "rejected"
     HELM = "helm"
     CONTACT_CLASSIFIED = "contact_classified"
+    AWAITING_REVIEW = "awaiting_review"
+    SIMULATOR_DISPATCHED = "simulator_dispatched"
+    DISPATCH_RETRY = "dispatch_retry"
+    DISPATCH_FAILED = "dispatch_failed"
 
 
 class FactType(StrEnum):
@@ -39,6 +43,7 @@ class AuditEntry:
     mission_id: str | None
     payload: dict[str, Any] = field(default_factory=dict)
     fact: FactType | None = None
+    command_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

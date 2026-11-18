@@ -1,0 +1,97 @@
+{
+  "$defs": {
+    "CommandState": {
+      "enum": [
+        "awaiting_review",
+        "rejected",
+        "dispatching",
+        "dispatched",
+        "dispatch_failed"
+      ],
+      "title": "CommandState",
+      "type": "string"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:Command",
+  "additionalProperties": false,
+  "properties": {
+    "decided_by": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decided By"
+    },
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "last_error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Motif du dernier échec d'envoi",
+      "title": "Last Error"
+    },
+    "mission_id": {
+      "format": "uuid",
+      "title": "Mission Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "state": {
+      "$ref": "#/$defs/CommandState"
+    },
+    "submitted_by": {
+      "title": "Submitted By",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "text_en": {
+      "title": "Text En",
+      "type": "string"
+    },
+    "text_fr": {
+      "title": "Text Fr",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "mission_id",
+    "text",
+    "text_en",
+    "text_fr",
+    "state",
+    "submitted_by"
+  ],
+  "title": "Command",
+  "type": "object"
+}

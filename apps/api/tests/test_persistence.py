@@ -15,6 +15,8 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from hannibal_api.domain.audit import AuditEntry, AuditEvent, FactType, MissionOutcome
+from hannibal_api.domain.commands import Command, CommandDecision, CommandState
+from hannibal_api.infrastructure.persistence.commands import PostgresCommandStore
 from hannibal_api.infrastructure.persistence.database import create_database_engine
 from hannibal_api.infrastructure.persistence.journal import PostgresAuditReader, PostgresMissionJournal
 from hannibal_api.infrastructure.simulator import InMemorySimulator
@@ -27,6 +29,7 @@ pytestmark = pytest.mark.postgres
 
 DATABASE_URL = os.environ.get("HX_TEST_DATABASE_URL")
 MISSION_ID = "6f1c1a52-2f4e-4d39-9a0e-1b4ad7c0e001"
+COMMAND_IDS = ("6f1c1a52-2f4e-4d39-9a0e-1b4ad7c0c001", "6f1c1a52-2f4e-4d39-9a0e-1b4ad7c0c002")
 
 
 @pytest.fixture
@@ -143,6 +146,75 @@ async def test_single_running_mission_and_restart_recovery(engine: AsyncEngine) 
     last = (await PostgresAuditReader(engine).read(MISSION_ID, after_seq=0, limit=10))[-1]
     assert (last.event, last.payload["reason"]) == ("mission_finished", "api_restarted")
     assert (await PostgresAuditReader(engine).verify()).intact
+
+
+def review_command(command_id: str) -> Command:
+    return Command(
+        id=command_id,
+        mission_id=MISSION_ID,
+        text="ALL SHIPS TURN 30 STBD",
+        maneuver={"to": ["TOUS"], "orders": [], "en": "ALL SHIPS TURN 30 STBD", "fr": "Tous : 30 à droite"},
+        state=CommandState.AWAITING_REVIEW,
+        submitted_by="alice",
+    )
+
+
+def command_entry(event: AuditEvent, command_id: str) -> AuditEntry:
+    return AuditEntry(event, "bob", MISSION_ID, {}, command_id=command_id)
+
+
+async def test_command_store_queues_retries_and_dispatches(engine: AsyncEngine) -> None:
+    await PostgresMissionJournal(engine).mission_started(
+        MISSION_ID, "s1", "hannibal", "alice", started_entry()
+    )
+    store = PostgresCommandStore(engine)
+    first, second = COMMAND_IDS
+    for command_id in COMMAND_IDS:
+        await store.create(review_command(command_id), command_entry(AuditEvent.AWAITING_REVIEW, command_id))
+
+    approve = (CommandState.AWAITING_REVIEW, CommandDecision.APPROVE, "bob")
+    decided = await store.decide(first, *approve, 30, command_entry(AuditEvent.APPROVED, first))
+    assert decided is not None
+    assert (decided.state, decided.decided_by) == (CommandState.DISPATCHING, "bob")
+    assert await store.decide(first, *approve, 30, command_entry(AuditEvent.APPROVED, first)) is None
+    await store.decide(second, *approve, 0, command_entry(AuditEvent.APPROVED, second))
+
+    claimed = await store.claim_next()
+    assert claimed is not None
+    assert (claimed.command_id, claimed.attempts, claimed.expired) == (first, 1, False)
+    assert [dispatch.command_id for dispatch in await store.in_flight()] == [first]
+    await store.retry_later(
+        first, 0, "sim-bridge injoignable", command_entry(AuditEvent.DISPATCH_RETRY, first)
+    )
+
+    again = await store.claim_next()
+    assert again is not None
+    assert (again.command_id, again.attempts) == (first, 2)
+    await store.mark_dispatched(first, command_entry(AuditEvent.SIMULATOR_DISPATCHED, first))
+
+    expired = await store.claim_next()
+    assert expired is not None
+    assert (expired.command_id, expired.expired) == (second, True)
+    await store.mark_failed(second, "deadline_passed", command_entry(AuditEvent.DISPATCH_FAILED, second))
+    retry = (CommandState.DISPATCH_FAILED, CommandDecision.RETRY, "bob")
+    assert await store.decide(second, *retry, 30, command_entry(AuditEvent.APPROVED, second)) is None
+    assert await store.claim_next() is None
+
+    dispatched = await store.get(first)
+    assert dispatched is not None
+    assert dispatched.state is CommandState.DISPATCHED
+    failed = await store.get(second)
+    assert failed is not None
+    assert (failed.state, failed.last_error) == (CommandState.DISPATCH_FAILED, "deadline_passed")
+    reader = PostgresAuditReader(engine)
+    events = [(r.event, r.command_id) for r in await reader.read(MISSION_ID, 0, 50) if r.command_id == first]
+    assert [event for event, _ in events] == [
+        "awaiting_review",
+        "approved",
+        "dispatch_retry",
+        "simulator_dispatched",
+    ]
+    assert (await reader.verify()).intact
 
 
 def test_api_records_a_mission_in_postgres(migrated_database: str) -> None:

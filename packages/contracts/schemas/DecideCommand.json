@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "CommandDecision": {
+      "enum": [
+        "approve",
+        "reject",
+        "retry"
+      ],
+      "title": "CommandDecision",
+      "type": "string"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:DecideCommand",
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "$ref": "#/$defs/CommandDecision",
+      "description": "`retry` : renvoyer une commande `dispatch_failed` avant son échéance de validité"
+    }
+  },
+  "required": [
+    "decision"
+  ],
+  "title": "DecideCommand",
+  "type": "object"
+}

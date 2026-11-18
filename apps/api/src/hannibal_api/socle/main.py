@@ -24,14 +24,18 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
     settings = settings or ApiSettings()
     container = container or Container(settings=settings)
     missions = container.missions()
+    dispatcher = container.dispatcher()
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         try:
             await missions.interrupt_unfinished()
+            await dispatcher.reconcile()
         except HannibalError as error:
-            log.warning("unfinished_missions_not_checked", code=error.code, detail=error.detail)
+            log.warning("unfinished_work_not_checked", code=error.code, detail=error.detail)
+        dispatcher.start()
         yield
+        await dispatcher.stop()
         await missions.shutdown()
         engine = container.database_engine()
         if engine is not None:
@@ -52,7 +56,11 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
     app.include_router(
         system_router(container.check_readiness(), service=settings.service_name, version=__version__)
     )
-    app.include_router(missions_router(missions, settings, stream_period_s=settings.mission_stream_period_s))
+    app.include_router(
+        missions_router(
+            missions, container.commands(), settings, stream_period_s=settings.mission_stream_period_s
+        )
+    )
     app.include_router(audit_router(container.audit_trail(), settings))
     app.add_exception_handler(MissionError, on_mission_error)
     return app
