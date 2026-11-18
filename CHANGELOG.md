@@ -32,6 +32,10 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   fin de chaîne) : `RoleSeeder`, `GameRoleSeeder`, `InitialAdminSeeder` (créé si absent, jamais modifié ;
   mot de passe par `HX_BACKOFFICE_INITIAL_ADMIN_PASSWORD`). Mode `migratedb` et service compose
   `backoffice-migrate` ; le serveur ne migre pas au démarrage.
+- `apps/backoffice` : session par cookie `hx_session` (`POST`/`GET`/`DELETE /v1/session`, contrats `SignIn` et
+  `SessionView`) ; jeton aléatoire stocké haché (SHA-256), expiration glissante 30 min et absolue 12 h. Une
+  politique d'autorisation par permission ; relais YARP vers `apps/api` par route et permission, qui retire
+  cookies et en-têtes `X-Hx-User`/`X-Internal-Token` entrants puis pose l'identité de session et le jeton interne.
 - Tests `-m postgres` sur une base jetable désignée par `HX_TEST_DATABASE_URL` (ignorés sinon).
 
 ## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait

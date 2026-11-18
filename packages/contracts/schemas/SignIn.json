@@ -1,0 +1,24 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:SignIn",
+  "additionalProperties": false,
+  "properties": {
+    "password": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Password",
+      "type": "string"
+    },
+    "username": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "username",
+    "password"
+  ],
+  "title": "SignIn",
+  "type": "object"
+}

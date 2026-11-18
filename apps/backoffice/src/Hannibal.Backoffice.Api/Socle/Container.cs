@@ -1,3 +1,4 @@
+using Hannibal.Backoffice.Application.Identity;
 using Hannibal.Backoffice.Application.Readiness;
 using Hannibal.Backoffice.Domain;
 using Hannibal.Backoffice.Infrastructure.Persistence;
@@ -19,6 +20,14 @@ public static class Container
         services.AddIdentityPersistence(
             sp => Settings(sp).DatabaseUrl ?? throw new InvalidOperationException($"{BackofficeSettings.Prefix}DATABASE_URL non défini"),
             sp => new InitialAdminOptions(Settings(sp).InitialAdminUsername, Settings(sp).InitialAdminPassword));
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<InMemoryIdentityStore>();
+        services.AddScoped<IIdentityStore>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryIdentityStore>()
+            : ActivatorUtilities.CreateInstance<EfIdentityStore>(sp));
+        services.AddScoped<Sessions>();
+        services.AddSessionAuthentication();
+        services.AddApiRelay(sp => Settings(sp).ApiUrl ?? new Uri("http://127.0.0.1:8000"));
         return services;
     }
 

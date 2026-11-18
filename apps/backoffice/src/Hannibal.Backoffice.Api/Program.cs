@@ -25,7 +25,11 @@ app.UseRequestId();
 app.UseErrorBodies();
 app.UseRouting();
 app.UseHttpMetrics();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapSystem();
+app.MapSession();
+app.MapReverseProxy();
 await app.RunAsync().ConfigureAwait(false);
 
 public partial class Program;

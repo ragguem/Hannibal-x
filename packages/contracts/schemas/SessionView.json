@@ -1,0 +1,37 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:SessionView",
+  "additionalProperties": false,
+  "properties": {
+    "expires_at": {
+      "description": "Fin de la session sans activité ; prolongée à chaque requête",
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "permissions": {
+      "description": "Permissions du rôle, ex. `command:decide`",
+      "items": {
+        "type": "string"
+      },
+      "title": "Permissions",
+      "type": "array"
+    },
+    "role": {
+      "description": "`operator`, `supervisor` ou `admin`",
+      "title": "Role",
+      "type": "string"
+    },
+    "username": {
+      "title": "Username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "username",
+    "role",
+    "permissions",
+    "expires_at"
+  ],
+  "title": "SessionView",
+  "type": "object"
+}

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from hannibal_contracts import CONTRACTS_VERSION, audit
+from hannibal_contracts import CONTRACTS_VERSION, audit, session
 from hannibal_contracts import missions as m
 from hannibal_contracts.common import DependencyStatus, ErrorBody, Health, Readiness
 
@@ -36,6 +36,8 @@ MODELS: tuple[type[BaseModel], ...] = (
     audit.AuditEventView,
     audit.AuditPage,
     audit.AuditIntegrity,
+    session.SignIn,
+    session.SessionView,
 )
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
 

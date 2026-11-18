@@ -24,13 +24,13 @@ internal static class Backoffice
 /// <summary>Valide une réponse contre le schéma exporté par `packages/contracts` (même source que le code Python).</summary>
 internal static class Contract
 {
-    private static readonly ConcurrentDictionary<string, JsonSchema> Schemas = new();
+    private static readonly ConcurrentDictionary<string, Lazy<JsonSchema>> Schemas = new();
 
     public static async Task<JsonNode> AssertMatchesAsync(HttpResponseMessage response, string schema)
     {
         var text = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var document = JsonDocument.Parse(text);
-        var loaded = Schemas.GetOrAdd(schema, name => JsonSchema.FromFile(Path.Combine(AppContext.BaseDirectory, "schemas", name + ".json")));
+        var loaded = Schemas.GetOrAdd(schema, name => new Lazy<JsonSchema>(() => JsonSchema.FromFile(Path.Combine(AppContext.BaseDirectory, "schemas", name + ".json")))).Value;
         var result = loaded.Evaluate(document.RootElement, new EvaluationOptions { OutputFormat = OutputFormat.List });
         Assert.True(result.IsValid, $"{schema} invalide : {text}");
         return JsonNode.Parse(text)!;
