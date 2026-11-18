@@ -14,6 +14,7 @@ COPY packages/platform/pyproject.toml packages/platform/
 COPY packages/contracts/pyproject.toml packages/contracts/
 COPY packages/core/pyproject.toml packages/core/
 COPY apps/api/pyproject.toml apps/api/
+COPY services/sim_bridge/pyproject.toml services/sim_bridge/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package hannibal-api
 COPY packages/platform packages/platform

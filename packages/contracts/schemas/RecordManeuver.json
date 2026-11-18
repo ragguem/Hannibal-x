@@ -1,0 +1,23 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:RecordManeuver",
+  "additionalProperties": false,
+  "properties": {
+    "command_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Command Id",
+      "type": "string"
+    },
+    "maneuver": {
+      "additionalProperties": true,
+      "title": "Maneuver",
+      "type": "object"
+    }
+  },
+  "required": [
+    "command_id",
+    "maneuver"
+  ],
+  "title": "RecordManeuver",
+  "type": "object"
+}

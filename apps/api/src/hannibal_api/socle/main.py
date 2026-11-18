@@ -11,7 +11,7 @@ from hannibal_api.presentation.audit import audit_router
 from hannibal_api.presentation.missions import missions_router, on_mission_error
 from hannibal_api.presentation.system import system_router
 from hannibal_api.socle.container import Container
-from hannibal_api.socle.settings import ApiSettings
+from hannibal_api.socle.settings import AdapterMode, ApiSettings
 from hannibal_contracts import CONTRACTS_VERSION
 from hannibal_platform.app import create_service_app
 from hannibal_platform.errors import HannibalError
@@ -37,6 +37,8 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
         yield
         await dispatcher.stop()
         await missions.shutdown()
+        if settings.adapters is AdapterMode.REAL:
+            await container.sim_bridge().aclose()
         engine = container.database_engine()
         if engine is not None:
             await engine.dispose()

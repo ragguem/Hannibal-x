@@ -26,6 +26,10 @@ class ApiSettings(BaseServiceSettings):
         default=0.25, gt=0, description="Rythme des événements `situation`"
     )
     simulator_origin_lat_lon: tuple[float, float] = (43.0, 6.0)
+    sim_bridge_url: str | None = Field(
+        default=None, description="Sans URL, chaque appel échoue en transitoire"
+    )
+    sim_bridge_timeout_s: float = Field(default=2.0, gt=0)
     command_validity_s: float = Field(
         default=30.0, gt=0, description="Après la décision, délai au-delà duquel un ordre n'est plus envoyé"
     )
@@ -38,6 +42,18 @@ class ApiSettings(BaseServiceSettings):
     @property
     def database_dsn(self) -> str | None:
         return self.database_url.get_secret_value() if self.database_url else None
+
+    @property
+    def internal_token_value(self) -> str | None:
+        return self.internal_token.get_secret_value() if self.internal_token else None
+
+    @property
+    def sim_bridge_base_url(self) -> str:
+        return self.sim_bridge_url.rstrip("/") if self.sim_bridge_url else ""
+
+    @property
+    def sim_bridge_health_url(self) -> str | None:
+        return f"{self.sim_bridge_base_url}/health" if self.sim_bridge_url else None
 
     @property
     def ollama_health_url(self) -> str | None:

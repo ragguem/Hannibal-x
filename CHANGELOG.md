@@ -36,6 +36,19 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   `SessionView`) ; jeton aléatoire stocké haché (SHA-256), expiration glissante 30 min et absolue 12 h. Une
   politique d'autorisation par permission ; relais YARP vers `apps/api` par route et permission, qui retire
   cookies et en-têtes `X-Hx-User`/`X-Internal-Token` entrants puis pose l'identité de session et le jeton interne.
+- `services/sim_bridge` : pont vers LOTUSim (`POST`/`DELETE /ships`, `PUT /waypoints` pour toute la flotte en un
+  appel par pas, `GET /state`), registre idempotent des manœuvres (`POST /maneuvers`, `GET /maneuvers/{id}`,
+  journal JSON Lines relu au démarrage) ; couche anti-corruption ROS 2 (`MASCmdArray`, `VesselPositionArray`,
+  `SetWaypoints`, lacet LOTUSim → cap vrai) et monde cinématique sans ROS pour le poste. Contrats internes
+  `SpawnFleet`, `SteerFleet`, `WorldState`, `RecordManeuver`, `ManeuverRecord`. Image `kinematic` et `ros`
+  (Jazzy, `lotusim_msgs` compilé depuis `interfaces/`), service compose `sim-bridge`.
+- `apps/api` : client `SimBridgeClient` (simulateur et `FleetPort`) en mode `real`, sonde `sim-bridge` requise ;
+  modèle cinématique partagé dans `hannibal_core.fleet.vessel_model`.
+
+### Reporté
+
+- Pilotage par intentions (`PUT /intents`, plan 1.2.0 § 3.1) : au Lot 2, le contrôleur de flotte reste dans le
+  moteur, qui lit l'écart au poste à chaque pas ; `sim-bridge` reçoit les points de route.
 - Tests `-m postgres` sur une base jetable désignée par `HX_TEST_DATABASE_URL` (ignorés sinon).
 
 ## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait

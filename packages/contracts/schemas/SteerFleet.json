@@ -1,0 +1,44 @@
+{
+  "$defs": {
+    "GeoWaypoint": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Lon",
+          "type": "number"
+        }
+      },
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "title": "GeoWaypoint",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:SteerFleet",
+  "additionalProperties": false,
+  "description": "Points de route du pas de pilotage, un par navire, envoyés en un seul appel.",
+  "properties": {
+    "waypoints": {
+      "additionalProperties": {
+        "$ref": "#/$defs/GeoWaypoint"
+      },
+      "title": "Waypoints",
+      "type": "object"
+    }
+  },
+  "required": [
+    "waypoints"
+  ],
+  "title": "SteerFleet",
+  "type": "object"
+}

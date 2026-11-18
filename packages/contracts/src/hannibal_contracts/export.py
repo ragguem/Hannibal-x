@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from hannibal_contracts import CONTRACTS_VERSION, audit, session
 from hannibal_contracts import missions as m
+from hannibal_contracts import sim_bridge as sb
 from hannibal_contracts.common import DependencyStatus, ErrorBody, Health, Readiness
 
 MODELS: tuple[type[BaseModel], ...] = (
@@ -38,6 +39,11 @@ MODELS: tuple[type[BaseModel], ...] = (
     audit.AuditIntegrity,
     session.SignIn,
     session.SessionView,
+    sb.SpawnFleet,
+    sb.SteerFleet,
+    sb.WorldState,
+    sb.RecordManeuver,
+    sb.ManeuverRecord,
 )
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
 

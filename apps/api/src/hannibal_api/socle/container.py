@@ -8,14 +8,15 @@ from hannibal_api.application.commands import Commands
 from hannibal_api.application.dispatch import Dispatcher
 from hannibal_api.application.missions import Missions
 from hannibal_api.domain.readiness import ProbeState
-from hannibal_api.infrastructure.fleet import InMemoryFleet, UnavailableFleet
+from hannibal_api.infrastructure.fleet import InMemoryFleet
 from hannibal_api.infrastructure.persistence.commands import PostgresCommandStore
 from hannibal_api.infrastructure.persistence.database import create_database_engine
 from hannibal_api.infrastructure.persistence.journal import PostgresAuditReader, PostgresMissionJournal
 from hannibal_api.infrastructure.persistence.memory import InMemoryCommandStore, InMemoryMissionJournal
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
-from hannibal_api.infrastructure.simulator import InMemorySimulator, UnavailableSimulator
+from hannibal_api.infrastructure.sim_bridge import SimBridgeClient
+from hannibal_api.infrastructure.simulator import InMemorySimulator
 from hannibal_api.socle.settings import AdapterMode, ApiSettings
 
 
@@ -35,9 +36,17 @@ class Container(containers.DeclarativeContainer):
             url=settings.provided.ollama_health_url,
             timeout_s=settings.provided.readiness_timeout_s,
         ),
+        providers.Singleton(
+            HttpProbe,
+            name="sim-bridge",
+            url=settings.provided.sim_bridge_health_url,
+            timeout_s=settings.provided.readiness_timeout_s,
+            required=True,
+        ),
     )
     fake_probes = providers.List(
         providers.Singleton(FakeProbe, name="postgres"),
+        providers.Singleton(FakeProbe, name="sim-bridge"),
         providers.Singleton(FakeProbe, name="ollama", state=ProbeState.DISABLED, required=False),
     )
     probes = providers.Selector(mode, fake=fake_probes, real=real_probes)
@@ -49,12 +58,18 @@ class Container(containers.DeclarativeContainer):
     )
 
     clock = providers.Object(time.monotonic)
+    sim_bridge = providers.Singleton(
+        SimBridgeClient,
+        base_url=settings.provided.sim_bridge_base_url,
+        token=settings.provided.internal_token_value,
+        timeout_s=settings.provided.sim_bridge_timeout_s,
+    )
     simulator = providers.Selector(
         mode,
         fake=providers.Singleton(
             InMemorySimulator, origin_lat_lon=settings.provided.simulator_origin_lat_lon, clock=clock
         ),
-        real=providers.Singleton(UnavailableSimulator),
+        real=sim_bridge,
     )
     scenarios = providers.Singleton(YamlScenarioCatalog, directory=settings.provided.scenarios_dir)
 
@@ -81,9 +96,7 @@ class Container(containers.DeclarativeContainer):
         runner_period_s=settings.provided.mission_runner_period_s,
     )
 
-    fleet = providers.Selector(
-        mode, fake=providers.Singleton(InMemoryFleet), real=providers.Singleton(UnavailableFleet)
-    )
+    fleet = providers.Selector(mode, fake=providers.Singleton(InMemoryFleet), real=sim_bridge)
     command_store = providers.Selector(
         mode,
         fake=providers.Singleton(InMemoryCommandStore, journal=in_memory_journal, clock=clock),

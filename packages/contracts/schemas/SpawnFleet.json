@@ -1,0 +1,56 @@
+{
+  "$defs": {
+    "ShipPlacement": {
+      "additionalProperties": false,
+      "properties": {
+        "east_m": {
+          "title": "East M",
+          "type": "number"
+        },
+        "heading_deg": {
+          "exclusiveMaximum": 360,
+          "minimum": 0,
+          "title": "Heading Deg",
+          "type": "number"
+        },
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "north_m": {
+          "title": "North M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "east_m",
+        "north_m",
+        "heading_deg"
+      ],
+      "title": "ShipPlacement",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:SpawnFleet",
+  "additionalProperties": false,
+  "description": "Remplace la flotte du monde : les navires existants sont retirés, ceux-ci créés.",
+  "properties": {
+    "ships": {
+      "items": {
+        "$ref": "#/$defs/ShipPlacement"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Ships",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ships"
+  ],
+  "title": "SpawnFleet",
+  "type": "object"
+}

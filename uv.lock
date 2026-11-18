@@ -8,6 +8,7 @@ members = [
     "hannibal-contracts",
     "hannibal-core",
     "hannibal-platform",
+    "hannibal-sim-bridge",
     "hannibal-x",
 ]
 
@@ -354,6 +355,27 @@ requires-dist = [
 ]
 
 [[package]]
+name = "hannibal-sim-bridge"
+version = "0.2.0"
+source = { editable = "services/sim_bridge" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "hannibal-contracts" },
+    { name = "hannibal-core" },
+    { name = "hannibal-platform" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.116" },
+    { name = "hannibal-contracts", editable = "packages/contracts" },
+    { name = "hannibal-core", editable = "packages/core" },
+    { name = "hannibal-platform", editable = "packages/platform" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.35" },
+]
+
+[[package]]
 name = "hannibal-x"
 version = "0.2.0"
 source = { virtual = "." }
@@ -364,6 +386,7 @@ dev = [
     { name = "hannibal-contracts" },
     { name = "hannibal-core" },
     { name = "hannibal-platform" },
+    { name = "hannibal-sim-bridge" },
     { name = "import-linter" },
     { name = "mypy" },
     { name = "pre-commit" },
@@ -383,6 +406,7 @@ dev = [
     { name = "hannibal-contracts", editable = "packages/contracts" },
     { name = "hannibal-core", editable = "packages/core" },
     { name = "hannibal-platform", editable = "packages/platform" },
+    { name = "hannibal-sim-bridge", editable = "services/sim_bridge" },
     { name = "import-linter", specifier = ">=2.3" },
     { name = "mypy", specifier = ">=1.17" },
     { name = "pre-commit", specifier = ">=4.2" },

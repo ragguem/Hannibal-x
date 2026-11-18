@@ -54,16 +54,39 @@ services:
       HX_API_ADAPTERS: ${HX_API_ADAPTERS:-real}
       HX_API_DATABASE_URL: postgresql://hannibal:${HX_DEV_DB_PASSWORD}@postgres:5432/hannibal
       HX_API_OLLAMA_URL: ${HX_API_OLLAMA_URL:-}
+      HX_API_SIM_BRIDGE_URL: http://sim-bridge:8100
       HX_API_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       postgres: { condition: service_healthy }
       migrate: { condition: service_completed_successfully }
+      sim-bridge: { condition: service_healthy }
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     mem_limit: 1g
+    logging: *logging
+
+  sim-bridge:
+    build:
+      context: ../..
+      dockerfile: services/sim_bridge/Dockerfile
+      target: kinematic
+      args: { VERSION: "${HX_VERSION:-0.2.0}" }
+    image: hannibal/sim-bridge:${HX_VERSION:-0.2.0}-dev
+    environment:
+      HX_SIM_BRIDGE_ENVIRONMENT: dev
+      HX_SIM_BRIDGE_WORLD: kinematic
+      HX_SIM_BRIDGE_REGISTRY_PATH: /data/maneuvers.jsonl
+      HX_SIM_BRIDGE_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
+    ports: ["127.0.0.1:8100:8100"]
+    volumes: [simbridge:/data]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
     logging: *logging
 
   backoffice-migrate:
@@ -128,4 +151,5 @@ services:
 
 volumes:
   pgdata:
+  simbridge:
   ollama:

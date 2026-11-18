@@ -25,7 +25,11 @@ def test_ready_with_fake_adapters() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ready"
-    assert {d["name"]: d["state"] for d in body["dependencies"]} == {"postgres": "up", "ollama": "disabled"}
+    assert {d["name"]: d["state"] for d in body["dependencies"]} == {
+        "postgres": "up",
+        "ollama": "disabled",
+        "sim-bridge": "up",
+    }
 
 
 def test_ready_degraded_when_database_missing_in_real_mode() -> None:
@@ -33,7 +37,11 @@ def test_ready_degraded_when_database_missing_in_real_mode() -> None:
     assert response.status_code == 503
     body = response.json()
     assert body["status"] == "degraded"
-    assert {d["name"]: d["state"] for d in body["dependencies"]} == {"postgres": "down", "ollama": "disabled"}
+    assert {d["name"]: d["state"] for d in body["dependencies"]} == {
+        "postgres": "down",
+        "ollama": "disabled",
+        "sim-bridge": "disabled",
+    }
 
 
 def test_openapi_is_published() -> None:

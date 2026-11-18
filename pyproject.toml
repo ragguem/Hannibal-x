@@ -20,19 +20,21 @@ dev = [
     "hannibal-contracts",
     "hannibal-core",
     "hannibal-api",
+    "hannibal-sim-bridge",
 ]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["packages/*", "apps/api"]
+members = ["packages/*", "apps/api", "services/sim_bridge"]
 
 [tool.uv.sources]
 hannibal-platform = { workspace = true }
 hannibal-contracts = { workspace = true }
 hannibal-core = { workspace = true }
 hannibal-api = { workspace = true }
+hannibal-sim-bridge = { workspace = true }
 
 [tool.ruff]
 line-length = 110
@@ -44,7 +46,7 @@ select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "PT", "SIM"]
 ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts"]
+known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_sim_bridge"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106"]
@@ -55,7 +57,7 @@ known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["packages/platform/src", "packages/contracts/src", "packages/core/src", "apps/api/src"]
+files = ["packages/platform/src", "packages/contracts/src", "packages/core/src", "apps/api/src", "services/sim_bridge/src"]
 plugins = ["pydantic.mypy"]
 
 # Code repris tel quel de legacy/ (Lot 1) : corps vérifiés, signatures typées au fil des lots.
@@ -67,11 +69,11 @@ disallow_untyped_calls = false
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["dependency_injector.*", "asyncpg.*"]
+module = ["dependency_injector.*", "asyncpg.*", "rclpy.*", "lotusim_msgs.*", "geographic_msgs.*", "geometry_msgs.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["packages", "apps", "eval"]
+testpaths = ["packages", "apps", "services", "eval"]
 pythonpath = ["eval/characterization"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -82,7 +84,7 @@ markers = [
 addopts = "-ra --strict-markers --import-mode=importlib"
 
 [tool.importlinter]
-root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_core"]
+root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_core", "hannibal_sim_bridge"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -120,4 +122,10 @@ forbidden_modules = [
 name = "Platform et contracts ne dépendent d'aucune application"
 type = "forbidden"
 source_modules = ["hannibal_platform", "hannibal_contracts"]
-forbidden_modules = ["hannibal_api", "hannibal_core"]
+forbidden_modules = ["hannibal_api", "hannibal_core", "hannibal_sim_bridge"]
+
+[[tool.importlinter.contracts]]
+name = "sim-bridge ne connaît pas l'API"
+type = "forbidden"
+source_modules = ["hannibal_sim_bridge"]
+forbidden_modules = ["hannibal_api", "sqlalchemy", "asyncpg"]

@@ -1,0 +1,61 @@
+{
+  "$defs": {
+    "ShipState": {
+      "additionalProperties": false,
+      "properties": {
+        "hdg": {
+          "description": "Cap vrai, degrés",
+          "title": "Hdg",
+          "type": "number"
+        },
+        "lat": {
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "title": "Lon",
+          "type": "number"
+        },
+        "sog": {
+          "description": "Vitesse fond, m/s",
+          "title": "Sog",
+          "type": "number"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "lat",
+        "lon",
+        "sog",
+        "hdg"
+      ],
+      "title": "ShipState",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:WorldState",
+  "additionalProperties": false,
+  "properties": {
+    "ships": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ShipState"
+      },
+      "title": "Ships",
+      "type": "object"
+    }
+  },
+  "required": [
+    "ships"
+  ],
+  "title": "WorldState",
+  "type": "object"
+}
