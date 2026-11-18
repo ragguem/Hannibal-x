@@ -126,6 +126,9 @@ public sealed class SessionAndRelayTests : IAsyncDisposable
     [InlineData("olivia", "GET", "/v1/audit?limit=2", HttpStatusCode.Forbidden)]
     [InlineData("simon", "GET", "/v1/audit/integrity", HttpStatusCode.OK)]
     [InlineData("simon", "GET", "/v1/missions/" + MissionId + "/events", HttpStatusCode.OK)]
+    [InlineData("olivia", "POST", "/v1/missions/" + MissionId + "/simulations", HttpStatusCode.OK)]
+    [InlineData("olivia", "POST", "/v1/missions/" + MissionId + "/requests/alfa/reply", HttpStatusCode.Forbidden)]
+    [InlineData("simon", "POST", "/v1/missions/" + MissionId + "/requests/alfa/reply", HttpStatusCode.OK)]
     public async Task Chaque_route_relayee_exige_sa_permission(string? username, string method, string path, HttpStatusCode expected)
     {
         var client = username switch
