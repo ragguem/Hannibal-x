@@ -31,6 +31,21 @@ def legacy_module(name: str) -> ModuleType:
     return importlib.import_module(name)
 
 
+CORE_MODULES = {
+    "interpret": "hannibal_core.signals",
+    "mtp": "hannibal_core.orders.grammar",
+    "sim": "hannibal_core.orders.kinematics",
+    "reco": "hannibal_core.orders.recommendations",
+    "hxbridge": "hannibal_core.orders.mtp_mapping",
+}
+IMPLEMENTATIONS = ("legacy", "core")
+
+
+def load(name: str, impl: str) -> ModuleType:
+    """Module de l'ancien code ou son équivalent dans hannibal_core."""
+    return legacy_module(name) if impl == "legacy" else importlib.import_module(CORE_MODULES[name])
+
+
 def load_cases(name: str) -> Any:
     return json.loads((CASES / f"{name}.json").read_text(encoding="utf-8"))
 
@@ -46,15 +61,15 @@ def canon(value: Any) -> Any:
     return value
 
 
-def run_interpret() -> list[dict[str, Any]]:
-    interpret = legacy_module("interpret")
+def run_interpret(impl: str = "legacy") -> list[dict[str, Any]]:
+    interpret = load("interpret", impl)
     cases = load_cases("interpret")
     kb = interpret.KB(HERE / cases["kb"])
     return [{"input": text, "output": canon(interpret.interpret(text, kb))} for text in cases["texts"]]
 
 
-def run_mtp() -> list[dict[str, Any]]:
-    mtp = legacy_module("mtp")
+def run_mtp(impl: str = "legacy") -> list[dict[str, Any]]:
+    mtp = load("mtp", impl)
     cases = load_cases("mtp")
     out = []
     for text in cases["texts"]:
@@ -67,8 +82,8 @@ def run_mtp() -> list[dict[str, Any]]:
     return out
 
 
-def run_sim() -> dict[str, Any]:
-    sim = legacy_module("sim")
+def run_sim(impl: str = "legacy") -> dict[str, Any]:
+    sim = load("sim", impl)
     cases = load_cases("sim")
     ships, contacts = cases["ships"], cases["contacts"]
     path_cases = []
@@ -96,8 +111,8 @@ def run_sim() -> dict[str, Any]:
     )
 
 
-def run_reco() -> list[dict[str, Any]]:
-    reco = legacy_module("reco")
+def run_reco(impl: str = "legacy") -> list[dict[str, Any]]:
+    reco = load("reco", impl)
     return [
         canon(
             {
@@ -109,9 +124,9 @@ def run_reco() -> list[dict[str, Any]]:
     ]
 
 
-def run_hxbridge() -> dict[str, Any]:
-    bridge = legacy_module("hxbridge")
-    interpret = legacy_module("interpret")
+def run_hxbridge(impl: str = "legacy") -> dict[str, Any]:
+    bridge = load("hxbridge", impl)
+    interpret = load("interpret", impl)
     cases = load_cases("hxbridge")
     ships, me, speed = cases["ships"], cases["me"], cases["speed_kn"]
     alt = cases["fix_frame_me_is_ship"]

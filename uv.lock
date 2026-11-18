@@ -6,6 +6,7 @@ requires-python = "==3.12.*"
 members = [
     "hannibal-api",
     "hannibal-contracts",
+    "hannibal-core",
     "hannibal-platform",
     "hannibal-x",
 ]
@@ -285,6 +286,11 @@ dependencies = [
 requires-dist = [{ name = "pydantic", specifier = ">=2.11" }]
 
 [[package]]
+name = "hannibal-core"
+version = "0.2.0"
+source = { editable = "packages/core" }
+
+[[package]]
 name = "hannibal-platform"
 version = "0.1.0"
 source = { editable = "packages/platform" }
@@ -316,6 +322,7 @@ source = { virtual = "." }
 dev = [
     { name = "hannibal-api" },
     { name = "hannibal-contracts" },
+    { name = "hannibal-core" },
     { name = "hannibal-platform" },
     { name = "import-linter" },
     { name = "mypy" },
@@ -333,6 +340,7 @@ dev = [
 dev = [
     { name = "hannibal-api", editable = "apps/api" },
     { name = "hannibal-contracts", editable = "packages/contracts" },
+    { name = "hannibal-core", editable = "packages/core" },
     { name = "hannibal-platform", editable = "packages/platform" },
     { name = "import-linter", specifier = ">=2.3" },
     { name = "mypy", specifier = ">=1.17" },

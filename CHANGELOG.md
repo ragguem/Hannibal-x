@@ -10,6 +10,13 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 - ADR 0006 : dépôt git local, sans remote ni CI hébergée.
 - `tools/check.ps1` et `tools/check.sh` : contrôle complet local (équivalent de la CI), seuil de couverture 85 %.
 - `tools/backup.ps1` : sauvegarde du dépôt par `git bundle`.
+- Lot 1 (en cours) : `packages/core` (`hannibal-core`), avec `signals` (interpréteur) et `orders` (`grammar`, `kinematics`, `recommendations`, `mtp_mapping`), copiés de l’ancien code sans entrée-sortie ; contrat import-linter « Core : aucune entrée-sortie ».
+- Goldens de caractérisation exécutés sur `legacy` et sur `core`.
+- ADR 0007 : back-office métier en .NET 10 (`apps/backoffice`), cœur tactique et IA en Python.
+
+### Supprimé
+
+- Fichiers obsolètes de `legacy/` (liste dans `legacy/README.md`).
 
 ### Modifié
 

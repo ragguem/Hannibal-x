@@ -264,7 +264,11 @@ Seul `hx2_service_c.py` est repris. Ses options deviennent la configuration du s
 | | httpx | 0.28.1 (verrouillé) |
 | | dependency-injector | 4.49.1 (verrouillé) |
 | | structlog | 26.1.0 (verrouillé) |
-| | argon2-cffi | 25.1 (Lot 1) |
+| Back-office (ADR 0007) | .NET / ASP.NET Core | 10 LTS (cible `net10.0`, SDK 11.0.100 via `global.json`) |
+| | EF Core / Npgsql | 10 / 10 |
+| | ASP.NET Core Identity (Argon2id par `Konscious.Security.Cryptography`) | 10 / 1.3 |
+| | YARP | 2.3 |
+| | prometheus-net / xUnit v3 / NetArchTest | 8.2 / 3 / 1.3 |
 | | prometheus-client | 0.26.0 (verrouillé) |
 | | PyYAML | 6.0 |
 | IA | faster-whisper / CTranslate2 | 1.2 / 4.6 |
@@ -387,8 +391,9 @@ On travaille dans `hannibal-x-dev/`. Le code actuel reste en place et lançable 
 ```
 hannibal-x-dev/
   apps/ services/ packages/ infra/ eval/      nouvelle architecture (1.1.0 § 4)
+    apps/backoffice/                          back-office .NET 10 (ADR 0007), point d'entrée du front
   legacy/                                     ancien code, déplacé au Lot 0, lançable
-    app/ app_v2/ app_v3/ hx/ v2/ scripts/
+    app_v3/ hx/ v2/ scripts/                  le reste a été supprimé au Lot 1
   interfaces/                                 messages ROS de LOTUSim (gardés, utilisés par sim-bridge)
   docs/
     architecture-1.1.0.md                     cible, inchangée
@@ -402,17 +407,17 @@ Le déplacement dans `legacy/` se fait en un seul commit, chemins des Dockerfile
 
 ## 8. Lots
 
-Hypothèse de charge : **un développeur** à temps plein, un accès régulier au serveur GPU avec LOTUSim. Sans parallélisme possible, les lots s’enchaînent ; chaque durée est celle du plan à deux personnes multipliée par 1,6 à 1,8 selon la part de travail qui se partageait. Total : environ 23 semaines. Les durées sont recalées à la fin de chaque lot.
+Hypothèse de charge : **un développeur** à temps plein, un accès régulier au serveur GPU avec LOTUSim. Sans parallélisme possible, les lots s’enchaînent ; chaque durée est celle du plan à deux personnes multipliée par 1,6 à 1,8 selon la part de travail qui se partageait. Total : environ 24 semaines, dont une pour le socle .NET du back-office (ADR 0007). Les durées sont recalées à la fin de chaque lot.
 
 ```
 semaines   1   3   5   7   9  11  13  15  17  19  21  23
-Lot 0     ██                                                1,5 sem.
-Lot 1      ███████                                          3,5 sem.
-Lot 2             █████████                                 4,5 sem.
-Lot 3                      ██████████                       5 sem.
-Lot 4                                █████                  2,5 sem.
-Lot 5                                     ██████            3 sem.
-Lot 6                                           █████       2,5 sem.  (dont 0,5 de marge)
+Lot 0     ██                                                  1,5 sem.
+Lot 1      █████████                                          4,5 sem.
+Lot 2               █████████                                 4,5 sem.
+Lot 3                        ██████████                       5 sem.
+Lot 4                                  █████                  2,5 sem.
+Lot 5                                       ██████            3 sem.
+Lot 6                                             █████       2,5 sem.  (dont 0,5 de marge)
 jalons    v0.1   v0.2     v0.3      v0.4     v0.5  v0.6  v1.0.0 MVP
 ```
 
@@ -440,7 +445,7 @@ But : un dépôt outillé, un premier processus qui tourne de bout en bout, et d
 
 Recette : un nouveau développeur clone, lance `uv sync --all-packages`, `pnpm install`, `uv run pytest`, puis la composition de développement, et voit `/v1/ready` à `ready`. Sur le serveur : le test `data` donne 1 541 / 1 541 et les enregistrements sont faits.
 
-### Lot 1 — Cœur métier extrait · `v0.2.0` · 3,5 semaines
+### Lot 1 — Cœur métier extrait · `v0.2.0` · 4,5 semaines
 
 But : toutes les règles dans `packages/core`, sans entrée-sortie, prouvées identiques à l’existant.
 
@@ -449,6 +454,8 @@ But : toutes les règles dans `packages/core`, sans entrée-sortie, prouvées id
 - `core.scenario` : `engine`, `tracks`, `captains`, `drill`, `objectives`, `debrief` depuis `server.py`, avec horloge et aléa injectés. Schéma YAML `schema_version: 1`, les 6 scénarios migrés et validés.
 - `core.fleet.control` : carotte, rampe DTAC, virage du bord, évitement, sillage.
 - `core.grounding` : ancrage des nombres et des termes inconnus, motifs de refus.
+- **Socle `apps/backoffice`** (.NET 10, ADR 0007, 1 semaine) : solution hexagonale, `global.json`, paquets centralisés, journal JSON, `request_id`, `/v1/health`, `/metrics`, jeton interne, `ErrorBody`, test des couches, image Docker non root, service dans la composition, `dotnet format/build/test` dans pre-commit et `tools/check`.
+- Fait : `core.signals` et `core.orders` (sauf `replies`, `reply_word` reste dans `mtp_mapping`), goldens verts pour `legacy` et `core`, couverture 99 % ; fichiers obsolètes de `legacy/` supprimés.
 
 Recette : 1 541 / 1 541 ; les 3 scénarios rejoués par `core` donnent les mêmes ordres, objectifs et radio que l’enregistrement `app_v3` (tolérance de position fixée dans le test) ; couverture de `core` ≥ 90 %.
 
@@ -457,7 +464,8 @@ Recette : 1 541 / 1 541 ; les 3 scénarios rejoués par `core` donnent les même
 But : jouer une mission au clavier sur LOTUSim par l’API.
 
 - `services/sim_bridge` : nœud `rclpy` (poses, `MASCmdArray`, `SetWaypoints`), `FleetController` 2 Hz, `PUT /intents`, `POST /maneuvers` idempotent, `GET /state`, registre des manœuvres exécutées, couche anti-corruption.
-- `apps/api` : schéma `ops` (Alembic), rôles SQL, comptes locaux et session (Argon2id), RBAC (opérateur, superviseur, admin ; rôle de jeu guide ou escorte), traducteur d’erreurs.
+- `apps/api` : schéma `ops` (Alembic), rôles SQL, traducteur d’erreurs ; identité de l’utilisateur reçue du back-office.
+- `apps/backoffice` : schéma `identity` (EF Core), comptes locaux et session (Argon2id), RBAC (opérateur, superviseur, admin ; rôle de jeu guide ou escorte), relais YARP vers `apps/api`.
 - Handlers : `ListScenarios`, `StartMission`, `StopMission`, `ReadMission`, `SubmitOrder` (`review`, `direct`, `parent_id`), `DecideCommand`, `SimulateOrder`, `Recommend`, `SetHelm`, `ClassifyContact`, `ReplyRequest`, `SetAutopilot`, `ReadAudit`.
 - `MissionRunner` (scénario 2 Hz, lecture 4 Hz, SSE), `Dispatcher` et `ops.command_dispatches` (envoi fiable de la 1.1.0), `ops.integration_outbox`.
 - OpenAPI `1.0.0` commité **dès la première semaine**, pour que le Lot 3 puisse démarrer sur des faux si le serveur GPU n’est pas disponible.

@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 
 import pytest
-from legacy_harness import HERE, legacy_module
+from legacy_harness import HERE, IMPLEMENTATIONS, legacy_module, load
 
 pytestmark = pytest.mark.data
 
@@ -25,10 +25,11 @@ def _paths() -> tuple[Path, Path]:
     return Path(kb), Path(testset)
 
 
+@pytest.mark.parametrize("impl", IMPLEMENTATIONS)
 @pytest.mark.parametrize("field", ["spoken_text", "written_text"])
-def test_interpreter_score_does_not_regress(field: str) -> None:
+def test_interpreter_score_does_not_regress(field: str, impl: str) -> None:
     kb_path, testset_path = _paths()
-    interpret = legacy_module("interpret")
+    interpret = load("interpret", impl)
     evaluate = legacy_module("evaluate")
     kb = interpret.KB(kb_path)
     lines = testset_path.read_text(encoding="utf-8").splitlines()

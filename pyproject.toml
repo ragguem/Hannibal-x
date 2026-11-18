@@ -17,6 +17,7 @@ dev = [
     "pre-commit-hooks>=6.0",
     "hannibal-platform",
     "hannibal-contracts",
+    "hannibal-core",
     "hannibal-api",
 ]
 
@@ -29,6 +30,7 @@ members = ["packages/*", "apps/api"]
 [tool.uv.sources]
 hannibal-platform = { workspace = true }
 hannibal-contracts = { workspace = true }
+hannibal-core = { workspace = true }
 hannibal-api = { workspace = true }
 
 [tool.ruff]
@@ -46,12 +48,22 @@ known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts"]
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106"]
 "eval/**" = ["S101", "S310"]
+# Repris tel quel de legacy/ au Lot 1 : on déplace d'abord, on améliore ensuite (plan § 9.2).
+"packages/core/src/**" = ["E501", "E731", "RUF046", "RUF059", "B905"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["packages/platform/src", "packages/contracts/src", "apps/api/src"]
+files = ["packages/platform/src", "packages/contracts/src", "packages/core/src", "apps/api/src"]
 plugins = ["pydantic.mypy"]
+
+# Code repris tel quel de legacy/ (Lot 1) : corps vérifiés, signatures typées au fil des lots.
+[[tool.mypy.overrides]]
+module = ["hannibal_core.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = ["dependency_injector.*", "asyncpg.*"]
@@ -68,7 +80,7 @@ markers = [
 addopts = "-ra --strict-markers --import-mode=importlib"
 
 [tool.importlinter]
-root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts"]
+root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_core"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -94,7 +106,16 @@ source_modules = ["hannibal_api.application"]
 forbidden_modules = ["fastapi", "starlette", "sqlalchemy", "asyncpg", "httpx", "hannibal_api.infrastructure"]
 
 [[tool.importlinter.contracts]]
+name = "Core : aucune entrée-sortie, aucune application"
+type = "forbidden"
+source_modules = ["hannibal_core"]
+forbidden_modules = [
+    "hannibal_api", "hannibal_platform", "fastapi", "starlette", "sqlalchemy", "asyncpg", "httpx",
+    "urllib", "socket", "subprocess",
+]
+
+[[tool.importlinter.contracts]]
 name = "Platform et contracts ne dépendent d'aucune application"
 type = "forbidden"
 source_modules = ["hannibal_platform", "hannibal_contracts"]
-forbidden_modules = ["hannibal_api"]
+forbidden_modules = ["hannibal_api", "hannibal_core"]

@@ -5,12 +5,12 @@ Ce dossier contient le code d’avant la refonte, déplacé tel quel au Lot 0. I
 | Dossier | Contenu | Remplacé par |
 |---|---|---|
 | `app_v3/` | application de travail (port 8773) : console, vue 3D, doctrine, registre | `apps/api`, `apps/web`, `services/sim_bridge` |
-| `app/`, `app_v2/` | versions précédentes de l’application | parité de `app_v3` |
-| `hx/` | version 1 : interpréteur de signaux, Whisper, RAG v1 | `packages/core/signals`, `services/asr`, `services/doctrine` |
+| `hx/` | version 1 : interpréteur de signaux, Whisper, RAG v1 ; `interpret.py`, `mtp.py`, `sim.py`, `reco.py`, `hxbridge.py` copiés dans `packages/core` (Lot 1), gardés comme référence des goldens | `packages/core`, `services/asr`, `services/doctrine` |
 | `v2/` | version 2 : assistant de doctrine (`hx2_service_c.py` en service), reclassement, indexation | `services/doctrine`, `services/rerank` |
 | `scripts/` | outils de simulation (flotte, rendu, visualisation) | `services/sim_bridge` |
 | `Dockerfile`, `Dockerfile.jazzy`, `patch_sub.py` | messages ROS et relais `ros_tcp_endpoint` | installation LOTUSim |
-| `tunnel.sh`, `tunnel_cf.sh` | exposition de la démo sur Internet | retirés, ne pas utiliser à bord |
+
+Supprimés au Lot 1 (obsolètes, présents dans `hannibal-x--dev-oldversion/`) : `app/`, `app_v2/`, `tunnel.sh`, `tunnel_cf.sh`, `v2/make_app_v3.py`, `v2/patch_pubs.py`, `v2/run_*.sh`, les variantes `hx2_service_{e3,r,s,t,w}.py` et `exp_{fuse,lists,rerank}.py`, l’option gemma3 de `switch_v2.sh`.
 
 Règles :
 
