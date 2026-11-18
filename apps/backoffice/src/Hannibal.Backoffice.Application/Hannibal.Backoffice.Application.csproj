@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Hannibal.Backoffice.Domain\Hannibal.Backoffice.Domain.csproj" />
+  </ItemGroup>
+</Project>

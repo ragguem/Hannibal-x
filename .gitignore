@@ -64,3 +64,10 @@ build/
 *.avant_*
 _avant_revue/
 .DS_Store
+
+# .NET (apps/backoffice)
+bin/
+obj/
+TestResults/
+*.user
+.vs/

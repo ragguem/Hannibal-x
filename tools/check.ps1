@@ -23,6 +23,9 @@ Step "import-linter" { uv run --frozen lint-imports }
 Step "pytest + couverture" {
     uv run --frozen pytest -q --cov=hannibal_platform --cov=hannibal_contracts --cov=hannibal_api --cov-report=term --cov-fail-under=85
 }
+Step "back-office : restauration figée" { dotnet restore apps/backoffice/Hannibal.Backoffice.slnx --locked-mode }
+Step "back-office : format" { dotnet format apps/backoffice/Hannibal.Backoffice.slnx --verify-no-changes --no-restore }
+Step "back-office : tests" { dotnet test --solution apps/backoffice/Hannibal.Backoffice.slnx --no-restore }
 Step "crochets pre-commit (tous les fichiers)" { uv run --frozen pre-commit run --all-files }
 if (Test-Path pnpm-lock.yaml) { Step "pnpm (verrou figé)" { pnpm install --frozen-lockfile --silent } }
 Step "composition dev valide" {
@@ -31,6 +34,7 @@ Step "composition dev valide" {
 if ($Image) {
     $version = (Get-Content VERSION).Trim()
     Step "image api" { docker build -f apps/api/Dockerfile --build-arg VERSION=$version -t "hannibal/api:$version" . }
+    Step "image back-office" { docker build -f apps/backoffice/Dockerfile --build-arg VERSION=$version -t "hannibal/backoffice:$version" . }
 }
 
 if ($failed.Count) {

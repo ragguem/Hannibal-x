@@ -10,6 +10,7 @@
 | Node.js | 24 LTS (22.12 et plus accepté) | front à partir du Lot 1 |
 | pnpm | 10 | `corepack enable` ou installation directe |
 | Docker Engine / Compose | 29 / v2 | composition de développement |
+| SDK .NET | 11.0.100 (`global.json`), runtime ASP.NET Core 10 | back-office `apps/backoffice` (ADR 0007) ; `nuget.config` local limité à nuget.org |
 
 ## Premiers pas
 
@@ -53,6 +54,18 @@ docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env
 Variables de l'API : préfixe `HX_API_` (`ADAPTERS`, `DATABASE_URL`, `OLLAMA_URL`, `LOG_LEVEL`, `ENVIRONMENT`,
 `INTERNAL_TOKEN`, `METRICS_TOKEN`, `READINESS_TIMEOUT_S`). Hors `dev`/`test`, `/metrics` et les routes internes
 exigent leur jeton.
+
+## Lancer le back-office (.NET)
+
+```bash
+dotnet test --solution apps/backoffice/Hannibal.Backoffice.slnx
+HX_BACKOFFICE_ADAPTERS=fake dotnet run --project apps/backoffice/src/Hannibal.Backoffice.Api
+# http://127.0.0.1:5000/v1/health, /v1/ready ; port 8080 dans la composition
+```
+
+Variables : préfixe `HX_BACKOFFICE_` (`ADAPTERS`, `DATABASE_URL` au format Npgsql, `API_URL`, `ENVIRONMENT`,
+`INTERNAL_TOKEN`, `METRICS_TOKEN`), mêmes règles que l'API. Les réponses sont validées contre les schémas
+de `packages/contracts/schemas` : un changement de contrat côté Python casse les tests .NET.
 
 ## Règles du code
 

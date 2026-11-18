@@ -35,6 +35,7 @@ repos:
         entry: uv run --frozen end-of-file-fixer
         language: system
         types: [text]
+        exclude: packages\.lock\.json$
       - id: trailing-whitespace
         name: espaces en fin de ligne
         entry: uv run --frozen trailing-whitespace-fixer
@@ -80,3 +81,15 @@ repos:
         language: system
         pass_filenames: false
         files: ^(apps|packages|eval)/|^pyproject\.toml$|^uv\.lock$
+      - id: dotnet-format
+        name: dotnet format (back-office)
+        entry: dotnet format apps/backoffice/Hannibal.Backoffice.slnx --verify-no-changes
+        language: system
+        pass_filenames: false
+        files: ^apps/backoffice/|^global\.json$
+      - id: dotnet-test
+        name: dotnet test (back-office)
+        entry: dotnet test --solution apps/backoffice/Hannibal.Backoffice.slnx
+        language: system
+        pass_filenames: false
+        files: ^apps/backoffice/|^packages/contracts/schemas/|^global\.json$

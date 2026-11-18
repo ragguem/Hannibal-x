@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Hannibal.Backoffice.Domain/Hannibal.Backoffice.Domain.csproj" />
+    <Project Path="src/Hannibal.Backoffice.Application/Hannibal.Backoffice.Application.csproj" />
+    <Project Path="src/Hannibal.Backoffice.Infrastructure/Hannibal.Backoffice.Infrastructure.csproj" />
+    <Project Path="src/Hannibal.Backoffice.Api/Hannibal.Backoffice.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Hannibal.Backoffice.Tests/Hannibal.Backoffice.Tests.csproj" />
+  </Folder>
+</Solution>
