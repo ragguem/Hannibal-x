@@ -1,6 +1,6 @@
 [project]
 name = "hannibal-platform"
-version = "0.1.0"
+version = "0.2.0"
 description = "Socle technique commun aux processus Python de Hannibal X : configuration, journal, request_id, jeton interne, erreurs, santé, métriques"
 requires-python = ">=3.12,<3.13"
 dependencies = [

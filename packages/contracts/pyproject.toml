@@ -1,6 +1,6 @@
 [project]
 name = "hannibal-contracts"
-version = "0.1.0"
+version = "0.2.0"
 description = "Modèles d'échange de Hannibal X (HTTP, événements, intentions) ; source des schémas JSON publiés"
 requires-python = ">=3.12,<3.13"
 dependencies = ["pydantic>=2.11"]

@@ -1,0 +1,157 @@
+{
+ "grounded": [
+  [
+   true,
+   ""
+  ],
+  [
+   false,
+   "un chiffre de la réponse (14) ne figure pas dans les extraits cités"
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   false,
+   "un chiffre de la réponse (6.50) ne figure pas dans les extraits cités"
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   false,
+   "« FOXTROT » n'apparaît dans aucune publication chargée"
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   false,
+   "« RAZ » n'apparaît dans aucune publication chargée"
+  ],
+  [
+   false,
+   "« BRAVOS » n'apparaît dans aucune publication chargée"
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   false,
+   "« ZZ-99 » n'apparaît dans aucune publication chargée"
+  ],
+  [
+   true,
+   ""
+  ],
+  [
+   false,
+   "« Southwind » n'apparaît dans aucune publication chargée"
+  ],
+  [
+   true,
+   ""
+  ]
+ ],
+ "no_answer": {
+  "en": "None of the loaded publications answers this question.",
+  "fr": "Aucune des publications chargées ne répond à cette question."
+ },
+ "unknown": [
+  {
+   "suggestions": [
+    {
+     "inconnu": "ZEBAR",
+     "propositions": [
+      {
+       "en": "zebra drill",
+       "fr": "exercice zebra",
+       "terme": "ZEBRA"
+      }
+     ]
+    }
+   ],
+   "termes_inconnus": [
+    "ZEBAR"
+   ]
+  },
+  {
+   "suggestions": [
+    {
+     "inconnu": "BRAOV",
+     "propositions": [
+      {
+       "en": "bravo signal",
+       "fr": "signal bravo",
+       "terme": "BRAVO"
+      }
+     ]
+    }
+   ],
+   "termes_inconnus": [
+    "BRAOV"
+   ]
+  },
+  {
+   "suggestions": [
+    {
+     "inconnu": "QX-8",
+     "propositions": [
+      {
+       "en": "pattern QX-7",
+       "fr": "dispositif QX-7",
+       "terme": "QX-7"
+      }
+     ]
+    }
+   ],
+   "termes_inconnus": [
+    "QX-8"
+   ]
+  },
+  {
+   "suggestions": [
+    {
+     "inconnu": "Nortwind",
+     "propositions": [
+      {
+       "en": "Northwind",
+       "fr": "Northwind",
+       "terme": "Northwind"
+      }
+     ]
+    }
+   ],
+   "termes_inconnus": [
+    "Nortwind"
+   ]
+  },
+  {
+   "termes_inconnus": [
+    "RAZ"
+   ]
+  },
+  {},
+  {},
+  {
+   "termes_inconnus": [
+    "ABC",
+    "DEF",
+    "GHI",
+    "JKL"
+   ]
+  }
+ ]
+}

@@ -19,13 +19,14 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 LEGACY_APP = REPO / "legacy" / "app_v3"
 LEGACY_HX = REPO / "legacy" / "hx" / "scripts"
+LEGACY_V2 = REPO / "legacy" / "v2" / "scripts"
 CASES = HERE / "cases"
 GOLDEN = HERE / "golden"
 FLOAT_TOLERANCE = 1e-6
 
 
 def legacy_module(name: str) -> ModuleType:
-    for path in (LEGACY_APP, LEGACY_HX):
+    for path in (LEGACY_APP, LEGACY_HX, LEGACY_V2):
         if str(path) not in sys.path:
             sys.path.insert(0, str(path))
     return importlib.import_module(name)
@@ -550,7 +551,85 @@ def run_scenario(impl: str = "legacy") -> list[dict[str, Any]]:
     return out
 
 
+def _fake_corpus(cases: dict[str, Any]) -> tuple[Callable[[str], bool], Callable[[str], bool]]:
+    import re
+
+    from hannibal_core.grounding import corpus_pattern
+
+    text = "\n".join(cases["corpus"])
+
+    def lookup(word: bool) -> Callable[[str], bool]:
+        def found(term: str) -> bool:
+            pattern = corpus_pattern(term, word).replace("\\m", r"\b").replace("\\M", r"\b")
+            return bool(pattern) and re.search(pattern, text, re.I) is not None
+
+        return found
+
+    return lookup(False), lookup(True)
+
+
+def run_grounding(impl: str = "legacy") -> dict[str, Any]:
+    """Contrôle d'ancrage et termes inconnus du service de doctrine, sur un corpus inventé."""
+    import types
+
+    cases = load_cases("grounding")
+    in_corpus, in_corpus_word = _fake_corpus(cases)
+    abbrs = [tuple(x) for x in cases["glossary"]["abbrs"]]
+    words = [tuple(x) for x in cases["glossary"]["words"]]
+    out: dict[str, Any] = {"grounded": [], "unknown": []}
+    if impl == "legacy":
+        saved = {name: sys.modules.get(name) for name in ("psycopg", "requests")}
+        for name in saved:
+            sys.modules[name] = types.ModuleType(name)
+        try:
+            svc = legacy_module("hx2_service_c")
+        finally:
+            for name, previous in saved.items():
+                if previous is None:
+                    sys.modules.pop(name, None)
+                else:
+                    sys.modules[name] = previous
+        svc.in_corpus = lambda term, classified=False: in_corpus(term)
+        svc.in_corpus_word = lambda term, classified=False: in_corpus_word(term)
+        svc._cands = lambda: (abbrs, words)
+        for c in cases["grounded"]:
+            svc.WORD = c.get("word", False)
+            out["grounded"].append(list(svc.grounded(c["q"], c["ans"], c["cited"], c.get("enq", ""))))
+        for c in cases["unknown"]:
+            r = svc.add_suggestions({"search": {"query_en": c.get("query_en", "")}}, c["q"])
+            r.pop("search")
+            out["unknown"].append(r)
+        out["no_answer"] = svc.NONE
+        return out
+    from hannibal_core import grounding as g
+
+    for c in cases["grounded"]:
+        ok, why = g.grounded(
+            c["q"],
+            c["ans"],
+            c["cited"],
+            c.get("enq", ""),
+            in_corpus=in_corpus,
+            in_corpus_word=in_corpus_word,
+            word=c.get("word", False),
+        )
+        out["grounded"].append([ok, why])
+    for c in cases["unknown"]:
+        out["unknown"].append(
+            g.unknown_terms(
+                c["q"],
+                c.get("query_en", ""),
+                in_corpus=in_corpus,
+                in_corpus_word=in_corpus_word,
+                suggest_for=lambda k: g.suggest(k, abbrs, words, in_corpus_word),
+            )
+        )
+    out["no_answer"] = g.NO_ANSWER
+    return out
+
+
 RUNNERS: dict[str, Callable[[str], Any]] = {
+    "grounding": run_grounding,
     "interpret": run_interpret,
     "mtp": run_mtp,
     "fleet": run_fleet,

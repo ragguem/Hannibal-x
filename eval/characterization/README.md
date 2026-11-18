@@ -25,6 +25,7 @@ Chaque lot qui réimplémente une fonction branche son nouveau code sur les mêm
 | `legacy/app_v3/hxbridge.py` | `to_orders`, `fr_signal`, `fix_frame`, `reply_word`, `destination` | `core.orders.mtp_mapping`, `core.orders.replies` |
 | `legacy/app_v3/server.py` (ROS remplacé par des bouchons, horloge simulée) | `Hannibal.control`, `Ros.carrot`, `_ramp`, `turn_side`, `_wake_pt`, `_slots`, `_helm_tick` : 5 scénarios en boucle fermée avec une physique simple commune | `core.fleet.control` |
 | `legacy/app_v3/server.py` (`_start` réel sans Docker ni ROS, horloge simulée, aléa initialisé) | `Hannibal` : événements, ordres du joueur, messages approuvés (`confirm`), pistes, exercice, capitaines, réponses, barre manuelle, `state`, `simulate`, `recommend` : 11 missions sur les 6 scénarios | `core.scenario` |
+| `legacy/v2/scripts/hx2_service_c.py` (`psycopg` et `requests` remplacés, recherche en base sur un corpus inventé) | `grounded` (avec et sans `HX2_WORD`), `add_suggestions`, `suggest`, `NONE` | `core.grounding` |
 
 ## Commandes
 

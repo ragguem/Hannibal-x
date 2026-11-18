@@ -455,9 +455,11 @@ But : toutes les règles dans `packages/core`, sans entrée-sortie, prouvées id
 - `core.fleet.control` : carotte, rampe DTAC, virage du bord, évitement, sillage.
 - `core.grounding` : ancrage des nombres et des termes inconnus, motifs de refus.
 - **Socle `apps/backoffice`** (.NET 10, ADR 0007, 1 semaine) : solution hexagonale, `global.json`, paquets centralisés, journal JSON, `request_id`, `/v1/health`, `/metrics`, jeton interne, `ErrorBody`, test des couches, image Docker non root, service dans la composition, `dotnet format/build/test` dans pre-commit et `tools/check`.
-- Fait : `core.signals` et `core.orders` (sauf `replies`, `reply_word` reste dans `mtp_mapping`), goldens verts pour `legacy` et `core`, couverture 99 % ; fichiers obsolètes de `legacy/` supprimés ; socle `apps/backoffice` (16 tests, contrats partagés vérifiés) ; limite de vitesse unique 3 à 28 nœuds, ordre ramené à la borne avec une note ; `core.fleet.control` identique à l'ancien serveur en boucle fermée ; `core.scenario` (moteur en un seul module `engine`, découpage en `tracks`, `captains`, `drill`, `objectives`, `debrief` à faire sous la protection des goldens) identique à l'ancien serveur sur 11 missions, schéma `schema_version: 1`, 6 scénarios migrés dans `apps/api/scenarios/` et validés.
+- Fait : `core.signals` et `core.orders` (sauf `replies`, `reply_word` reste dans `mtp_mapping`), goldens verts pour `legacy` et `core`, couverture 99 % ; fichiers obsolètes de `legacy/` supprimés ; socle `apps/backoffice` (16 tests, contrats partagés vérifiés) ; limite de vitesse unique 3 à 28 nœuds, ordre ramené à la borne avec une note ; `core.fleet.control` identique à l'ancien serveur en boucle fermée ; `core.scenario` (moteur en un seul module `engine`, découpage en `tracks`, `captains`, `drill`, `objectives`, `debrief` à faire sous la protection des goldens) identique à l'ancien serveur sur 11 missions, schéma `schema_version: 1`, 6 scénarios migrés dans `apps/api/scenarios/` et validés ; `core.grounding` (`guard`, `evidence`) identique au service `hx2_service_c.py` sur un corpus inventé. Lot clos le 2026-11-18 (`v0.2.0`).
 
 Recette : 1 541 / 1 541 ; les 3 scénarios rejoués par `core` donnent les mêmes ordres, objectifs et radio que l’enregistrement `app_v3` (tolérance de position fixée dans le test) ; couverture de `core` ≥ 90 %.
+
+Recette faite : couverture de `core` 96 % ; les 6 scénarios (11 missions) rejoués par `core` donnent exactement les mêmes ordres, objectifs, radio et positions que l’ancien `server.py` exécuté en boucle fermée, ce qui remplace la comparaison aux enregistrements sur poste. Le test 1 541 / 1 541 et les 3 enregistrements `app_v3` demandent le serveur : reportés à la recette du Lot 2.
 
 ### Lot 2 — Mission de bout en bout sans écran · `v0.3.0` · 4,5 semaines
 
@@ -471,7 +473,7 @@ But : jouer une mission au clavier sur LOTUSim par l’API.
 - OpenAPI `1.0.0` commité **dès la première semaine**, pour que le Lot 3 puisse démarrer sur des faux si le serveur GPU n’est pas disponible.
 - Mesure de la consommation de LOTUSim (CPU, RAM, GPU).
 
-Recette : sur le serveur GPU, le scénario « transit en colonne » se joue de bout en bout par l’API (client généré ou Swagger) ; une panne de `sim-bridge` pendant un envoi est rattrapée sans double exécution ; un redémarrage de l’API reprend les envois en cours.
+Recette : sur le serveur GPU, le scénario « transit en colonne » se joue de bout en bout par l’API (client généré ou Swagger) ; une panne de `sim-bridge` pendant un envoi est rattrapée sans double exécution ; un redémarrage de l’API reprend les envois en cours. Reporté du Lot 1 : le test `data` donne 1 541 / 1 541 ; les 3 enregistrements `app_v3` sont faits et le rejeu par `core` via `sim-bridge` donne les mêmes ordres, objectifs et radio (tolérance de position fixée dans le test).
 
 ### Lot 3 — Console React · `v0.4.0` · 5 semaines
 

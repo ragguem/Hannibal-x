@@ -1,0 +1,53 @@
+{
+  "corpus": [
+    "The ZEBRA drill is run by the Officer of the Watch every 12 hours with two lookouts posted.",
+    "Station keeping in the QX-7 pattern uses a distance of 1,500 yards and twenty-five minutes of warning.",
+    "Fictional Harbour procedures require a speed below 6.5 knots and one pilot on board.",
+    "The BRAVO signal is acknowledged with a single flag; razor wire is not used aboard.",
+    "Exercise Northwind evaluates the screen at thirty degrees and 2 000 metres."
+  ],
+  "glossary": {
+    "abbrs": [["ZEBRA", "zebra drill", "exercice zebra"], ["BRAVO", "bravo signal", "signal bravo"],
+              ["QX-7", "pattern QX-7", "dispositif QX-7"], ["RAZ", "razzle", "razzle"], ["ZEBRAS", "zebras", "zèbres"]],
+    "words": [["Northwind", "Northwind", "Northwind"], ["lookouts", "lookouts", "vigies"],
+              ["procedures", "procedures", "procédures"], ["Harbour", "Harbour", "Port"]]
+  },
+  "grounded": [
+    {"q": "Combien de vigies pour l'exercice ZEBRA ?", "ans": "Deux vigies, toutes les 12 heures [1].",
+     "cited": [{"text": "The ZEBRA drill is run every 12 hours with two lookouts posted.", "title": "Drills"}],
+     "enq": "How many lookouts for the ZEBRA drill?"},
+    {"q": "Combien de vigies ?", "ans": "Trois vigies toutes les 14 heures [1].",
+     "cited": [{"text": "The ZEBRA drill is run every 12 hours with two lookouts posted."}], "enq": ""},
+    {"q": "Distance du dispositif QX-7 ?", "ans": "1 500 yards, préavis de 25 minutes [2].",
+     "cited": [{"text": "Station keeping in the QX-7 pattern uses a distance of 1,500 yards and twenty-five minutes of warning."}],
+     "enq": "Distance for the QX-7 pattern?"},
+    {"q": "Vitesse dans Fictional Harbour ?", "ans": "Moins de 6,5 nœuds [1], soit 6.50 au plus.",
+     "cited": [{"text": "Fictional Harbour procedures require a speed below 6.5 knots and one pilot on board.", "title": null}],
+     "enq": "Speed in Fictional Harbour?"},
+    {"q": "Vitesse à 7,0 nœuds ?", "ans": "7.0 nœuds [1].", "cited": [{"text": "Nothing about speed."}], "enq": "Speed at 7.0 knots?"},
+    {"q": "Écran de Northwind ?", "ans": "Trente degrés à 2000 mètres, 2 conditions [1][2].",
+     "cited": [{"text": "Exercise Northwind evaluates the screen at thirty degrees and 2 000 metres."}],
+     "enq": "Screen of Exercise Northwind?"},
+    {"q": "Procédure FOXTROT ?", "ans": "Aucune réponse chiffrée.", "cited": [{"text": "The BRAVO signal is acknowledged."}],
+     "enq": "What is the FOXTROT procedure?"},
+    {"q": "Procédure RAZ ?", "ans": "Rien.", "cited": [{"text": "unrelated"}], "enq": "What is the RAZ procedure?"},
+    {"q": "Procédure RAZ ?", "ans": "Rien.", "cited": [{"text": "unrelated"}], "enq": "What is the RAZ procedure?", "word": true},
+    {"q": "Signal BRAVOS ?", "ans": "Un pavillon.", "cited": [{"text": "unrelated"}], "enq": "The BRAVOS signal?", "word": true},
+    {"q": "Signal ZEBRA ?", "ans": "Un pavillon.", "cited": [{"text": "zebras are mentioned here"}], "enq": "The ZEBRA signal?", "word": true},
+    {"q": "Code QX7 ?", "ans": "Oui.", "cited": [{"text": "unrelated"}], "enq": "The QX7 code?"},
+    {"q": "Code ZZ-99 ?", "ans": "Oui.", "cited": [{"text": "unrelated"}], "enq": "The ZZ-99 code?"},
+    {"q": "Combien ?", "ans": "Vingt-cinq : 25 minutes [1].", "cited": [{"text": "twenty-five minutes of warning"}], "enq": "Gulfstream"},
+    {"q": "Qui est Southwind ?", "ans": "Inconnu.", "cited": [{"text": "unrelated"}], "enq": "Who leads Exercise Southwind?"},
+    {"q": "Nombres de la question 42 ?", "ans": "42 et 3,5 [1].", "cited": [{"text": "nothing"}], "enq": "Question 3.5"}
+  ],
+  "unknown": [
+    {"q": "Que dit le ZEBAR drill ?", "query_en": "What does the ZEBAR drill say?"},
+    {"q": "Signal BRAOV ?", "query_en": "BRAOV signal"},
+    {"q": "Le dispositif QX-8 ?", "query_en": "The QX-8 pattern"},
+    {"q": "Exercise Nortwind et ZEBRA ?", "query_en": "Exercise Nortwind and ZEBRA drill"},
+    {"q": "La procédure RAZ ?", "query_en": "The RAZ procedure"},
+    {"q": "Les lookouts ?", "query_en": "The lookouts"},
+    {"q": "Les Procedur du Harbour", "query_en": "The Procedur of the Harbour"},
+    {"q": "ABC DEF GHI JKL", "query_en": ""}
+  ]
+}

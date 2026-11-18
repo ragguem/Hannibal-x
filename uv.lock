@@ -251,7 +251,7 @@ wheels = [
 
 [[package]]
 name = "hannibal-api"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "apps/api" }
 dependencies = [
     { name = "asyncpg" },
@@ -276,7 +276,7 @@ requires-dist = [
 
 [[package]]
 name = "hannibal-contracts"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/contracts" }
 dependencies = [
     { name = "pydantic" },
@@ -292,7 +292,7 @@ source = { editable = "packages/core" }
 
 [[package]]
 name = "hannibal-platform"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/platform" }
 dependencies = [
     { name = "fastapi" },
@@ -315,7 +315,7 @@ requires-dist = [
 
 [[package]]
 name = "hannibal-x"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]

@@ -5,12 +5,22 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 
 ## [Non publié]
 
+## [0.2.0] — 2026-11-18 — Lot 1 : cœur métier extrait
+
+Recette : faite sur poste par caractérisation contre l'ancien code exécuté en boucle fermée (goldens `legacy` et
+`core`), couverture de `core` 96 %. Le test `data` (1 541 messages) et les 3 enregistrements `app_v3` demandent le
+serveur : ils passent à la recette du Lot 2, qui se joue de toute façon sur le serveur.
+
 ### Ajouté
 
+- `core.grounding` : contrôle d'ancrage des réponses de doctrine (chaque nombre présent dans les extraits cités,
+  sigle ou code inconnu de toutes les publications : refus), termes inconnus et propositions « vouliez-vous dire ? »,
+  motifs de refus ; repris de `legacy/v2/scripts/hx2_service_c.py`, recherche en base fournie par l'appelant ;
+  prouvé identique sur un corpus inventé.
 - ADR 0006 : dépôt git local, sans remote ni CI hébergée.
 - `tools/check.ps1` et `tools/check.sh` : contrôle complet local (équivalent de la CI), seuil de couverture 85 %.
 - `tools/backup.ps1` : sauvegarde du dépôt par `git bundle`.
-- Lot 1 (en cours) : `packages/core` (`hannibal-core`), avec `signals` (interpréteur) et `orders` (`grammar`, `kinematics`, `recommendations`, `mtp_mapping`), copiés de l’ancien code sans entrée-sortie ; contrat import-linter « Core : aucune entrée-sortie ».
+- `packages/core` (`hannibal-core`), avec `signals` (interpréteur) et `orders` (`grammar`, `kinematics`, `recommendations`, `mtp_mapping`), copiés de l’ancien code sans entrée-sortie ; contrat import-linter « Core : aucune entrée-sortie ».
 - `core.fleet.control` (`FleetController`) : carotte, rampe au diamètre tactique, virage du bord, postes, sillage,
   évitement, barre manuelle, repris de `server.py` sans ROS, horloge injectée ; prouvé identique à l'ancien serveur
   sur 5 scénarios en boucle fermée.
