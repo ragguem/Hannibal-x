@@ -2,7 +2,8 @@
 
 Cible : MVP de démonstration, puis déploiement embarqué sur un navire (serveur on-prem pour le moment).
 Base : `docs/Hannibal-X_Low-Level-Design_v1.0.0.md` (socle) et `docs/architecture-1.1.0.md` (cible).
-Référence fonctionnelle : le code actuel (`app_v3/`, `hx/`, `v2/`), copie figée dans `hannibal-x--dev-oldversion/`.
+Référence fonctionnelle : le code actuel, rangé dans `legacy/` (`legacy/app_v3/`, `legacy/hx/`, `legacy/v2/`), copie figée dans `hannibal-x--dev-oldversion/`.
+Équipe : **un développeur** (calendrier du § 8, environ 23 semaines).
 
 | Version | Date | Objet |
 |---|---|---|
@@ -212,6 +213,7 @@ Seul `hx2_service_c.py` est repris. Ses options deviennent la configuration du s
 - **Contrats** : versionnés séparément du produit, parce que des systèmes tiers en dépendront (§ 5).
 - **Dépendances** : figées au Lot 0 dans `uv.lock` et `pnpm-lock.yaml`. Pendant le MVP, seules les versions correctives (patch) sont acceptées, après CI verte. Une montée de version mineure ou majeure est un ticket avec mesure.
 - Les versions ci-dessous sont la base de départ. Le Lot 0 vérifie le dernier correctif disponible de chaque branche et l’inscrit dans les fichiers de verrouillage.
+- **Relevé du Lot 0 (v0.1.0)** : les versions marquées « verrouillé » au § 4.4 sont celles de `uv.lock`. Les autres seront verrouillées par le lot qui introduit le composant, à la dernière version stable du moment, puis inscrites ici.
 
 ### 4.2 Composants Hannibal
 
@@ -252,23 +254,24 @@ Seul `hx2_service_c.py` est repris. Ses options deviennent la configuration du s
 | Simulation | ROS 2 | Jazzy (image `ros:jazzy-ros-base`) |
 | | LOTUSim, `lotusim_msgs` | version installée à relever au Lot 2 |
 | Python | CPython | 3.12 (aligné sur ROS 2 Jazzy, requis par `rclpy` dans `sim-bridge`) |
-| | uv | 0.9 |
-| API et services | FastAPI | 0.116 |
-| | Uvicorn | 0.35 |
-| | Pydantic / pydantic-settings | 2.11 / 2.10 |
-| | SQLAlchemy / asyncpg / Alembic | 2.0 / 0.30 / 1.16 |
-| | psycopg (doctrine) / pgvector-python | 3.2 / 0.4 |
-| | httpx | 0.28 |
-| | dependency-injector | 4.48 |
-| | structlog | 25.4 |
-| | argon2-cffi | 25.1 |
-| | prometheus-client | 0.22 |
+| | uv | 0.13 (outil ; image `ghcr.io/astral-sh/uv:0.13`) |
+| API et services | FastAPI / Starlette | 0.163.2 / 1.10.0 (verrouillé) |
+| | Uvicorn | 0.54.0 (verrouillé) |
+| | Pydantic / pydantic-settings | 2.14.3 / 2.16.3 (verrouillé) |
+| | asyncpg | 0.32.0 (verrouillé) |
+| | SQLAlchemy / Alembic | 2.0 / 1.16 (Lot 1) |
+| | psycopg (doctrine) / pgvector-python | 3.2 / 0.4 (Lot 3) |
+| | httpx | 0.28.1 (verrouillé) |
+| | dependency-injector | 4.49.1 (verrouillé) |
+| | structlog | 26.1.0 (verrouillé) |
+| | argon2-cffi | 25.1 (Lot 1) |
+| | prometheus-client | 0.26.0 (verrouillé) |
 | | PyYAML | 6.0 |
 | IA | faster-whisper / CTranslate2 | 1.2 / 4.6 |
 | | PyTorch / sentence-transformers | 2.8 / 5.1 |
 | | Ollama | 0.35.1 (actuel, conservé) |
 | Données | PostgreSQL / pgvector | 17.11 / 0.8.7 (actuels, conservés) |
-| Front | Node.js / pnpm | 24 LTS / 10 |
+| Front | Node.js / pnpm | 24 LTS (22.12 et plus accepté en local) / 10.15 (`packageManager`) |
 | | React / React DOM | 19.1 |
 | | TypeScript | 5.9 |
 | | Vite | 7.1 |
@@ -277,8 +280,9 @@ Seul `hx2_service_c.py` est repris. Ses options deviennent la configuration du s
 | | openapi-typescript / openapi-fetch | 7 / 0.14 |
 | | three.js | r179 (le code 3D actuel est repris, version alignée au Lot 3) |
 | Bord | Caddy | 2.10 |
-| Qualité | pytest / pytest-asyncio | 8.4 / 1.1 |
-| | ruff / mypy / import-linter | 0.12 / 1.17 / 2.3 |
+| Qualité | pytest / pytest-asyncio / pytest-cov | 9.2.0 / 1.5.0 / 7.1.0 (verrouillé) |
+| | ruff / mypy / import-linter | 0.17.5 / 2.4.1 / 2.17 (verrouillé) |
+| | pre-commit | 4.7.0 (verrouillé) |
 | | Vitest / Playwright / MSW | 3.2 / 1.55 / 2.10 |
 | | ESLint | 9 |
 | Observabilité (Lot 6) | Prometheus / Grafana | 3.5 LTS / 12.1 |
@@ -398,38 +402,45 @@ Le déplacement dans `legacy/` se fait en un seul commit, chemins des Dockerfile
 
 ## 8. Lots
 
-Hypothèse de charge : deux développeurs à temps plein, un accès régulier au serveur GPU avec LOTUSim. Les durées sont des ordres de grandeur, à recaler à la fin du Lot 0.
+Hypothèse de charge : **un développeur** à temps plein, un accès régulier au serveur GPU avec LOTUSim. Sans parallélisme possible, les lots s’enchaînent ; chaque durée est celle du plan à deux personnes multipliée par 1,6 à 1,8 selon la part de travail qui se partageait. Total : environ 23 semaines. Les durées sont recalées à la fin de chaque lot.
 
 ```
-semaines   1   2   3   4   5   6   7   8   9  10  11  12  13  14
-Lot 0     ███
-Lot 1         ██████
-Lot 2                 █████████
-Lot 3                     ██████████        (démarre sur le contrat OpenAPI du Lot 2)
-Lot 4                             █████
-Lot 5                             ███████   (en parallèle du Lot 4)
-Lot 6                                         █████
-jalons    v0.1   v0.2        v0.3    v0.4  v0.5 v0.6    v1.0.0 MVP
+semaines   1   3   5   7   9  11  13  15  17  19  21  23
+Lot 0     ██                                                1,5 sem.
+Lot 1      ███████                                          3,5 sem.
+Lot 2             █████████                                 4,5 sem.
+Lot 3                      ██████████                       5 sem.
+Lot 4                                █████                  2,5 sem.
+Lot 5                                     ██████            3 sem.
+Lot 6                                           █████       2,5 sem.  (dont 0,5 de marge)
+jalons    v0.1   v0.2     v0.3      v0.4     v0.5  v0.6  v1.0.0 MVP
 ```
+
+Ordre choisi pour un développeur seul :
+
+- Le Lot 3 suit le Lot 2 au lieu de le chevaucher ; l’OpenAPI du Lot 2 est quand même écrit en premier, et le front démarre sur des faux (MSW) si l’accès au serveur GPU bloque le Lot 2.
+- Le Lot 5 suit le Lot 4. Si la démonstration privilégie la doctrine, les deux s’échangent : ils ne dépendent pas l’un de l’autre.
+- `legacy/app_v3` reste l’outil de démonstration jusqu’au Lot 6 ; aucune démonstration intermédiaire n’attend le nouveau code.
 
 Chaque lot a la même fin : CI verte, recette des lignes de la matrice du § 2, démonstration, `CHANGELOG.md`, étiquette Git.
 
-### Lot 0 — Fondations · `v0.1.0` · 1 semaine
+### Lot 0 — Fondations · `v0.1.0` · 1,5 semaine
 
-But : un dépôt où l’on peut travailler à deux sans se gêner, et des tests qui figent l’existant.
+But : un dépôt outillé, un premier processus qui tourne de bout en bout, et des tests qui figent l’existant.
 
-- `git init`, `.gitignore` (données, modèles, `kb/`, audio, secrets), branche `main` protégée, déplacement dans `legacy/`.
-- Espace de travail `uv` (Python 3.12), espace `pnpm` (Node 24), `pyproject.toml` racine, `ruff`, `mypy`, `import-linter`, pré-commit.
-- `packages/platform` : configuration, journal JSON, `request_id`, jeton interne, client interne, traducteur d’erreurs, `/health`, `/metrics`.
-- `packages/contracts` vide mais publié, avec le test de contrat.
-- `infra/compose` : profil `dev` (postgres, ollama sur poste avec GPU, sinon factice), profil `dev-fake` (tous les services remplacés par des faux, pour Windows sans GPU).
-- CI (`ci.yml`) : lint, types, tests, contrats.
-- **Tests de caractérisation** : les 1 541 messages de l’interpréteur ; un enregistrement de 3 scénarios joués par `app_v3` (état toutes les 0,5 s) qui servira de référence au Lot 1 ; un échantillon de 30 questions de doctrine avec leurs réponses actuelles.
+- `git init`, `.gitignore` (données, modèles, `kb/`, audio, secrets), branche `main`, déplacement dans `legacy/` avec `HANNIBAL_HOME`.
+- Espace de travail `uv` (Python 3.12), espace `pnpm` (Node 24 visé), `pyproject.toml` racine, `ruff`, `mypy` strict, `import-linter`, pré-commit.
+- `packages/platform` : configuration, journal JSON, `request_id`, UUIDv7, jeton interne, client interne, traducteur d’erreurs, `/health`, `/metrics` protégé.
+- `packages/contracts` : `ContractModel`, modèles communs (`ErrorBody`, `Health`, `Readiness`), schémas JSON publiés, test de dérive.
+- **Squelette `apps/api`** : couches hexagonales, `GET /v1/health`, `GET /v1/ready` (sondes PostgreSQL et Ollama derrière le port `DependencyProbe`), mode `HX_API_ADAPTERS=fake`, image Docker non root. Il valide le socle, la composition et la CI avant le Lot 1.
+- `infra/compose/compose.dev.yml` : PostgreSQL + pgvector, API (`HX_API_ADAPTERS=fake|real`), Ollama dans le profil `gpu`. Les faux `asr`, `doctrine` et `sim-bridge` arrivent avec leurs services (Lots 2 à 5).
+- CI (`ci.yml`) : lint, format, types, règles de couches, tests avec couverture, image API, composition, job Node.
+- **Tests de caractérisation** (`eval/characterization/`) : goldens de l’interpréteur, de la grammaire clavier, de la cinématique, des recommandations et du pont signaux → ordres, sur une table de signaux synthétique ; test des 1 541 messages marqué `data` ; scripts d’enregistrement de 3 scénarios `app_v3` (état toutes les 0,5 s) et de 30 questions de doctrine, à lancer sur le serveur.
 - ADR 0001 à 0005 : monodépôt, étrangleur, pilotage dans `sim-bridge`, version unique, contrat d’abord.
 
-Recette : un nouveau développeur clone, lance `uv sync`, `pnpm install`, `compose --profile dev-fake up`, et voit `/health` vert partout.
+Recette : un nouveau développeur clone, lance `uv sync --all-packages`, `pnpm install`, `uv run pytest`, puis la composition de développement, et voit `/v1/ready` à `ready`. Sur le serveur : le test `data` donne 1 541 / 1 541 et les enregistrements sont faits.
 
-### Lot 1 — Cœur métier extrait · `v0.2.0` · 2 semaines
+### Lot 1 — Cœur métier extrait · `v0.2.0` · 3,5 semaines
 
 But : toutes les règles dans `packages/core`, sans entrée-sortie, prouvées identiques à l’existant.
 
@@ -441,7 +452,7 @@ But : toutes les règles dans `packages/core`, sans entrée-sortie, prouvées id
 
 Recette : 1 541 / 1 541 ; les 3 scénarios rejoués par `core` donnent les mêmes ordres, objectifs et radio que l’enregistrement `app_v3` (tolérance de position fixée dans le test) ; couverture de `core` ≥ 90 %.
 
-### Lot 2 — Mission de bout en bout sans écran · `v0.3.0` · 3 semaines
+### Lot 2 — Mission de bout en bout sans écran · `v0.3.0` · 4,5 semaines
 
 But : jouer une mission au clavier sur LOTUSim par l’API.
 
@@ -449,23 +460,23 @@ But : jouer une mission au clavier sur LOTUSim par l’API.
 - `apps/api` : schéma `ops` (Alembic), rôles SQL, comptes locaux et session (Argon2id), RBAC (opérateur, superviseur, admin ; rôle de jeu guide ou escorte), traducteur d’erreurs.
 - Handlers : `ListScenarios`, `StartMission`, `StopMission`, `ReadMission`, `SubmitOrder` (`review`, `direct`, `parent_id`), `DecideCommand`, `SimulateOrder`, `Recommend`, `SetHelm`, `ClassifyContact`, `ReplyRequest`, `SetAutopilot`, `ReadAudit`.
 - `MissionRunner` (scénario 2 Hz, lecture 4 Hz, SSE), `Dispatcher` et `ops.command_dispatches` (envoi fiable de la 1.1.0), `ops.integration_outbox`.
-- OpenAPI `1.0.0` commité **dès la première semaine**, pour débloquer le Lot 3.
+- OpenAPI `1.0.0` commité **dès la première semaine**, pour que le Lot 3 puisse démarrer sur des faux si le serveur GPU n’est pas disponible.
 - Mesure de la consommation de LOTUSim (CPU, RAM, GPU).
 
 Recette : sur le serveur GPU, le scénario « transit en colonne » se joue de bout en bout par l’API (client généré ou Swagger) ; une panne de `sim-bridge` pendant un envoi est rattrapée sans double exécution ; un redémarrage de l’API reprend les envois en cours.
 
-### Lot 3 — Console React · `v0.4.0` · 3 semaines (chevauche le Lot 2)
+### Lot 3 — Console React · `v0.4.0` · 5 semaines
 
 But : parité de l’interface hors voix et doctrine.
 
 - Socle front (1.1.0 § 14) : `ApiPort`, `StreamPort`, client généré, TanStack Query, routage, gardes de session.
 - Pages : Connexion, Préparation (scénarios, navire, aperçu de formation, options, progression du démarrage), Console (radar, contacts, journal radio et synthèse vocale, objectifs, navires, ordre clavier, simulation, recommandations, demandes des capitaines, mode auto, barre manuelle, débrief), Vue 3D (`view3d.js` enveloppé dans `SimView`, mode démo).
 - Développement sur des faux (MSW) tant que l’API du Lot 2 n’est pas prête.
-- Tests de bout en bout Playwright sur `dev-fake` : préparation → mission → ordre → validation → débrief.
+- Tests de bout en bout Playwright sur les adaptateurs factices (`HX_API_ADAPTERS=fake`) : préparation → mission → ordre → validation → débrief.
 
 Recette : un opérateur joue les 6 scénarios au clavier dans la nouvelle console sur LOTUSim, sans retour à `app_v3`.
 
-### Lot 4 — Voix et registre · `v0.5.0` · 1,5 semaine
+### Lot 4 — Voix et registre · `v0.5.0` · 2,5 semaines
 
 - `services/asr` : faster-whisper, vocabulaire du domaine et noms des navires de la mission, modèle en configuration (`large-v3-turbo` par défaut, `small` en repli), `compute_type` réglé pour le plafond VRAM.
 - `SubmitVoice` : audio stocké, transcription, interprétation, commande `pending`, correction chaînée.
@@ -474,7 +485,7 @@ Recette : un opérateur joue les 6 scénarios au clavier dans la nouvelle consol
 
 Recette : 93 % sur le jeu de 491 messages audio (même mesure qu’aujourd’hui) ; ordre vocal < 3 s (p95) sur le serveur.
 
-### Lot 5 — Doctrine · `v0.6.0` · 2 semaines (en parallèle du Lot 4)
+### Lot 5 — Doctrine · `v0.6.0` · 3 semaines
 
 - `services/rerank` : `reranker-hannibal`, lots de 16, demi-précision.
 - `services/doctrine` : `AskDoctrine` repris de `hx2_service_c.py` étape par étape (reformulation, dense, questions, lignes de tableaux, reclassement, seuil, rédaction, `EvidenceValidation`, second essai, modèle de repli, style `quotes`, suggestions), glossaire, `POST /explain` (RAG v1), `v2.index_versions`, rôle SQL en lecture seule, plus aucun mot de passe en dur.
@@ -484,7 +495,7 @@ Recette : 93 % sur le jeu de 491 messages audio (même mesure qu’aujourd’hui
 
 Recette : ≥ 94 % sur le grand jeu ; 29 pièges refusés sur 29 ; médiane ≈ 7 s ; ATP-28 invisible pour un opérateur.
 
-### Lot 6 — Durcissement et démonstration · `v1.0.0` MVP · 1,5 semaine
+### Lot 6 — Durcissement et démonstration · `v1.0.0` MVP · 2,5 semaines (dont 0,5 de marge)
 
 - Caddy et TLS (CA interne), un seul port publié, réseaux Docker isolés, secrets dans `/etc/hannibal/`.
 - `GpuGate` (priorité à la voix), plafonds VRAM, limites du § 3.7 mesurées et ajustées.
@@ -522,9 +533,9 @@ Jusqu’au Lot 6, une démonstration peut toujours être faite avec `app_v3`. On
 
 | Sujet | Règle |
 |---|---|
-| Branches | développement sur le tronc : branches courtes (≤ 2 jours), demande de fusion obligatoire, `main` toujours déployable |
-| Commits | Conventional Commits (`feat(api): …`) ; `CHANGELOG.md` généré à chaque étiquette |
-| Revue | une relecture par demande de fusion ; les ADR et les contrats sont relus par les deux développeurs |
+| Branches | développement sur le tronc : commits directs sur `main` si la CI locale est verte, branches courtes (≤ 2 jours) pour les changements risqués ; `main` toujours déployable |
+| Commits | Conventional Commits (`feat(api): …`) ; `CHANGELOG.md` mis à jour à chaque étiquette |
+| Revue | développeur seul : revue automatisée de chaque branche, relecture des ADR et des contrats par la direction de projet ou un pair à chaque fin de lot |
 | Contrat d’abord | toute nouvelle route commence par l’OpenAPI ; le front avance sur des faux |
 | Reprise de code | on déplace d’abord, on améliore ensuite : un commit qui déplace une règle ne la modifie pas |
 | Caractérisation | aucune règle n’est déplacée sans test qui fige son comportement actuel |
@@ -535,8 +546,8 @@ Jusqu’au Lot 6, une démonstration peut toujours être faite avec `app_v3`. On
 
 | Environnement | Machine | Contenu | Usage |
 |---|---|---|---|
-| Poste | Windows, sans GPU | `compose --profile dev-fake` : API, Postgres, faux `asr`, faux `doctrine`, faux `sim-bridge` | développement quotidien, front, handlers |
-| Intégration | serveur GPU + LOTUSim | `compose --profile dev` complet | tests ROS, voix, doctrine, mesures nocturnes |
+| Poste | Windows, sans GPU | `compose.dev.yml` avec `HX_API_ADAPTERS=fake` : API, Postgres, faux `asr`, faux `doctrine`, faux `sim-bridge` (ajoutés avec leurs lots) | développement quotidien, front, handlers |
+| Intégration | serveur GPU + LOTUSim | `compose.dev.yml --profile gpu`, adaptateurs réels | tests ROS, voix, doctrine, mesures nocturnes |
 | Démonstration | serveur du navire | paquet hors ligne, version étiquetée | répétitions et démonstrations |
 
 Les faux adaptateurs sont du code de production (`infrastructure/fakes/`), injectés par le socle selon la configuration : le même handler tourne sur le poste et sur le serveur.
@@ -549,13 +560,13 @@ Les faux adaptateurs sont du code de production (`infrastructure/fakes/`), injec
 | Handlers avec ports factices | CI | oui |
 | Contrats internes et OpenAPI | CI | oui |
 | Intégration SQL (Postgres de test) | CI | oui |
-| Front (Vitest) et bout en bout (Playwright sur `dev-fake`) | CI | oui |
+| Front (Vitest) et bout en bout (Playwright sur adaptateurs factices) | CI | oui |
 | ROS et LOTUSim | serveur d’intégration, à chaque fusion sur `main` | oui à partir du Lot 2 |
 | Mesures (interprétation, voix, doctrine, latences) | serveur d’intégration, la nuit | oui à partir du lot concerné : un score qui baisse bloque l’étiquette |
 
 ### 9.5 Données hors dépôt
 
-Les publications, `kb/signals.json`, le schéma `v2`, les jeux de mesure et les modèles ne vont jamais dans Git. Le Lot 0 écrit `infra/data/README.md` : où ils sont sur le serveur, comment restaurer `v2` depuis une sauvegarde, comment régénérer `signals.json`. La CI utilise une table MTP et des passages synthétiques.
+Les publications, `kb/signals.json`, le schéma `v2`, les jeux de mesure et les modèles ne vont jamais dans Git. `docs/donnees-hors-depot.md` (Lot 0) dit où ils sont sur le serveur ; la restauration de `v2` et la régénération de `signals.json` y sont ajoutées au Lot 5. La CI utilise une table MTP synthétique (`eval/characterization/fixtures/`) et, au Lot 5, des passages synthétiques.
 
 ## 10. Risques
 
@@ -566,14 +577,15 @@ Les publications, `kb/signals.json`, le schéma `v2`, les jeux de mesure et les 
 | Comportement du scénario différent après extraction | démo différente de l’actuelle | enregistrements de caractérisation, rejeu automatique | 1 |
 | Charge du front sous-estimée (radar, 3D, console de 30 Ko) | retard du Lot 3 | reprise du code three.js tel quel ; console découpée par fonctionnalité | 3 |
 | Mémoire vive : 32 Go partagés avec LOTUSim | conteneurs tués | limites du § 3.7, mesures, Ollama limité à 2 modèles | 2, 6 |
-| Dépendance à une seule personne pour la doctrine | blocage du Lot 5 | ADR et tests de caractérisation dès le Lot 0, revue croisée | 0, 5 |
+| Un seul développeur sur tout le projet | arrêt complet en cas d’absence ; angles morts sans revue | ADR, tests de caractérisation, `docs/developpement.md` dès le Lot 0 ; revue automatisée ; relecture de fin de lot par un pair | tous |
+| Calendrier de 23 semaines dépassé | démonstration repoussée | recalage à chaque fin de lot ; périmètre réductible : mode démo 3D, débrief, exercice de formations passent après le MVP si besoin | tous |
 | Démonstration sur réseau du navire inconnu | site injoignable | TLS CA interne, un seul port, test d’installation à blanc | 6 |
 
 ## 11. Décisions attendues
 
 | Question | Qui | Avant | Proposition |
 |---|---|---|---|
-| Taille de l’équipe et date de démonstration | direction de projet | Lot 0 | deux développeurs, démonstration en semaine 14 |
+| Taille de l’équipe et date de démonstration | direction de projet | Lot 0 | **décidé** : un développeur ; démonstration MVP vers la semaine 23 |
 | Redémarrage du moteur LOTUSim sans socket Docker | intégrateur LOTUSim | Lot 2 | unité systemd sur l’hôte, déclenchée par l’exploitation |
 | Rendu LOTUSim : quelle machine, quel GPU | intégrateur LOTUSim | Lot 2 | mesure, puis choix |
 | Systèmes du navire à connecter en premier | métier, intégrateur navire | version 1.2.0 | à recenser ; DDS et NMEA/AIS en candidats |

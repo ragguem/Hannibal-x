@@ -1,0 +1,1974 @@
+[
+ {
+  "input": "CHARLIE THIS IS HANNIBAL TURN STARBOARD NINER OVER",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN STBD 9"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": "CHARLIE",
+   "warnings": [],
+   "written_signal": "TURN STBD 9"
+  }
+ },
+ {
+  "input": "ALFA THIS IS HANNIBAL TURN PORT ZERO NINER ZERO OVER",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "side": "PORT",
+      "true_course": 90
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN PORT 090"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "side": "PORT",
+    "true_course": 90
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": "ALFA",
+   "warnings": [],
+   "written_signal": "TURN PORT 090"
+  }
+ },
+ {
+  "input": "ALFA THIS IS HANNIBAL TURN PORT FOUR ZERO OVER",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": null,
+     "status": "invalid_parameter",
+     "warnings": [
+      "Valeur 40 hors limites (1 a 36 dizaines de degres)."
+     ],
+     "written_signal": "TURN PORT 40"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": null,
+   "status": "invalid_parameter",
+   "to": "ALFA",
+   "warnings": [
+    "Valeur 40 hors limites (1 a 36 dizaines de degres)."
+   ],
+   "written_signal": "TURN PORT 40"
+  }
+ },
+ {
+  "input": "ALFA THIS IS HANNIBAL TURN NINER OVER",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": null,
+     "status": "missing_parameter",
+     "warnings": [
+      "Le bord (PORT ou STBD) doit etre indique."
+     ],
+     "written_signal": "TURN 9"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": null,
+   "status": "missing_parameter",
+   "to": "ALFA",
+   "warnings": [
+    "Le bord (PORT ou STBD) doit etre indique."
+   ],
+   "written_signal": "TURN 9"
+  }
+ },
+ {
+  "input": "ALFA THIS IS HANNIBAL TURN STBD 365 OVER",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": null,
+     "status": "invalid_parameter",
+     "warnings": [
+      "Cap 365 hors limites (000 a 359)."
+     ],
+     "written_signal": "TURN STBD 365"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": null,
+   "status": "invalid_parameter",
+   "to": "ALFA",
+   "warnings": [
+    "Cap 365 hors limites (000 a 359)."
+   ],
+   "written_signal": "TURN STBD 365"
+  }
+ },
+ {
+  "input": "CORPEN STARBOARD ONE TWO",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 2 (route).",
+     "reference": "FICTIF §2",
+     "signal_id": "FX-002"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 2 (route).",
+     "params": {
+      "relative_degrees": 120,
+      "relative_tens_of_degrees": 12,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §2",
+     "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+     "signal_id": "FX-002",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "CORPEN STBD 12"
+    }
+   ],
+   "meaning": "Sens fictif 2 (route).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 120,
+    "relative_tens_of_degrees": 12,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §2",
+   "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+   "signal_id": "FX-002",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "CORPEN STBD 12"
+  }
+ },
+ {
+  "input": "CORPEN STBD 19",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+     "signal_id": null,
+     "status": "invalid_parameter",
+     "warnings": [
+      "Valeur 19 hors limites (1 a 18 dizaines de degres)."
+     ],
+     "written_signal": "CORPEN STBD 19"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+   "signal_id": null,
+   "status": "invalid_parameter",
+   "to": null,
+   "warnings": [
+    "Valeur 19 hors limites (1 a 18 dizaines de degres)."
+   ],
+   "written_signal": "CORPEN STBD 19"
+  }
+ },
+ {
+  "input": "CORPEN 090",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+     "signal_id": null,
+     "status": "missing_parameter",
+     "warnings": [
+      "Le bord (PORT ou STBD) doit etre indique."
+     ],
+     "written_signal": "CORPEN 090"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+   "signal_id": null,
+   "status": "missing_parameter",
+   "to": null,
+   "warnings": [
+    "Le bord (PORT ou STBD) doit etre indique."
+   ],
+   "written_signal": "CORPEN 090"
+  }
+ },
+ {
+  "input": "SPEED ONE FIVE",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 3 (vitesse).",
+     "reference": "FICTIF §3",
+     "signal_id": "FX-003"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 15
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 15"
+    }
+   ],
+   "meaning": "Sens fictif 3 (vitesse).",
+   "method": "plain",
+   "params": {
+    "speed_knots": 15
+   },
+   "reference": "FICTIF §3",
+   "signal": "SPEED",
+   "signal_id": "FX-003",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "SPEED 15"
+  }
+ },
+ {
+  "input": "SPEED FIFTEEN",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 3 (vitesse).",
+     "reference": "FICTIF §3",
+     "signal_id": "FX-003"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 15
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 15"
+    }
+   ],
+   "meaning": "Sens fictif 3 (vitesse).",
+   "method": "plain",
+   "params": {
+    "speed_knots": 15
+   },
+   "reference": "FICTIF §3",
+   "signal": "SPEED",
+   "signal_id": "FX-003",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "SPEED 15"
+  }
+ },
+ {
+  "input": "SPEED TWENTY FIVE",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 3 (vitesse).",
+     "reference": "FICTIF §3",
+     "signal_id": "FX-003"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 25
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 25"
+    }
+   ],
+   "meaning": "Sens fictif 3 (vitesse).",
+   "method": "plain",
+   "params": {
+    "speed_knots": 25
+   },
+   "reference": "FICTIF §3",
+   "signal": "SPEED",
+   "signal_id": "FX-003",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "SPEED 25"
+  }
+ },
+ {
+  "input": "SPEED TWENTY",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 3 (vitesse).",
+     "reference": "FICTIF §3",
+     "signal_id": "FX-003"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 20
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 20"
+    }
+   ],
+   "meaning": "Sens fictif 3 (vitesse).",
+   "method": "plain",
+   "params": {
+    "speed_knots": 20
+   },
+   "reference": "FICTIF §3",
+   "signal": "SPEED",
+   "signal_id": "FX-003",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "SPEED 20"
+  }
+ },
+ {
+  "input": "SPEED 0",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 4.",
+     "reference": "FICTIF §4",
+     "signal_id": "FX-004"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 4.",
+     "params": {},
+     "reference": "FICTIF §4",
+     "signal": "SPEED 0",
+     "signal_id": "FX-004",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 0"
+    }
+   ],
+   "meaning": "Sens fictif 4.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §4",
+   "signal": "SPEED 0",
+   "signal_id": "FX-004",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "SPEED 0"
+  }
+ },
+ {
+  "input": "SPEED INDIA FIVE",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 5.",
+     "reference": "FICTIF §5",
+     "signal_id": "FX-005"
+    }
+   ],
+   "extra": [
+    "5"
+   ],
+   "from": null,
+   "groups": [
+    {
+     "extra": [
+      "5"
+     ],
+     "meaning": "Sens fictif 5.",
+     "params": {},
+     "reference": "FICTIF §5",
+     "signal": "SPEED I",
+     "signal_id": "FX-005",
+     "status": "ok",
+     "warnings": [
+      "Elements a la suite du groupe, non interpretes : 5"
+     ],
+     "written_signal": "SPEED I 5"
+    }
+   ],
+   "meaning": "Sens fictif 5.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §5",
+   "signal": "SPEED I",
+   "signal_id": "FX-005",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Elements a la suite du groupe, non interpretes : 5"
+   ],
+   "written_signal": "SPEED I 5"
+  }
+ },
+ {
+  "input": "SPEED HOTEL 20",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 6.",
+     "reference": "FICTIF §6",
+     "signal_id": "FX-006"
+    }
+   ],
+   "extra": [
+    "20"
+   ],
+   "from": null,
+   "groups": [
+    {
+     "extra": [
+      "20"
+     ],
+     "meaning": "Sens fictif 6.",
+     "params": {},
+     "reference": "FICTIF §6",
+     "signal": "SPEED H",
+     "signal_id": "FX-006",
+     "status": "ok",
+     "warnings": [
+      "Elements a la suite du groupe, non interpretes : 20"
+     ],
+     "written_signal": "SPEED H 20"
+    }
+   ],
+   "meaning": "Sens fictif 6.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §6",
+   "signal": "SPEED H",
+   "signal_id": "FX-006",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Elements a la suite du groupe, non interpretes : 20"
+   ],
+   "written_signal": "SPEED H 20"
+  }
+ },
+ {
+  "input": "FORMATION ONE",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 7.",
+     "reference": "FICTIF §7",
+     "signal_id": "FX-007"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 7.",
+     "params": {},
+     "reference": "FICTIF §7",
+     "signal": "FORM 1",
+     "signal_id": "FX-007",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "FORM 1"
+    }
+   ],
+   "meaning": "Sens fictif 7.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §7",
+   "signal": "FORM 1",
+   "signal_id": "FX-007",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "FORM 1"
+  }
+ },
+ {
+  "input": "FORMATION SEVEN",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 9.",
+     "reference": "FICTIF §9",
+     "signal_id": "FX-009"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 9.",
+     "params": {
+      "formation_number": 7
+     },
+     "reference": "FICTIF §9",
+     "signal": "FORM 5 to 9",
+     "signal_id": "FX-009",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "FORM 7"
+    }
+   ],
+   "meaning": "Sens fictif 9.",
+   "method": "plain",
+   "params": {
+    "formation_number": 7
+   },
+   "reference": "FICTIF §9",
+   "signal": "FORM 5 to 9",
+   "signal_id": "FX-009",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "FORM 7"
+  }
+ },
+ {
+  "input": "FORM 12",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "FORM 12",
+     "signal_id": null,
+     "status": "unknown_signal",
+     "warnings": [],
+     "written_signal": "FORM 12"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "FORM 12",
+   "signal_id": null,
+   "status": "unknown_signal",
+   "to": null,
+   "warnings": [],
+   "written_signal": "FORM 12"
+  }
+ },
+ {
+  "input": "FORM STBD 4",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 10.",
+     "reference": "FICTIF §10",
+     "signal_id": "FX-010"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 10.",
+     "params": {
+      "relative_bearing_degrees": 40,
+      "relative_bearing_tens_of_degrees": 4,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §10",
+     "signal": "FORM [PORT or STBD] [0 to 18]",
+     "signal_id": "FX-010",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "FORM STBD 4"
+    }
+   ],
+   "meaning": "Sens fictif 10.",
+   "method": "plain",
+   "params": {
+    "relative_bearing_degrees": 40,
+    "relative_bearing_tens_of_degrees": 4,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §10",
+   "signal": "FORM [PORT or STBD] [0 to 18]",
+   "signal_id": "FX-010",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "FORM STBD 4"
+  }
+ },
+ {
+  "input": "FORM PORT 20",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "FORM [PORT or STBD] [0 to 18]",
+     "signal_id": null,
+     "status": "invalid_parameter",
+     "warnings": [
+      "Valeur 20 hors limites (0 a 18)."
+     ],
+     "written_signal": "FORM PORT 20"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "FORM [PORT or STBD] [0 to 18]",
+   "signal_id": null,
+   "status": "invalid_parameter",
+   "to": null,
+   "warnings": [
+    "Valeur 20 hors limites (0 a 18)."
+   ],
+   "written_signal": "FORM PORT 20"
+  }
+ },
+ {
+  "input": "FORM 045",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 11.",
+     "reference": "FICTIF §11",
+     "signal_id": "FX-011"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 11.",
+     "params": {
+      "true_bearing": 45
+     },
+     "reference": "FICTIF §11",
+     "signal": "FORM [000 to 359]",
+     "signal_id": "FX-011",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "FORM 045"
+    }
+   ],
+   "meaning": "Sens fictif 11.",
+   "method": "plain",
+   "params": {
+    "true_bearing": 45
+   },
+   "reference": "FICTIF §11",
+   "signal": "FORM [000 to 359]",
+   "signal_id": "FX-011",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "FORM 045"
+  }
+ },
+ {
+  "input": "FORM 400",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "FORM [000 to 359]",
+     "signal_id": null,
+     "status": "invalid_parameter",
+     "warnings": [
+      "Relevement 400 hors limites (000 a 359)."
+     ],
+     "written_signal": "FORM 400"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "FORM [000 to 359]",
+   "signal_id": null,
+   "status": "invalid_parameter",
+   "to": null,
+   "warnings": [
+    "Relevement 400 hors limites (000 a 359)."
+   ],
+   "written_signal": "FORM 400"
+  }
+ },
+ {
+  "input": "STATION",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 12.",
+     "reference": "FICTIF §12",
+     "signal_id": "FX-012"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 12.",
+     "params": {},
+     "reference": "FICTIF §12",
+     "signal": "STATION",
+     "signal_id": "FX-012",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "STATION"
+    }
+   ],
+   "meaning": "Sens fictif 12.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §12",
+   "signal": "STATION",
+   "signal_id": "FX-012",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "STATION"
+  }
+ },
+ {
+  "input": "STATION ECHO",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 13.",
+     "reference": "FICTIF §13",
+     "signal_id": "FX-013"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 13.",
+     "params": {},
+     "reference": "FICTIF §13",
+     "signal": "STATION E",
+     "signal_id": "FX-013",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "STATION E"
+    }
+   ],
+   "meaning": "Sens fictif 13.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §13",
+   "signal": "STATION E",
+   "signal_id": "FX-013",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "STATION E"
+  }
+ },
+ {
+  "input": "INTERROGATIVE SPEED",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 14.",
+     "reference": "FICTIF §14",
+     "signal_id": "FX-014"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 14.",
+     "params": {},
+     "reference": "FICTIF §14",
+     "signal": "INT SPEED",
+     "signal_id": "FX-014",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "INT SPEED"
+    }
+   ],
+   "meaning": "Sens fictif 14.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §14",
+   "signal": "INT SPEED",
+   "signal_id": "FX-014",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "INT SPEED"
+  }
+ },
+ {
+  "input": "ALFA SPEED",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 15.",
+     "reference": "FICTIF §15",
+     "signal_id": "FX-015"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 15.",
+     "params": {},
+     "reference": "FICTIF §15",
+     "signal": "A SPEED",
+     "signal_id": "FX-015",
+     "status": "ok",
+     "warnings": [
+      "Le sens comporte 1 element(s) a preciser, non fournis."
+     ],
+     "written_signal": "A SPEED"
+    }
+   ],
+   "meaning": "Sens fictif 15.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §15",
+   "signal": "A SPEED",
+   "signal_id": "FX-015",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Le sens comporte 1 element(s) a preciser, non fournis."
+   ],
+   "written_signal": "A SPEED"
+  }
+ },
+ {
+  "input": "MIKE WHISKEY FOUR ZERO",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 16.",
+     "reference": "FICTIF §16",
+     "signal_id": "FX-016"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 16.",
+     "params": {},
+     "reference": "FICTIF §16",
+     "signal": "MW 40",
+     "signal_id": "FX-016",
+     "status": "ok",
+     "warnings": [
+      "Une partie de ce signal est NOT RELEASABLE dans cette edition."
+     ],
+     "written_signal": "M W 40"
+    }
+   ],
+   "meaning": "Sens fictif 16.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §16",
+   "signal": "MW 40",
+   "signal_id": "FX-016",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Une partie de ce signal est NOT RELEASABLE dans cette edition."
+   ],
+   "written_signal": "M W 40"
+  }
+ },
+ {
+  "input": "AB12",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": "FICTIF §17",
+     "signal": "AB 12",
+     "signal_id": "FX-017",
+     "status": "spare",
+     "warnings": [],
+     "written_signal": "A B 12"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §17",
+   "signal": "AB 12",
+   "signal_id": "FX-017",
+   "status": "spare",
+   "to": null,
+   "warnings": [],
+   "written_signal": "A B 12"
+  }
+ },
+ {
+  "input": "XRAY YANKEE SEVEN",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": "FICTIF §18",
+     "signal": "XY 7",
+     "signal_id": "FX-018",
+     "status": "not_releasable",
+     "warnings": [],
+     "written_signal": "X Y 7"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §18",
+   "signal": "XY 7",
+   "signal_id": "FX-018",
+   "status": "not_releasable",
+   "to": null,
+   "warnings": [],
+   "written_signal": "X Y 7"
+  }
+ },
+ {
+  "input": "7C",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 19.",
+     "reference": "FICTIF §19",
+     "signal_id": "FX-019"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 19.",
+     "params": {},
+     "reference": "FICTIF §19",
+     "signal": "7C",
+     "signal_id": "FX-019",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "7 C"
+    }
+   ],
+   "meaning": "Sens fictif 19.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §19",
+   "signal": "7C",
+   "signal_id": "FX-019",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "7 C"
+  }
+ },
+ {
+  "input": "BRAVO ALFA",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 20a.",
+     "reference": "FICTIF §20a",
+     "signal_id": "FX-020"
+    },
+    {
+     "meaning": "Sens fictif 20b.",
+     "reference": "FICTIF §20b",
+     "signal_id": "FX-021"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 20a.",
+     "params": {},
+     "reference": "FICTIF §20a",
+     "signal": "BA",
+     "signal_id": "FX-020",
+     "status": "ok",
+     "warnings": [
+      "Le code BA figure 2 fois dans la publication : voir les references proposees."
+     ],
+     "written_signal": "B A"
+    }
+   ],
+   "meaning": "Sens fictif 20a.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §20a",
+   "signal": "BA",
+   "signal_id": "FX-020",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Le code BA figure 2 fois dans la publication : voir les references proposees."
+   ],
+   "written_signal": "B A"
+  }
+ },
+ {
+  "input": "TANGO ALFA SIX TWO",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 22.",
+     "reference": "FICTIF §22",
+     "signal_id": "FX-022"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 22.",
+     "params": {},
+     "reference": "FICTIF §22",
+     "signal": "TA62",
+     "signal_id": "FX-022",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "T A 62"
+    }
+   ],
+   "meaning": "Sens fictif 22.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §22",
+   "signal": "TA62",
+   "signal_id": "FX-022",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "T A 62"
+  }
+ },
+ {
+  "input": "EMERGENCY JULIETT",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 23.",
+     "reference": "FICTIF §23",
+     "signal_id": "FX-023"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 23.",
+     "params": {},
+     "reference": "FICTIF §23",
+     "signal": "EMERG J",
+     "signal_id": "FX-023",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "EMERG J"
+    }
+   ],
+   "meaning": "Sens fictif 23.",
+   "method": "plain",
+   "params": {},
+   "reference": "FICTIF §23",
+   "signal": "EMERG J",
+   "signal_id": "FX-023",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "EMERG J"
+  }
+ },
+ {
+  "input": "EMERG STBD 3",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 24.",
+     "reference": "FICTIF §24",
+     "signal_id": "FX-024"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 24.",
+     "params": {
+      "relative_bearing_degrees": 30,
+      "relative_bearing_tens_of_degrees": 3,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §24",
+     "signal": "EMERG [PORT or STBD] [0 to 18]",
+     "signal_id": "FX-024",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "EMERG STBD 3"
+    }
+   ],
+   "meaning": "Sens fictif 24.",
+   "method": "plain",
+   "params": {
+    "relative_bearing_degrees": 30,
+    "relative_bearing_tens_of_degrees": 3,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §24",
+   "signal": "EMERG [PORT or STBD] [0 to 18]",
+   "signal_id": "FX-024",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "EMERG STBD 3"
+  }
+ },
+ {
+  "input": "EMERG STBD 25",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "EMERG [PORT or STBD] [0 to 18]",
+     "signal_id": null,
+     "status": "invalid_parameter",
+     "warnings": [
+      "Valeur 25 hors limites (0 a 18)."
+     ],
+     "written_signal": "EMERG STBD 25"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "EMERG [PORT or STBD] [0 to 18]",
+   "signal_id": null,
+   "status": "invalid_parameter",
+   "to": null,
+   "warnings": [
+    "Valeur 25 hors limites (0 a 18)."
+   ],
+   "written_signal": "EMERG STBD 25"
+  }
+ },
+ {
+  "input": "ZULU QUEBEC 99",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "ZQ99",
+     "signal_id": null,
+     "status": "unknown_signal",
+     "warnings": [],
+     "written_signal": "Z Q 99"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "ZQ99",
+   "signal_id": null,
+   "status": "unknown_signal",
+   "to": null,
+   "warnings": [],
+   "written_signal": "Z Q 99"
+  }
+ },
+ {
+  "input": "TURN STBD 9 TACK SPEED 12",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN STBD 9"
+    },
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 12
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 12"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "TURN STBD 9 TACK SPEED 12"
+  }
+ },
+ {
+  "input": "TURN STBD 9 SPEED 12",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN STBD 9"
+    },
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 12
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 12"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "TURN STBD 9 SPEED 12"
+  }
+ },
+ {
+  "input": "TURN STBD 9 TACK ZULU QUEBEC 99",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN STBD 9"
+    },
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "ZQ99",
+     "signal_id": null,
+     "status": "unknown_signal",
+     "warnings": [],
+     "written_signal": "Z Q 99"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "unknown_signal",
+   "to": null,
+   "warnings": [],
+   "written_signal": "TURN STBD 9 TACK Z Q 99"
+  }
+ },
+ {
+  "input": "TURN STBD 9 I SAY AGAIN TURN STBD 8",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN STBD 9"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "La repetition apres I SAY AGAIN ne correspond pas au premier enonce."
+   ],
+   "written_signal": "TURN STBD 9"
+  }
+ },
+ {
+  "input": "TURN STBD 9 I SAY AGAIN TURN STBD 9",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "TURN STBD 9"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "TURN STBD 9"
+  }
+ },
+ {
+  "input": "EXECUTE TO FOLLOW CORPEN PORT 090 STANDBY EXECUTE",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 2 (route).",
+     "reference": "FICTIF §2",
+     "signal_id": "FX-002"
+    }
+   ],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 2 (route).",
+     "params": {
+      "side": "PORT",
+      "true_course": 90
+     },
+     "reference": "FICTIF §2",
+     "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+     "signal_id": "FX-002",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "CORPEN PORT 090"
+    }
+   ],
+   "meaning": "Sens fictif 2 (route).",
+   "method": "execute_to_follow",
+   "params": {
+    "side": "PORT",
+    "true_course": 90
+   },
+   "reference": "FICTIF §2",
+   "signal": "CORPEN [PORT or STBD] [1 to 18] or [000 to 359]",
+   "signal_id": "FX-002",
+   "status": "ok",
+   "to": null,
+   "warnings": [],
+   "written_signal": "CORPEN PORT 090"
+  }
+ },
+ {
+  "input": "IMMEDIATE EXECUTE TURN STBD 18 ANSWER",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [
+    "ANS"
+   ],
+   "from": null,
+   "groups": [
+    {
+     "extra": [
+      "ANS"
+     ],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 185,
+      "relative_tens_of_degrees": 18,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [
+      "Elements a la suite du groupe, non interpretes : ANS"
+     ],
+     "written_signal": "TURN STBD 18 ANS"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "immediate_execute",
+   "params": {
+    "relative_degrees": 185,
+    "relative_tens_of_degrees": 18,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Elements a la suite du groupe, non interpretes : ANS"
+   ],
+   "written_signal": "TURN STBD 18 ANS"
+  }
+ },
+ {
+  "input": "TURN STBD 9 BLUE",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 1 (virage).",
+     "reference": "FICTIF §1",
+     "signal_id": "FX-001"
+    }
+   ],
+   "extra": [
+    "BLUE"
+   ],
+   "from": null,
+   "groups": [
+    {
+     "extra": [
+      "BLUE"
+     ],
+     "meaning": "Sens fictif 1 (virage).",
+     "params": {
+      "relative_degrees": 90,
+      "relative_tens_of_degrees": 9,
+      "side": "STBD"
+     },
+     "reference": "FICTIF §1",
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": "FX-001",
+     "status": "ok",
+     "warnings": [
+      "Elements a la suite du groupe, non interpretes : BLUE"
+     ],
+     "written_signal": "TURN STBD 9 BLUE"
+    }
+   ],
+   "meaning": "Sens fictif 1 (virage).",
+   "method": "plain",
+   "params": {
+    "relative_degrees": 90,
+    "relative_tens_of_degrees": 9,
+    "side": "STBD"
+   },
+   "reference": "FICTIF §1",
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": "FX-001",
+   "status": "ok",
+   "to": null,
+   "warnings": [
+    "Mots non reconnus : BLUE",
+    "Elements a la suite du groupe, non interpretes : BLUE"
+   ],
+   "written_signal": "TURN STBD 9 BLUE"
+  }
+ },
+ {
+  "input": "Alfa, this is Hannibal, turn 3-2 starboard, over.",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+     "signal_id": null,
+     "status": "missing_parameter",
+     "warnings": [
+      "Le bord (PORT ou STBD) doit etre indique."
+     ],
+     "written_signal": "TURN 32 STBD"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+   "signal_id": null,
+   "status": "missing_parameter",
+   "to": "ALFA",
+   "warnings": [
+    "Le bord (PORT ou STBD) doit etre indique."
+   ],
+   "written_signal": "TURN 32 STBD"
+  }
+ },
+ {
+  "input": "ALL SHIPS THIS IS HANNIBAL SPEED 8-NINER OVER",
+  "output": {
+   "candidates": [
+    {
+     "meaning": "Sens fictif 3 (vitesse).",
+     "reference": "FICTIF §3",
+     "signal_id": "FX-003"
+    }
+   ],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": "Sens fictif 3 (vitesse).",
+     "params": {
+      "speed_knots": 89
+     },
+     "reference": "FICTIF §3",
+     "signal": "SPEED",
+     "signal_id": "FX-003",
+     "status": "ok",
+     "warnings": [],
+     "written_signal": "SPEED 89"
+    }
+   ],
+   "meaning": "Sens fictif 3 (vitesse).",
+   "method": "plain",
+   "params": {
+    "speed_knots": 89
+   },
+   "reference": "FICTIF §3",
+   "signal": "SPEED",
+   "signal_id": "FX-003",
+   "status": "ok",
+   "to": "ALL SHIPS",
+   "warnings": [],
+   "written_signal": "SPEED 89"
+  }
+ },
+ {
+  "input": "BANANA SPLIT",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": "BANANA SPLIT",
+     "signal_id": null,
+     "status": "unknown_signal",
+     "warnings": [],
+     "written_signal": "BANANA SPLIT"
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": "BANANA SPLIT",
+   "signal_id": null,
+   "status": "unknown_signal",
+   "to": null,
+   "warnings": [
+    "Mots non reconnus : BANANA SPLIT"
+   ],
+   "written_signal": "BANANA SPLIT"
+  }
+ },
+ {
+  "input": "ALFA THIS IS HANNIBAL OVER",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": "HANNIBAL",
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": null,
+     "signal_id": null,
+     "status": "empty",
+     "warnings": [],
+     "written_signal": ""
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": null,
+   "signal_id": null,
+   "status": "empty",
+   "to": "ALFA",
+   "warnings": [],
+   "written_signal": ""
+  }
+ },
+ {
+  "input": "",
+  "output": {
+   "candidates": [],
+   "extra": [],
+   "from": null,
+   "groups": [
+    {
+     "extra": [],
+     "meaning": null,
+     "params": {},
+     "reference": null,
+     "signal": null,
+     "signal_id": null,
+     "status": "empty",
+     "warnings": [],
+     "written_signal": ""
+    }
+   ],
+   "meaning": null,
+   "method": "plain",
+   "params": {},
+   "reference": null,
+   "signal": null,
+   "signal_id": null,
+   "status": "empty",
+   "to": null,
+   "warnings": [],
+   "written_signal": ""
+  }
+ }
+]

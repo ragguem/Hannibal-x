@@ -1,0 +1,38 @@
+"""Écrit les schémas JSON des contrats dans `packages/contracts/schemas/`.
+
+Le test de dérive échoue si un modèle change sans régénération : `uv run hx-export-schemas`.
+"""
+
+import json
+import sys
+from pathlib import Path
+
+from pydantic import BaseModel
+
+from hannibal_contracts import CONTRACTS_VERSION
+from hannibal_contracts.common import DependencyStatus, ErrorBody, Health, Readiness
+
+MODELS: tuple[type[BaseModel], ...] = (ErrorBody, Health, DependencyStatus, Readiness)
+SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
+
+
+def render(model: type[BaseModel]) -> str:
+    schema = model.model_json_schema()
+    schema["$id"] = f"urn:hannibal-x:contracts:{CONTRACTS_VERSION}:{model.__name__}"
+    return json.dumps(schema, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+
+
+def expected_files() -> dict[str, str]:
+    return {f"{model.__name__}.json": render(model) for model in MODELS}
+
+
+def main() -> int:
+    SCHEMAS_DIR.mkdir(exist_ok=True)
+    for name, content in expected_files().items():
+        (SCHEMAS_DIR / name).write_text(content, encoding="utf-8", newline="\n")
+    sys.stdout.write(f"{len(MODELS)} schémas écrits dans {SCHEMAS_DIR}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

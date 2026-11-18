@@ -1,0 +1,47 @@
+# uv run pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-merge-conflict
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: check-toml
+      - id: check-json
+      - id: end-of-file-fixer
+        exclude: ^legacy/
+      - id: trailing-whitespace
+        exclude: ^legacy/
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      - id: lint-imports
+        name: import-linter
+        entry: uv run lint-imports
+        language: system
+        pass_filenames: false
+        files: ^(apps|packages)/.*\.py$
+      - id: contracts-schemas
+        name: schémas des contrats à jour
+        entry: uv run pytest -q packages/contracts
+        language: system
+        pass_filenames: false
+        files: ^packages/contracts/
+      - id: no-data-files
+        name: aucune donnée hors dépôt
+        entry: "Fichier de données refusé (voir docs/donnees-hors-depot.md)"
+        language: fail
+        files: (^|/)(kb|audit|eval_data)/|\.(wav|mp3|gguf|safetensors|onnx|pt|bin)$

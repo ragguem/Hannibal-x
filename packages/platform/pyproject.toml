@@ -1,0 +1,20 @@
+[project]
+name = "hannibal-platform"
+version = "0.1.0"
+description = "Socle technique commun aux processus Python de Hannibal X : configuration, journal, request_id, jeton interne, erreurs, santé, métriques"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.116",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.10",
+    "structlog>=25.4",
+    "httpx>=0.28",
+    "prometheus-client>=0.22",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hannibal_platform"]

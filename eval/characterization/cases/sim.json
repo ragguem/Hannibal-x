@@ -1,0 +1,37 @@
+{
+  "ships": [
+    {"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.17},
+    {"name": "bravo", "x": 0.0, "y": -500.0, "hdg": 0.0, "sog": 6.17},
+    {"name": "charlie", "x": 400.0, "y": -250.0, "hdg": 10.0, "sog": 5.0}
+  ],
+  "contacts": [
+    {"id": "T1", "x": 3000.0, "y": 6000.0, "vx": -2.0, "vy": -6.0, "cls": "inconnu"},
+    {"id": "T2", "x": -9000.0, "y": 2000.0, "vx": 4.0, "vy": 0.0, "cls": "neutre"}
+  ],
+  "apply_orders": [
+    {"hdg": 0.0, "sog": 5.0, "orders": []},
+    {"hdg": 350.0, "sog": 5.0, "orders": [{"type": "TURN", "deg": 30, "side": "STBD"}]},
+    {"hdg": 10.0, "sog": 5.0, "orders": [{"type": "TURN", "deg": 30, "side": "PORT"}]},
+    {"hdg": 10.0, "sog": 5.0, "orders": [{"type": "CORPEN", "cap": 270}, {"type": "SPEED", "kn": 15}]},
+    {"hdg": 10.0, "sog": 5.0, "orders": [{"type": "CORPEN", "cap": 90}, {"type": "TURN", "deg": 360, "side": "STBD"}]},
+    {"hdg": 10.0, "sog": 5.0, "orders": [{"type": "FORM", "name": "column"}, {"type": "ACK", "text": "ROGER"}]}
+  ],
+  "paths": [
+    {"ship": 0, "orders": [], "horizon": 120},
+    {"ship": 0, "orders": [{"type": "TURN", "deg": 90, "side": "STBD"}], "horizon": 180},
+    {"ship": 2, "orders": [{"type": "CORPEN", "cap": 200}, {"type": "SPEED", "kn": 18}], "horizon": 240},
+    {"ship": 1, "orders": [{"type": "SPEED", "kn": 3}], "horizon": 60, "step": 5}
+  ],
+  "ghosts": [
+    {"to": ["TOUS"], "orders": [{"type": "TURN", "deg": 60, "side": "PORT"}], "horizon": 300},
+    {"to": ["BRAVO"], "orders": [{"type": "CORPEN", "cap": 90}], "horizon": 300},
+    {"to": ["alfa"], "orders": [], "horizon": 200}
+  ],
+  "cpa_now": [
+    {"own": 0, "contact": 0},
+    {"own": 0, "contact": 1},
+    {"own": 2, "contact": 0},
+    {"own_inline": {"name": "x", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 0.0},
+     "contact_inline": {"id": "S", "x": 100.0, "y": 100.0, "vx": 0.0, "vy": 0.0}}
+  ]
+}

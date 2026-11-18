@@ -1,0 +1,53 @@
+{
+  "scenarios": [
+    {
+      "name": "guide_rien_a_signaler",
+      "player": "alfa", "guide": "alfa", "pending": [], "reported": [],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0}], "contacts": []}
+    },
+    {
+      "name": "suiveur_ordre_en_attente",
+      "player": "bravo", "guide": "alfa", "reported": [],
+      "pending": [{"orders": [{"type": "CORPEN", "cap": 90}, {"type": "SPEED", "kn": 12}]}],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0},
+                          {"name": "bravo", "x": 0.0, "y": -500.0, "hdg": 0.0, "sog": 6.0}], "contacts": []}
+    },
+    {
+      "name": "contact_inconnu_proche",
+      "player": "alfa", "guide": "alfa", "pending": [], "reported": [],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0}],
+                "contacts": [{"id": "T7", "x": 5000.0, "y": 3000.0, "vx": 0.0, "vy": 0.0, "cls": "inconnu"}]}
+    },
+    {
+      "name": "contact_inconnu_deja_signale",
+      "player": "alfa", "guide": "alfa", "pending": [], "reported": ["T7"],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0}],
+                "contacts": [{"id": "T7", "x": 5000.0, "y": 3000.0, "vx": 0.0, "vy": 0.0, "cls": "inconnu"}]}
+    },
+    {
+      "name": "route_de_collision",
+      "player": "bravo", "guide": "alfa", "pending": [], "reported": ["T9"],
+      "state": {"ships": [{"name": "alfa", "x": -2000.0, "y": 0.0, "hdg": 0.0, "sog": 6.0},
+                          {"name": "bravo", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0}],
+                "contacts": [{"id": "T9", "x": 0.0, "y": 7000.0, "vx": 0.0, "vy": -6.0, "cls": "hostile"}]}
+    },
+    {
+      "name": "guide_route_de_collision_contact_inconnu",
+      "player": "alfa", "guide": "alfa", "pending": [], "reported": [],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 45.0, "sog": 7.0}],
+                "contacts": [{"id": "T3", "x": 6000.0, "y": 6000.0, "vx": -5.0, "vy": -5.0}]}
+    },
+    {
+      "name": "suiveur_hors_formation",
+      "player": "charlie", "guide": "alfa", "pending": [], "reported": [],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0},
+                          {"name": "charlie", "x": 3000.0, "y": 0.0, "hdg": 90.0, "sog": 6.0, "etat": "Hors formation"}],
+                "contacts": []}
+    },
+    {
+      "name": "joueur_absent",
+      "player": "delta", "guide": "alfa", "pending": [], "reported": [],
+      "state": {"ships": [{"name": "alfa", "x": 0.0, "y": 0.0, "hdg": 0.0, "sog": 6.0}], "contacts": []}
+    }
+  ]
+}

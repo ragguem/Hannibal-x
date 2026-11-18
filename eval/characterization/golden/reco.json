@@ -1,0 +1,86 @@
+[
+ {
+  "input": "guide_rien_a_signaler",
+  "output": [
+   {
+    "kind": "veille",
+    "reason": "Rien d'urgent : accusé de réception",
+    "text": "ALL SHIPS THIS IS ALFA ROGER OVER"
+   }
+  ]
+ },
+ {
+  "input": "suiveur_ordre_en_attente",
+  "output": [
+   {
+    "kind": "executer",
+    "reason": "Ordre reçu du guide, pas encore exécuté : Faire route au cap 090° ; Prendre la vitesse de 12 nœuds",
+    "text": "BRAVO CORPEN 090 SPEED 12"
+   },
+   {
+    "kind": "accuse",
+    "reason": "Accuser réception de l'ordre",
+    "text": "ALFA THIS IS BRAVO ROGER WILCO OVER"
+   }
+  ]
+ },
+ {
+  "input": "contact_inconnu_proche",
+  "output": [
+   {
+    "kind": "emerg",
+    "reason": "Contact T7 non classé à 3.1 NM, relèvement 059°",
+    "text": "ALL SHIPS THIS IS ALFA EMERG JULIET INVESTIGATING UNCLASSIFIED CONTACT BEARING 059 DISTANCE 3 OVER"
+   }
+  ]
+ },
+ {
+  "input": "contact_inconnu_deja_signale",
+  "output": [
+   {
+    "kind": "veille",
+    "reason": "Rien d'urgent : accusé de réception",
+    "text": "ALL SHIPS THIS IS ALFA ROGER OVER"
+   }
+  ]
+ },
+ {
+  "input": "route_de_collision",
+  "output": [
+   {
+    "kind": "eviter",
+    "reason": "CPA actuel 0.0 NM avec T9 ; après ce virage : 1.8 NM",
+    "text": "BRAVO TURN 60 STBD"
+   }
+  ]
+ },
+ {
+  "input": "guide_route_de_collision_contact_inconnu",
+  "output": [
+   {
+    "kind": "emerg",
+    "reason": "Contact T3 non classé à 4.6 NM, relèvement 045°",
+    "text": "ALL SHIPS THIS IS ALFA EMERG JULIET INVESTIGATING UNCLASSIFIED CONTACT BEARING 045 DISTANCE 5 OVER"
+   },
+   {
+    "kind": "eviter",
+    "reason": "CPA actuel 0.0 NM avec T3 ; après ce virage : 2.2 NM",
+    "text": "TOUS TURN 60 STBD"
+   }
+  ]
+ },
+ {
+  "input": "suiveur_hors_formation",
+  "output": [
+   {
+    "kind": "station",
+    "reason": "Le navire est hors de sa station",
+    "text": "CHARLIE RESUME STATION"
+   }
+  ]
+ },
+ {
+  "input": "joueur_absent",
+  "output": []
+ }
+]

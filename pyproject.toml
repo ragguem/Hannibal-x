@@ -1,0 +1,99 @@
+[project]
+name = "hannibal-x"
+version = "0.1.0"
+description = "Hannibal X — aide au commandement naval, monodépôt"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-asyncio>=1.1",
+    "pytest-cov>=6.2",
+    "ruff>=0.12",
+    "mypy>=1.17",
+    "import-linter>=2.3",
+    "pre-commit>=4.2",
+    "hannibal-platform",
+    "hannibal-contracts",
+    "hannibal-api",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/api"]
+
+[tool.uv.sources]
+hannibal-platform = { workspace = true }
+hannibal-contracts = { workspace = true }
+hannibal-api = { workspace = true }
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["legacy", "interfaces"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "PT", "SIM"]
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]
+"eval/**" = ["S101", "S310"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["packages/platform/src", "packages/contracts/src", "apps/api/src"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["dependency_injector.*", "asyncpg.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "apps", "eval"]
+pythonpath = ["eval/characterization"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "data: nécessite les données hors dépôt (variables HX_KB, HX_TESTSET) ; ignoré sinon",
+]
+addopts = "-ra --strict-markers --import-mode=importlib"
+
+[tool.importlinter]
+root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "API : couches hexagonales"
+type = "layers"
+layers = [
+    "hannibal_api.socle",
+    "hannibal_api.presentation | hannibal_api.infrastructure",
+    "hannibal_api.application",
+    "hannibal_api.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "API : le domaine n'a aucune entrée-sortie"
+type = "forbidden"
+source_modules = ["hannibal_api.domain"]
+forbidden_modules = ["hannibal_platform", "fastapi", "starlette", "sqlalchemy", "asyncpg", "httpx", "pydantic_settings"]
+
+[[tool.importlinter.contracts]]
+name = "API : l'application ne connaît pas le web ni la base"
+type = "forbidden"
+source_modules = ["hannibal_api.application"]
+forbidden_modules = ["fastapi", "starlette", "sqlalchemy", "asyncpg", "httpx", "hannibal_api.infrastructure"]
+
+[[tool.importlinter.contracts]]
+name = "Platform et contracts ne dépendent d'aucune application"
+type = "forbidden"
+source_modules = ["hannibal_platform", "hannibal_contracts"]
+forbidden_modules = ["hannibal_api"]

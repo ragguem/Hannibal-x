@@ -1,0 +1,63 @@
+{
+  "ships": ["alfa", "bravo", "charlie"],
+  "me": "hannibal",
+  "speed_kn": 12,
+  "fix_frame": [
+    "CHARLIE THIS IS HANNIBAL CORPEN STBD 090 OVER",
+    "ALFA BRAVO CORPEN STBD 090",
+    "ALFA CORPEN STBD 090",
+    "ALFA ALFA CORPEN",
+    "ALL SHIPS TURN STBD 9",
+    "ALL SHIPS",
+    "TURN STBD 9",
+    "alfa, turn stbd 9.",
+    ""
+  ],
+  "fix_frame_me_is_ship": {"me": "alfa", "texts": ["ALFA CORPEN STBD 090", "BRAVO SPEED 12"]},
+  "reply_word": [
+    "CHARLIE THIS IS HANNIBAL AFFIRMATIVE OVER",
+    "CHARLIE THIS IS HANNIBAL NEGATIVE OVER",
+    "BRAVO THIS IS HANNIBAL PERMISSION GRANTED AFFIRM OVER",
+    "ALFA THIS IS HANNIBAL ROGER WILCO OVER",
+    "ROGER",
+    "AFFIRMATIF",
+    "CHARLIE THIS IS HANNIBAL ROGER WILCO OUT TURN",
+    "CHARLIE THIS IS HANNIBAL TURN STBD 9 OVER",
+    "OVER",
+    ""
+  ],
+  "destination": [
+    {"interp": {"to": "ALL SHIPS"}, "default": "alfa"},
+    {"interp": {"to": "all units"}, "default": null},
+    {"interp": {"to": "BRAVO"}, "default": "alfa"},
+    {"interp": {"to": "DELTA"}, "default": "alfa"},
+    {"interp": {"to": null}, "default": "charlie"},
+    {"interp": {}, "default": null},
+    {"interp": {"to": ""}, "default": "tous"}
+  ],
+  "to_orders_direct": [
+    {"status": "ok", "signal": "SPEED", "params": {"speed_knots": 30}},
+    {"status": "ok", "signal": "SPEED", "params": {"speed_knots": 50}},
+    {"status": "ok", "signal": "SPEED", "params": {"speed_knots": 2}},
+    {"status": "ok", "signal": "SPEED H", "params": {}, "extra": ["20"]},
+    {"status": "ok", "signal": "SPEED Q", "params": {}, "extra": []},
+    {"status": "ok", "signal": "SPEED I", "params": {}, "extra": ["5"]},
+    {"status": "ok", "signal": "SPEED D", "params": {}, "extra": ["4"]},
+    {"status": "ok", "signal": "SPEED R", "params": {}, "extra": ["20"]},
+    {"status": "ok", "signal": "SPEED A"},
+    {"status": "ok", "signal": "FORM 2"},
+    {"status": "ok", "signal": "FORM 4"},
+    {"status": "ok", "signal": "FORM (PORT or STBD) (0 to 18)", "params": {"side": "PORT", "relative_bearing_degrees": 30}},
+    {"status": "ok", "signal": "FORM (000 to 359)", "params": {}},
+    {"status": "ok", "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]", "params": {"true_course": 45}},
+    {"status": "ok", "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]", "params": {"side": "PORT", "relative_degrees": 365}},
+    {"status": "ok", "signal": "SU12"},
+    {"status": "ok", "signal": "INT CORPEN"},
+    {"status": "ok", "signal": "INT STATION"},
+    {"status": "ok", "signal": "STATION R"},
+    {"status": "ok", "signal": "BA"},
+    {"status": "unknown_signal", "signal": "ZQ99"},
+    {}
+  ],
+  "fr_signal_to": [["TOUS"], ["BRAVO"], ["ALFA", "CHARLIE"], null]
+}

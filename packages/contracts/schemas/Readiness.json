@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "DependencyState": {
+      "enum": [
+        "up",
+        "down",
+        "disabled"
+      ],
+      "title": "DependencyState",
+      "type": "string"
+    },
+    "DependencyStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "latency_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latency Ms"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/DependencyState"
+        }
+      },
+      "required": [
+        "name",
+        "state"
+      ],
+      "title": "DependencyStatus",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:0.1.0:Readiness",
+  "additionalProperties": false,
+  "properties": {
+    "dependencies": {
+      "items": {
+        "$ref": "#/$defs/DependencyStatus"
+      },
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "service": {
+      "title": "Service",
+      "type": "string"
+    },
+    "status": {
+      "description": "`ready` si toutes les dépendances requises répondent, sinon `degraded`",
+      "title": "Status",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "service",
+    "version",
+    "dependencies"
+  ],
+  "title": "Readiness",
+  "type": "object"
+}

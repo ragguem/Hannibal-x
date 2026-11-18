@@ -1,0 +1,1493 @@
+{
+ "destination": [
+  {
+   "input": {
+    "default": "alfa",
+    "interp": {
+     "to": "ALL SHIPS"
+    }
+   },
+   "output": [
+    [
+     "TOUS"
+    ],
+    null
+   ]
+  },
+  {
+   "input": {
+    "default": null,
+    "interp": {
+     "to": "all units"
+    }
+   },
+   "output": [
+    [
+     "TOUS"
+    ],
+    null
+   ]
+  },
+  {
+   "input": {
+    "default": "alfa",
+    "interp": {
+     "to": "BRAVO"
+    }
+   },
+   "output": [
+    [
+     "BRAVO"
+    ],
+    null
+   ]
+  },
+  {
+   "input": {
+    "default": "alfa",
+    "interp": {
+     "to": "DELTA"
+    }
+   },
+   "output": [
+    null,
+    "Destinataire « DELTA » inconnu dans cette formation."
+   ]
+  },
+  {
+   "input": {
+    "default": "charlie",
+    "interp": {
+     "to": null
+    }
+   },
+   "output": [
+    [
+     "CHARLIE"
+    ],
+    "Destinataire non énoncé : celui sélectionné à l'écran est utilisé."
+   ]
+  },
+  {
+   "input": {
+    "default": null,
+    "interp": {}
+   },
+   "output": [
+    [
+     "TOUS"
+    ],
+    "Destinataire non énoncé : celui sélectionné à l'écran est utilisé."
+   ]
+  },
+  {
+   "input": {
+    "default": "tous",
+    "interp": {
+     "to": ""
+    }
+   },
+   "output": [
+    [
+     "TOUS"
+    ],
+    "Destinataire non énoncé : celui sélectionné à l'écran est utilisé."
+   ]
+  }
+ ],
+ "fix_frame": [
+  {
+   "input": "CHARLIE THIS IS HANNIBAL CORPEN STBD 090 OVER",
+   "output": [
+    "CHARLIE THIS IS HANNIBAL CORPEN STBD 090 OVER",
+    null
+   ]
+  },
+  {
+   "input": "ALFA BRAVO CORPEN STBD 090",
+   "output": [
+    "ALFA THIS IS BRAVO CORPEN STBD 090",
+    "« THIS IS » non entendu : rétabli d'après les indicatifs."
+   ]
+  },
+  {
+   "input": "ALFA CORPEN STBD 090",
+   "output": [
+    "ALFA THIS IS HANNIBAL CORPEN STBD 090",
+    "Le message commence par ALFA : pris comme destinataire."
+   ]
+  },
+  {
+   "input": "ALFA ALFA CORPEN",
+   "output": [
+    "ALFA THIS IS HANNIBAL ALFA CORPEN",
+    "Le message commence par ALFA : pris comme destinataire."
+   ]
+  },
+  {
+   "input": "ALL SHIPS TURN STBD 9",
+   "output": [
+    "ALL SHIPS THIS IS HANNIBAL TURN STBD 9",
+    null
+   ]
+  },
+  {
+   "input": "ALL SHIPS",
+   "output": [
+    "ALL SHIPS",
+    null
+   ]
+  },
+  {
+   "input": "TURN STBD 9",
+   "output": [
+    "TURN STBD 9",
+    null
+   ]
+  },
+  {
+   "input": "alfa, turn stbd 9.",
+   "output": [
+    "ALFA THIS IS HANNIBAL TURN STBD 9",
+    "Le message commence par ALFA : pris comme destinataire."
+   ]
+  },
+  {
+   "input": "",
+   "output": [
+    "",
+    null
+   ]
+  }
+ ],
+ "fix_frame_me_is_ship": [
+  {
+   "input": "ALFA CORPEN STBD 090",
+   "output": [
+    "ALFA CORPEN STBD 090",
+    null
+   ]
+  },
+  {
+   "input": "BRAVO SPEED 12",
+   "output": [
+    "BRAVO THIS IS ALFA SPEED 12",
+    "Le message commence par BRAVO : pris comme destinataire."
+   ]
+  }
+ ],
+ "from_interpret": [
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "CHARLIE THIS IS HANNIBAL TURN STARBOARD NINER OVER",
+   "to_orders": [
+    [
+     {
+      "deg": 90,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer par bâbord jusqu'au cap 090.",
+    "[\"BRAVO\"]": "À Bravo : virer par bâbord jusqu'au cap 090.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble par bâbord jusqu'au cap 090.",
+    "null": "À  : virer ensemble par bâbord jusqu'au cap 090."
+   },
+   "input": "ALFA THIS IS HANNIBAL TURN PORT ZERO NINER ZERO OVER",
+   "to_orders": [
+    [
+     {
+      "cap": 90,
+      "side": "PORT",
+      "together": true,
+      "type": "CORPEN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées, jusqu'au cap 090, en virant sur bâbord."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "ALFA THIS IS HANNIBAL TURN PORT FOUR ZERO OVER",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "ALFA THIS IS HANNIBAL TURN NINER OVER",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "ALFA THIS IS HANNIBAL TURN STBD 365 OVER",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : changer de route par conversion de 120° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : changer de route par conversion de 120° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : changer de route par conversion de 120° sur tribord.",
+    "null": "À  : changer de route par conversion de 120° sur tribord."
+   },
+   "input": "CORPEN STARBOARD ONE TWO",
+   "to_orders": [
+    [
+     {
+      "deg": 120,
+      "side": "STBD",
+      "together": false,
+      "type": "TURN"
+     }
+    ],
+    "Évolution par conversion : la formation tourne avec le guide."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "CORPEN STBD 19",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "CORPEN 090",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 15 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 15 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 15 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 15 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": "SPEED ONE FIVE",
+   "to_orders": [
+    [
+     {
+      "kn": 15,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 15 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 15 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 15 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 15 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": "SPEED FIFTEEN",
+   "to_orders": [
+    [
+     {
+      "kn": 15,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 25 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 25 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 25 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 25 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": "SPEED TWENTY FIVE",
+   "to_orders": [
+    [
+     {
+      "kn": 25,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 20 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 20 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 20 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 20 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": "SPEED TWENTY",
+   "to_orders": [
+    [
+     {
+      "kn": 20,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "SPEED 0",
+   "to_orders": [
+    [
+     {
+      "kn": 3,
+      "type": "SPEED"
+     }
+    ],
+    "Arrêt non simulé : vitesse minimale de 3 nœuds."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "SPEED INDIA FIVE",
+   "to_orders": [
+    [
+     {
+      "kn": 17,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "SPEED HOTEL 20",
+   "to_orders": [
+    [
+     {
+      "kn": 20,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "FORMATION ONE",
+   "to_orders": [
+    [
+     {
+      "name": "column",
+      "type": "FORM"
+     }
+    ],
+    "Formation en colonne."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "FORMATION SEVEN",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "FORM 12",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : se ranger sur la ligne de relèvement à 40° sur tribord du guide.",
+    "[\"BRAVO\"]": "À Bravo : se ranger sur la ligne de relèvement à 40° sur tribord du guide.",
+    "[\"TOUS\"]": "À tous les navires : se ranger sur la ligne de relèvement à 40° sur tribord du guide.",
+    "null": "À  : se ranger sur la ligne de relèvement à 40° sur tribord du guide."
+   },
+   "input": "FORM STBD 4",
+   "to_orders": [
+    [
+     {
+      "name": "bearing",
+      "rel": 40,
+      "type": "FORM"
+     }
+    ],
+    "Ligne de relèvement : les navires se rangent au 40° sur tribord du guide."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "FORM PORT 20",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : se ranger sur la ligne de relèvement au 045 vrai du guide.",
+    "[\"BRAVO\"]": "À Bravo : se ranger sur la ligne de relèvement au 045 vrai du guide.",
+    "[\"TOUS\"]": "À tous les navires : se ranger sur la ligne de relèvement au 045 vrai du guide.",
+    "null": "À  : se ranger sur la ligne de relèvement au 045 vrai du guide."
+   },
+   "input": "FORM 045",
+   "to_orders": [
+    [
+     {
+      "name": "bearing",
+      "true": 45,
+      "type": "FORM"
+     }
+    ],
+    "Ligne de relèvement : les navires se rangent au 045 vrai du guide."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : se ranger sur la ligne de relèvement au 000 vrai du guide.",
+    "[\"BRAVO\"]": "À Bravo : se ranger sur la ligne de relèvement au 000 vrai du guide.",
+    "[\"TOUS\"]": "À tous les navires : se ranger sur la ligne de relèvement au 000 vrai du guide.",
+    "null": "À  : se ranger sur la ligne de relèvement au 000 vrai du guide."
+   },
+   "input": "FORM 400",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prenez votre poste.",
+    "[\"BRAVO\"]": "À Bravo : prenez votre poste.",
+    "[\"TOUS\"]": "À tous les navires : prenez votre poste.",
+    "null": "À  : prenez votre poste."
+   },
+   "input": "STATION",
+   "to_orders": [
+    [
+     {
+      "type": "RESUME"
+     }
+    ],
+    "Reprise de station."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : reprenez votre poste.",
+    "[\"BRAVO\"]": "À Bravo : reprenez votre poste.",
+    "[\"TOUS\"]": "À tous les navires : reprenez votre poste.",
+    "null": "À  : reprenez votre poste."
+   },
+   "input": "STATION ECHO",
+   "to_orders": [
+    [
+     {
+      "type": "RESUME"
+     }
+    ],
+    "Reprise de station."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : quelle est votre vitesse ?",
+    "[\"BRAVO\"]": "À Bravo : quelle est votre vitesse ?",
+    "[\"TOUS\"]": "À tous les navires : quelle est votre vitesse ?",
+    "null": "À  : quelle est votre vitesse ?"
+   },
+   "input": "INTERROGATIVE SPEED",
+   "to_orders": [
+    [
+     {
+      "do": "int_speed",
+      "type": "CAPT"
+     }
+    ],
+    "Le navire répond par sa vitesse."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "ALFA SPEED",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "MIKE WHISKEY FOUR ZERO",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "AB12",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "XRAY YANKEE SEVEN",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "7C",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "BRAVO ALFA",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : aller reconnaître le contact.",
+    "[\"BRAVO\"]": "À Bravo : aller reconnaître le contact.",
+    "[\"TOUS\"]": "À tous les navires : aller reconnaître le contact.",
+    "null": "À  : aller reconnaître le contact."
+   },
+   "input": "TANGO ALFA SIX TWO",
+   "to_orders": [
+    [
+     {
+      "do": "investigate",
+      "type": "CAPT"
+     }
+    ],
+    "Le commandant du navire part reconnaître le contact le plus menaçant et manœuvre seul pour lui barrer la route."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "EMERGENCY JULIETT",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "EMERG STBD 3",
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "EMERG STBD 25",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "ZULU QUEBEC 99",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "TURN STBD 9 TACK SPEED 12",
+   "to_orders": [
+    [
+     {
+      "deg": 90,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "TURN STBD 9 SPEED 12",
+   "to_orders": [
+    [
+     {
+      "deg": 90,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "TURN STBD 9 TACK ZULU QUEBEC 99",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "TURN STBD 9 I SAY AGAIN TURN STBD 8",
+   "to_orders": [
+    [
+     {
+      "deg": 90,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "TURN STBD 9 I SAY AGAIN TURN STBD 9",
+   "to_orders": [
+    [
+     {
+      "deg": 90,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : changer de route par conversion sur bâbord jusqu'au cap 090.",
+    "[\"BRAVO\"]": "À Bravo : changer de route par conversion sur bâbord jusqu'au cap 090.",
+    "[\"TOUS\"]": "À tous les navires : changer de route par conversion sur bâbord jusqu'au cap 090.",
+    "null": "À  : changer de route par conversion sur bâbord jusqu'au cap 090."
+   },
+   "input": "EXECUTE TO FOLLOW CORPEN PORT 090 STANDBY EXECUTE",
+   "to_orders": [
+    [
+     {
+      "cap": 90,
+      "side": "PORT",
+      "together": false,
+      "type": "CORPEN"
+     }
+    ],
+    "Évolution par conversion : la formation tourne avec le guide, jusqu'au cap 090, en virant sur bâbord."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 185° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 185° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 185° sur tribord.",
+    "null": "À  : virer ensemble de 185° sur tribord."
+   },
+   "input": "IMMEDIATE EXECUTE TURN STBD 18 ANSWER",
+   "to_orders": [
+    [
+     {
+      "deg": 185,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 90° sur tribord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 90° sur tribord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 90° sur tribord.",
+    "null": "À  : virer ensemble de 90° sur tribord."
+   },
+   "input": "TURN STBD 9 BLUE",
+   "to_orders": [
+    [
+     {
+      "deg": 90,
+      "side": "STBD",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "Alfa, this is Hannibal, turn 3-2 starboard, over.",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 89 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 89 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 89 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 89 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": "ALL SHIPS THIS IS HANNIBAL SPEED 8-NINER OVER",
+   "to_orders": [
+    null,
+    "Vitesse de 89 nœuds invraisemblable."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "BANANA SPLIT",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "ALFA THIS IS HANNIBAL OVER",
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": "",
+   "to_orders": [
+    [],
+    null
+   ]
+  }
+ ],
+ "reply_word": [
+  {
+   "input": "CHARLIE THIS IS HANNIBAL AFFIRMATIVE OVER",
+   "output": [
+    "affirm",
+    "charlie"
+   ]
+  },
+  {
+   "input": "CHARLIE THIS IS HANNIBAL NEGATIVE OVER",
+   "output": [
+    "negat",
+    "charlie"
+   ]
+  },
+  {
+   "input": "BRAVO THIS IS HANNIBAL PERMISSION GRANTED AFFIRM OVER",
+   "output": [
+    "affirm",
+    "bravo"
+   ]
+  },
+  {
+   "input": "ALFA THIS IS HANNIBAL ROGER WILCO OVER",
+   "output": [
+    "wilco",
+    "alfa"
+   ]
+  },
+  {
+   "input": "ROGER",
+   "output": [
+    "roger",
+    null
+   ]
+  },
+  {
+   "input": "AFFIRMATIF",
+   "output": [
+    "affirm",
+    null
+   ]
+  },
+  {
+   "input": "CHARLIE THIS IS HANNIBAL ROGER WILCO OUT TURN",
+   "output": null
+  },
+  {
+   "input": "CHARLIE THIS IS HANNIBAL TURN STBD 9 OVER",
+   "output": null
+  },
+  {
+   "input": "OVER",
+   "output": null
+  },
+  {
+   "input": "",
+   "output": null
+  }
+ ],
+ "to_orders_direct": [
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 30 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 30 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 30 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 30 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": {
+    "params": {
+     "speed_knots": 30
+    },
+    "signal": "SPEED",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "kn": 28,
+      "type": "SPEED"
+     }
+    ],
+    "Vitesse ramenée à 28 nœuds (limites du simulateur : 3 à 28)."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 50 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 50 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 50 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 50 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": {
+    "params": {
+     "speed_knots": 50
+    },
+    "signal": "SPEED",
+    "status": "ok"
+   },
+   "to_orders": [
+    null,
+    "Vitesse de 50 nœuds invraisemblable."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : prendre la vitesse de 2 nœuds.",
+    "[\"BRAVO\"]": "À Bravo : prendre la vitesse de 2 nœuds.",
+    "[\"TOUS\"]": "À tous les navires : le guide prend la vitesse de 2 nœuds, les autres navires tiennent leur poste.",
+    "null": "À  : le guide prend la vitesse de 2 nœuds, les autres navires tiennent leur poste."
+   },
+   "input": {
+    "params": {
+     "speed_knots": 2
+    },
+    "signal": "SPEED",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "kn": 3,
+      "type": "SPEED"
+     }
+    ],
+    "Vitesse ramenée à 3 nœuds (limites du simulateur : 3 à 28)."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "extra": [
+     "20"
+    ],
+    "params": {},
+    "signal": "SPEED H",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "kn": 20,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "extra": [],
+    "params": {},
+    "signal": "SPEED Q",
+    "status": "ok"
+   },
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "extra": [
+     "5"
+    ],
+    "params": {},
+    "signal": "SPEED I",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "kn": 17,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "extra": [
+     "4"
+    ],
+    "params": {},
+    "signal": "SPEED D",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "kn": 8,
+      "type": "SPEED"
+     }
+    ],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "extra": [
+     "20"
+    ],
+    "params": {},
+    "signal": "SPEED R",
+    "status": "ok"
+   },
+   "to_orders": [
+    null,
+    "Vitesse de -8 nœuds invraisemblable."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "signal": "SPEED A",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "kn": 3,
+      "type": "SPEED"
+     }
+    ],
+    "Arrêt non simulé : vitesse minimale de 3 nœuds."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "signal": "FORM 2",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "name": "column",
+      "type": "FORM"
+     }
+    ],
+    "Formation en colonne."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "signal": "FORM 4",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "name": "line_abreast_port",
+      "type": "FORM"
+     }
+    ],
+    "Ligne de front, les navires se rangent sur bâbord du guide."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : se ranger sur la ligne de relèvement à 30° sur bâbord du guide.",
+    "[\"BRAVO\"]": "À Bravo : se ranger sur la ligne de relèvement à 30° sur bâbord du guide.",
+    "[\"TOUS\"]": "À tous les navires : se ranger sur la ligne de relèvement à 30° sur bâbord du guide.",
+    "null": "À  : se ranger sur la ligne de relèvement à 30° sur bâbord du guide."
+   },
+   "input": {
+    "params": {
+     "relative_bearing_degrees": 30,
+     "side": "PORT"
+    },
+    "signal": "FORM (PORT or STBD) (0 to 18)",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "name": "bearing",
+      "rel": 330,
+      "type": "FORM"
+     }
+    ],
+    "Ligne de relèvement : les navires se rangent au 30° sur bâbord du guide."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : se ranger sur la ligne de relèvement au 000 vrai du guide.",
+    "[\"BRAVO\"]": "À Bravo : se ranger sur la ligne de relèvement au 000 vrai du guide.",
+    "[\"TOUS\"]": "À tous les navires : se ranger sur la ligne de relèvement au 000 vrai du guide.",
+    "null": "À  : se ranger sur la ligne de relèvement au 000 vrai du guide."
+   },
+   "input": {
+    "params": {},
+    "signal": "FORM (000 to 359)",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "name": "bearing",
+      "true": 180,
+      "type": "FORM"
+     }
+    ],
+    "Ligne de relèvement : les navires se rangent au 180 vrai du guide."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "params": {
+     "true_course": 45
+    },
+    "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "cap": 45,
+      "together": true,
+      "type": "CORPEN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées, jusqu'au cap 045 par le plus court."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : virer de 365° sur bâbord.",
+    "[\"BRAVO\"]": "À Bravo : virer de 365° sur bâbord.",
+    "[\"TOUS\"]": "À tous les navires : virer ensemble de 365° sur bâbord.",
+    "null": "À  : virer ensemble de 365° sur bâbord."
+   },
+   "input": {
+    "params": {
+     "relative_degrees": 365,
+     "side": "PORT"
+    },
+    "signal": "TURN [PORT or STBD] [1 to 36] or [000 to 359]",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "deg": 360,
+      "side": "PORT",
+      "together": true,
+      "type": "TURN"
+     }
+    ],
+    "Virage ensemble : chaque navire vire en même temps, les positions relatives sont conservées."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : aller reconnaître la piste, prêt à éclairer et à engager.",
+    "[\"BRAVO\"]": "À Bravo : aller reconnaître la piste, prêt à éclairer et à engager.",
+    "[\"TOUS\"]": "À tous les navires : aller reconnaître la piste, prêt à éclairer et à engager.",
+    "null": "À  : aller reconnaître la piste, prêt à éclairer et à engager."
+   },
+   "input": {
+    "signal": "SU12",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "do": "investigate",
+      "type": "CAPT"
+     }
+    ],
+    "Le commandant du navire part reconnaître le contact le plus menaçant et manœuvre seul pour lui barrer la route."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : quelle est votre route (et votre vitesse) ?",
+    "[\"BRAVO\"]": "À Bravo : quelle est votre route (et votre vitesse) ?",
+    "[\"TOUS\"]": "À tous les navires : quelle est votre route (et votre vitesse) ?",
+    "null": "À  : quelle est votre route (et votre vitesse) ?"
+   },
+   "input": {
+    "signal": "INT CORPEN",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "do": "int_corpen",
+      "type": "CAPT"
+     }
+    ],
+    "Le navire répond par sa route et sa vitesse."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : quel est votre poste ?",
+    "[\"BRAVO\"]": "À Bravo : quel est votre poste ?",
+    "[\"TOUS\"]": "À tous les navires : quel est votre poste ?",
+    "null": "À  : quel est votre poste ?"
+   },
+   "input": {
+    "signal": "INT STATION",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "do": "int_station",
+      "type": "CAPT"
+     }
+    ],
+    "Le navire répond s'il est en station."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": "À Alfa, Charlie : rendez compte quand vous serez en station.",
+    "[\"BRAVO\"]": "À Bravo : rendez compte quand vous serez en station.",
+    "[\"TOUS\"]": "À tous les navires : rendez compte quand vous serez en station.",
+    "null": "À  : rendez compte quand vous serez en station."
+   },
+   "input": {
+    "signal": "STATION R",
+    "status": "ok"
+   },
+   "to_orders": [
+    [
+     {
+      "do": "report_station",
+      "type": "CAPT"
+     }
+    ],
+    "Le navire rendra compte dès qu'il sera en station."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "signal": "BA",
+    "status": "ok"
+   },
+   "to_orders": [
+    [],
+    "Signal compris et consigné ; il n'a pas d'effet sur le mouvement des navires dans le simulateur."
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {
+    "signal": "ZQ99",
+    "status": "unknown_signal"
+   },
+   "to_orders": [
+    [],
+    null
+   ]
+  },
+  {
+   "fr_signal": {
+    "[\"ALFA\", \"CHARLIE\"]": null,
+    "[\"BRAVO\"]": null,
+    "[\"TOUS\"]": null,
+    "null": null
+   },
+   "input": {},
+   "to_orders": [
+    [],
+    null
+   ]
+  }
+ ]
+}

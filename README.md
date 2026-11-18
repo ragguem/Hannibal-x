@@ -4,8 +4,13 @@ Système d'aide au commandement naval qui fonctionne entièrement en local : il 
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17%20%2B%20pgvector-336791) ![Ollama](https://img.shields.io/badge/LLM-Ollama%20local-black) ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E)
 
+> **Refonte en cours (version 0.1.0, Lot 0).** L'ancien code est rangé dans `legacy/` et reste exécutable jusqu'au Lot 6.
+> Le nouveau code se construit à côté, lot par lot, selon le [plan de réalisation du MVP](docs/plan-realisation-mvp-1.2.0.md)
+> et l'[architecture 1.1.0](docs/architecture-1.1.0.md). Pour travailler sur le nouveau code : [docs/developpement.md](docs/developpement.md).
+
 ## Sommaire
 
+- [Refonte : démarrage rapide](#refonte--démarrage-rapide)
 - [Ce que fait le système](#ce-que-fait-le-système)
 - [Architecture](#architecture)
 - [Résultats mesurés](#résultats-mesurés)
@@ -16,6 +21,24 @@ Système d'aide au commandement naval qui fonctionne entièrement en local : il 
 - [Méthode de mesure](#méthode-de-mesure)
 - [Choix de conception](#choix-de-conception)
 - [Feuille de route](#feuille-de-route)
+
+## Refonte : démarrage rapide
+
+```bash
+uv sync --all-packages        # Python 3.12, dépendances figées par uv.lock
+uv run pytest                 # socle, contrats, API, caractérisation de l'ancien code
+uv run lint-imports           # règles de l'architecture hexagonale
+cp infra/compose/dev.env.example infra/compose/dev.env
+docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env up -d --build
+curl -s http://127.0.0.1:8000/v1/ready
+```
+
+| Partie | Version | Emplacement |
+|---|---|---|
+| Produit | 0.1.0 (`VERSION`) | — |
+| Socle Python commun | 0.1.0 | `packages/platform` |
+| Contrats d'échange | 0.1.0 (`CONTRACTS_VERSION`) | `packages/contracts` |
+| API | 0.1.0, routes `/v1` | `apps/api` |
 
 ## Ce que fait le système
 
@@ -114,28 +137,23 @@ En service, l'ensemble occupe environ 13,6 Go de mémoire vidéo.
 ## Organisation du dépôt
 
 ```
-hx/scripts/        Version 1 : extraction, interpréteur, recherche, tests, audio, service
-app/               Application v1
-app_v2/            Application de démonstration
-app_v3/            Application de travail : doctrine, traçabilité, réalisme des manœuvres
-  server.py        Serveur web, scénarios, pilotage des navires, registre
-  mtp.py           Analyse des ordres tapés
-  sim.py           Trajectoires prévues et distances de passage
-  scenarios/       Les six scénarios (YAML)
-  web/             Console, registre, panneau Doctrine, vue 3D
-v2/scripts/        Version 2
-  extract_pub.py        Extraction des publications en passages
-  index_passages.py     Indexation et recherche
-  index_rows.py         Index des tableaux ligne par ligne
-  train_reranker.py     Entraînement du reclassement
-  rerank_service.py     Service de reclassement
-  hx2_service_c.py      Assistant de doctrine (en service)
-  ask_batch.py          Mesure sur un jeu de questions
-v2/switch_v2.sh    Bascule entre les configurations de l'assistant
-v2/v2run.sh        Lance un outil de la version 2 dans son conteneur
-interfaces/        Messages ROS du moteur LOTUSim
-scripts/           Outils de simulation
+apps/api/              Nouvelle API (FastAPI, architecture hexagonale)
+packages/platform/     Socle commun : configuration, journal JSON, request_id, erreurs, santé, métriques
+packages/contracts/    Modèles d'échange et schémas JSON publiés (schemas/)
+eval/characterization/ Comportement figé de l'ancien code (goldens) et scripts d'enregistrement
+infra/compose/         Composition Docker de développement
+docs/                  Architecture, plan de réalisation, ADR (docs/adr/)
+interfaces/            Messages ROS du moteur LOTUSim
+legacy/                Ancien code, exécutable jusqu'au Lot 6 (voir legacy/README.md)
+  hx/scripts/          Version 1 : extraction, interpréteur, recherche, tests, audio, service
+  app/, app_v2/        Applications v1 et de démonstration
+  app_v3/              Application de travail : serveur, mtp.py, sim.py, reco.py, hxbridge.py, scénarios, web
+  v2/scripts/          Version 2 : extraction, indexation, reclassement, hx2_service_c.py (en service)
+  v2/switch_v2.sh      Bascule entre les configurations de l'assistant
+  scripts/             Outils de simulation
 ```
+
+L'ancien code lit `HANNIBAL_HOME` (défaut `~/hannibal`) pour trouver ses données sur le serveur.
 
 Les documents de référence, les données qui en sont tirées et les modèles ne font pas partie du dépôt.
 
@@ -152,16 +170,16 @@ docker exec hannibal-ollama ollama pull bge-m3
 
 # 2. Version 2 : extraire les publications, indexer les passages, indexer les tableaux
 #    (les arguments de chaque outil sont décrits en tête de son fichier)
-./v2/v2run.sh extract_pub.py ...
-./v2/v2run.sh index_passages.py ...
-./v2/v2run.sh index_rows.py
+./legacy/v2/v2run.sh extract_pub.py ...
+./legacy/v2/v2run.sh index_passages.py ...
+./legacy/v2/v2run.sh index_rows.py
 
 # 3. Démarrer l'assistant de doctrine
-./v2/switch_v2.sh gemma4
+./legacy/v2/switch_v2.sh gemma4
 curl -s http://localhost:8774/health
 ```
 
-Les images Docker se construisent avec `Dockerfile` (version 1), `Dockerfile.jazzy` (applications et simulateur) et les fichiers de `v2/docker/`.
+Les images Docker de l'ancien code se construisent depuis la racine du dépôt avec `legacy/Dockerfile` (version 1), `legacy/Dockerfile.jazzy` (applications et simulateur) et les fichiers de `legacy/v2/docker/`.
 
 ## Utilisation
 
@@ -182,9 +200,9 @@ curl -s -X POST http://localhost:8774/ask -H "Content-Type: application/json" \
 ### Changer de configuration
 
 ```bash
-./v2/switch_v2.sh            # affiche la configuration active
-./v2/switch_v2.sh gemma4     # gemma4:12b + tableaux ligne par ligne
-./v2/switch_v2.sh gemma3     # configuration précédente
+./legacy/v2/switch_v2.sh            # affiche la configuration active
+./legacy/v2/switch_v2.sh gemma4     # gemma4:12b + tableaux ligne par ligne
+./legacy/v2/switch_v2.sh gemma3     # configuration précédente
 ```
 
 ### Application
@@ -196,7 +214,7 @@ Ordres reconnus au clavier : `CORPEN 090`, `TURN 30 STBD`, `SPEED 12`, `FORM …
 ### Mesurer
 
 ```bash
-python3 v2/scripts/ask_batch.py <questions.jsonl> <sortie.jsonl>
+python3 legacy/v2/scripts/ask_batch.py <questions.jsonl> <sortie.jsonl>
 ```
 
 ## Méthode de mesure

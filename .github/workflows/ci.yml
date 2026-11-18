@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.x"
+          enable-cache: true
+      - name: Python 3.12
+        run: uv python install 3.12
+      - name: Dépendances (verrou figé)
+        run: uv sync --frozen --all-packages
+      - name: ruff
+        run: |
+          uv run ruff check --output-format=github .
+          uv run ruff format --check .
+      - name: mypy
+        run: uv run mypy
+      - name: import-linter
+        run: uv run lint-imports
+      - name: pytest
+        run: uv run pytest --cov=hannibal_platform --cov=hannibal_contracts --cov=hannibal_api --cov-report=term-missing
+
+  api-image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: python
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Image api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          tags: hannibal/api:ci
+          build-args: VERSION=${{ github.sha }}
+      - name: Composition dev valide
+        run: docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env.example config --quiet
+
+  node:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test

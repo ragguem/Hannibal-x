@@ -1,0 +1,48 @@
+{
+  "$id": "urn:hannibal-x:contracts:0.1.0:ErrorBody",
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "description": "Code stable, en snake_case, documenté par route",
+      "title": "Code",
+      "type": "string"
+    },
+    "dependency": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Service en cause pour `dependency_unavailable`",
+      "title": "Dependency"
+    },
+    "message": {
+      "description": "Message lisible, fixe pour un code",
+      "title": "Message",
+      "type": "string"
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Identifiant de la requête, à citer au support",
+      "title": "Request Id"
+    }
+  },
+  "required": [
+    "code",
+    "message",
+    "request_id"
+  ],
+  "title": "ErrorBody",
+  "type": "object"
+}

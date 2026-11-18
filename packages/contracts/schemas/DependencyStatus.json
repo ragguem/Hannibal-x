@@ -1,0 +1,42 @@
+{
+  "$defs": {
+    "DependencyState": {
+      "enum": [
+        "up",
+        "down",
+        "disabled"
+      ],
+      "title": "DependencyState",
+      "type": "string"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:0.1.0:DependencyStatus",
+  "additionalProperties": false,
+  "properties": {
+    "latency_ms": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Latency Ms"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/DependencyState"
+    }
+  },
+  "required": [
+    "name",
+    "state"
+  ],
+  "title": "DependencyStatus",
+  "type": "object"
+}

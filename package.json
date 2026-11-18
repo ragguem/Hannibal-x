@@ -1,0 +1,17 @@
+{
+  "name": "hannibal-x",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hannibal X — espace de travail front (apps/web à partir du Lot 1)",
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=22.12 <25",
+    "pnpm": ">=10.15 <11"
+  },
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build"
+  }
+}

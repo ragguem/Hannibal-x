@@ -1,0 +1,25 @@
+{
+  "$id": "urn:hannibal-x:contracts:0.1.0:Health",
+  "additionalProperties": false,
+  "properties": {
+    "service": {
+      "title": "Service",
+      "type": "string"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "service",
+    "version"
+  ],
+  "title": "Health",
+  "type": "object"
+}
