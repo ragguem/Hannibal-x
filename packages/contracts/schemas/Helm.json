@@ -2,8 +2,8 @@
   "$id": "urn:hannibal-x:contracts:1.0.0:Helm",
   "additionalProperties": false,
   "properties": {
-    "course": {
-      "title": "Course",
+    "course_deg": {
+      "title": "Course Deg",
       "type": "number"
     },
     "rudder": {
@@ -19,7 +19,7 @@
     }
   },
   "required": [
-    "course",
+    "course_deg",
     "speed_kn",
     "rudder"
   ],

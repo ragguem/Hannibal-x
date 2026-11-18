@@ -3,8 +3,13 @@
     "ContactCpa": {
       "additionalProperties": false,
       "properties": {
-        "contact": {
-          "title": "Contact",
+        "at_risk": {
+          "description": "CPA inférieur à 0,5 NM",
+          "title": "At Risk",
+          "type": "boolean"
+        },
+        "contact_id": {
+          "title": "Contact Id",
           "type": "string"
         },
         "cpa_nm": {
@@ -14,10 +19,6 @@
         "cpa_nm_without_order": {
           "title": "Cpa Nm Without Order",
           "type": "number"
-        },
-        "risk": {
-          "title": "Risk",
-          "type": "boolean"
         },
         "ship": {
           "title": "Ship",
@@ -30,11 +31,11 @@
       },
       "required": [
         "ship",
-        "contact",
+        "contact_id",
         "cpa_nm",
         "tcpa_s",
         "cpa_nm_without_order",
-        "risk"
+        "at_risk"
       ],
       "title": "ContactCpa",
       "type": "object"
@@ -42,35 +43,60 @@
     "ShipsPassing": {
       "additionalProperties": false,
       "properties": {
-        "a": {
-          "title": "A",
-          "type": "string"
+        "at_risk": {
+          "description": "Distance inférieure à 150 m",
+          "title": "At Risk",
+          "type": "boolean"
         },
-        "b": {
-          "title": "B",
-          "type": "string"
+        "at_s": {
+          "title": "At S",
+          "type": "integer"
         },
         "distance_m": {
           "title": "Distance M",
           "type": "integer"
         },
-        "risk": {
-          "title": "Risk",
-          "type": "boolean"
+        "ship_a": {
+          "title": "Ship A",
+          "type": "string"
         },
-        "t_s": {
-          "title": "T S",
-          "type": "integer"
+        "ship_b": {
+          "title": "Ship B",
+          "type": "string"
         }
       },
       "required": [
-        "a",
-        "b",
+        "ship_a",
+        "ship_b",
         "distance_m",
-        "t_s",
-        "risk"
+        "at_s",
+        "at_risk"
       ],
       "title": "ShipsPassing",
+      "type": "object"
+    },
+    "TrackPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "at_s": {
+          "title": "At S",
+          "type": "integer"
+        },
+        "east_m": {
+          "title": "East M",
+          "type": "number"
+        },
+        "north_m": {
+          "title": "North M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "east_m",
+        "north_m",
+        "at_s"
+      ],
+      "title": "TrackPoint",
       "type": "object"
     }
   },
@@ -81,36 +107,12 @@
       "title": "Accepted",
       "type": "boolean"
     },
-    "cpa": {
+    "contact_cpas": {
       "items": {
         "$ref": "#/$defs/ContactCpa"
       },
-      "title": "Cpa",
+      "title": "Contact Cpas",
       "type": "array"
-    },
-    "error": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Error"
-    },
-    "fr": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Fr"
     },
     "hint": {
       "anyOf": [
@@ -124,30 +126,6 @@
       "default": null,
       "title": "Hint"
     },
-    "paths": {
-      "additionalProperties": {
-        "items": {
-          "maxItems": 3,
-          "minItems": 3,
-          "prefixItems": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "type": "array"
-        },
-        "type": "array"
-      },
-      "description": "Navire → points `[x, y, t]` sur 15 min",
-      "title": "Paths",
-      "type": "object"
-    },
     "recipients": {
       "items": {
         "type": "string"
@@ -155,12 +133,47 @@
       "title": "Recipients",
       "type": "array"
     },
-    "ships_min": {
+    "refusal_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Refusal Reason"
+    },
+    "ships_passings": {
       "items": {
         "$ref": "#/$defs/ShipsPassing"
       },
-      "title": "Ships Min",
+      "title": "Ships Passings",
       "type": "array"
+    },
+    "text_fr": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Fr"
+    },
+    "track_by_ship": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/TrackPoint"
+        },
+        "type": "array"
+      },
+      "description": "Trajectoire sur 15 min",
+      "title": "Track By Ship",
+      "type": "object"
     }
   },
   "required": [

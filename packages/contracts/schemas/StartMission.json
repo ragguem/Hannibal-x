@@ -8,15 +8,15 @@
       "title": "Autopilot",
       "type": "boolean"
     },
-    "manual": {
+    "manual_helm": {
       "default": false,
-      "description": "Barre manuelle du navire du joueur",
-      "title": "Manual",
+      "description": "Le joueur tient la barre de son navire",
+      "title": "Manual Helm",
       "type": "boolean"
     },
-    "player": {
+    "player_ship": {
       "description": "Navire tenu par l'opérateur",
-      "title": "Player",
+      "title": "Player Ship",
       "type": "string"
     },
     "scenario_id": {
@@ -26,7 +26,7 @@
   },
   "required": [
     "scenario_id",
-    "player"
+    "player_ship"
   ],
   "title": "StartMission",
   "type": "object"

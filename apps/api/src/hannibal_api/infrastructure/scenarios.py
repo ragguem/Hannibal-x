@@ -11,8 +11,8 @@ class YamlScenarioCatalog:
     def __init__(self, directory: Path) -> None:
         self._by_id: dict[str, dict[str, Any]] = {}
         for path in sorted(directory.glob("*.yaml")):
-            sc = load(yaml.safe_load(path.read_text(encoding="utf-8")))
-            self._by_id[sc["id"]] = sc
+            scenario = load(yaml.safe_load(path.read_text(encoding="utf-8")))
+            self._by_id[scenario["id"]] = scenario
 
     def all(self) -> list[dict[str, Any]]:
         return list(self._by_id.values())

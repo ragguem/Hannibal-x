@@ -1,4 +1,10 @@
-"""Contrats de mission (§ 12) : scénarios, mission, ordres, barre, classification, demandes."""
+"""Contrats de mission (§ 12) : scénarios, mission, ordres, barre, classification, demandes.
+
+Unités dans le nom du champ : `_m` mètres, `_nm` milles nautiques, `_kn` nœuds,
+`_mps` mètres par seconde, `_deg` degrés, `_s` secondes de mission, `_min` minutes.
+Positions : `east_m` et `north_m` dans le repère local du monde.
+CPA : distance au point de rapprochement maximal ; TCPA : temps restant avant ce point.
+"""
 
 from enum import StrEnum
 from typing import Literal
@@ -15,15 +21,15 @@ class ScenarioSummary(ContractModel):
     duration_s: int
     summary: str | None = None
     briefing: str | None = None
-    ships: list[str] = Field(description="Navires jouables, le guide en premier")
-    guide: str
+    playable_ships: list[str] = Field(description="Navires que l'opérateur peut tenir, le guide en premier")
+    guide_ship: str
 
 
 class StartMission(ContractModel):
     scenario_id: str
-    player: str = Field(description="Navire tenu par l'opérateur")
+    player_ship: str = Field(description="Navire tenu par l'opérateur")
     autopilot: bool = Field(default=False, description="Le navire du joueur accuse et exécute seul")
-    manual: bool = Field(default=False, description="Barre manuelle du navire du joueur")
+    manual_helm: bool = Field(default=False, description="Le joueur tient la barre de son navire")
 
 
 class MissionPhase(StrEnum):
@@ -34,12 +40,12 @@ class MissionPhase(StrEnum):
 class Ship(ContractModel):
     name: str
     role: str
-    x: float = Field(description="Est, en mètres, repère local du monde")
-    y: float = Field(description="Nord, en mètres, repère local du monde")
-    heading: float = Field(description="Cap en degrés")
+    east_m: float
+    north_m: float
+    heading_deg: float
     speed_mps: float
-    status: str = Field(description="Libellé affiché vu par le joueur (« Vous », « En station »…)")
-    status_fleet: str = Field(description="Libellé vu par la flotte")
+    status_for_player: str = Field(description="Libellé vu par le joueur (« Vous », « En station »…)")
+    status_for_fleet: str = Field(description="Libellé vu par le reste de la flotte")
 
 
 class Classification(StrEnum):
@@ -51,40 +57,42 @@ class Classification(StrEnum):
 
 class Contact(ContractModel):
     id: str
-    type: str
-    x: float
-    y: float
-    course: float
+    category: str = Field(description="Surface, aérien…")
+    east_m: float
+    north_m: float
+    course_deg: float
     speed_kn: float
     classification: Classification
-    state: str | None = None
-    range_nm: float | None = None
-    bearing: float | None = None
+    behaviour: str | None = Field(
+        default=None, description="Comportement courant de la piste, s'il est connu"
+    )
+    range_nm: float | None = Field(default=None, description="Distance au navire du joueur")
+    bearing_deg: float | None = Field(default=None, description="Relèvement depuis le navire du joueur")
     cpa_nm: float | None = None
     tcpa_min: float | None = None
 
 
 class RadioMessage(ContractModel):
     id: int
-    t: float
+    sent_at_s: float
     sender: str
     recipient: str
-    en: str
-    fr: str
+    text_en: str = Field(description="Message tel qu'émis sur la radio")
+    text_fr: str = Field(description="Traduction pour l'opérateur")
     kind: str
 
 
 class PlannedOrder(ContractModel):
-    t: float
-    en: str
-    fr: str
+    planned_at_s: float
+    text_en: str
+    text_fr: str
 
 
 class Objective(ContractModel):
-    text: str
+    description: str
     deadline_s: float | None = None
-    done: bool
-    t: float | None = Field(default=None, description="Instant où l'objectif a été atteint")
+    achieved: bool
+    achieved_at_s: float | None = None
 
 
 class ClassificationResult(ContractModel):
@@ -95,56 +103,60 @@ class ClassificationResult(ContractModel):
 class Debrief(ContractModel):
     objectives: list[Objective]
     score: int
-    total: int
-    min_ship_distance_m: float | None = None
-    min_cpa_nm: dict[str, float]
-    classifications: dict[str, ClassificationResult]
+    objectives_total: int
+    closest_ships_distance_m: float | None = Field(
+        default=None, description="Plus petite distance entre deux navires"
+    )
+    closest_cpa_nm_by_contact: dict[str, float]
+    classification_by_contact: dict[str, ClassificationResult]
 
 
 class AuthorizationRequest(ContractModel):
     ship: str
     contact_id: str | None = None
-    t: float
-    fr: str
+    requested_at_s: float
+    text_fr: str
 
 
 class Helm(ContractModel):
-    course: float
+    course_deg: float
     speed_kn: float
     rudder: int = Field(ge=-1, le=1, description="-1 bâbord, 0 droit, 1 tribord")
 
 
 class Station(ContractModel):
-    x: float
-    y: float
-    error_m: float
+    east_m: float
+    north_m: float
+    offset_m: float = Field(description="Écart entre le navire et son poste dans la formation")
 
 
 class Mission(ContractModel):
     id: str
     scenario_id: str
     title: str
-    player: str
-    guide: str
+    player_ship: str
+    guide_ship: str
     phase: MissionPhase
-    t: float = Field(description="Temps de mission en secondes")
+    elapsed_s: float
     duration_s: float
     formation: str
-    guide_course: float
+    guide_course_deg: float
     guide_speed_kn: float
     ships: list[Ship]
     contacts: list[Contact]
-    messages: list[RadioMessage] = Field(description="Les 40 derniers messages radio")
-    plan: list[PlannedOrder]
+    radio_messages: list[RadioMessage] = Field(description="Les 40 derniers messages radio")
+    planned_orders: list[PlannedOrder]
     pending_orders: list[str] = Field(description="Ordres reçus du guide, pas encore exécutés")
     objectives: list[Objective]
     debrief: Debrief | None = None
     autopilot: bool
-    manual: bool
+    manual_helm: bool
     helm: Helm
-    station: Station | None = None
-    requests: list[AuthorizationRequest]
-    detached: dict[str, str] = Field(description="Navire → piste qu'il reconnaît")
+    station: Station | None = Field(default=None, description="Poste du joueur, absent s'il est guide")
+    authorization_requests: list[AuthorizationRequest]
+    reconnaissance_target_by_ship: dict[str, str] = Field(
+        description="Navire détaché → piste qu'il reconnaît"
+    )
 
 
 class SubmitOrder(ContractModel):
@@ -157,18 +169,18 @@ class SubmitOrder(ContractModel):
 
 class OrderOutcome(ContractModel):
     accepted: bool
-    en: str | None = None
-    fr: str | None = None
-    error: str | None = Field(default=None, description="Motif du refus, lisible par l'opérateur")
+    text_en: str | None = None
+    text_fr: str | None = None
+    refusal_reason: str | None = Field(default=None, description="Motif du refus, lisible par l'opérateur")
     hint: str | None = None
 
 
 class SetHelm(ContractModel):
     rudder: int | None = Field(default=None, ge=-1, le=1)
-    course: float | None = None
-    course_delta: float | None = None
+    course_deg: float | None = None
+    course_change_deg: float | None = None
     speed_kn: float | None = None
-    speed_delta: float | None = None
+    speed_change_kn: float | None = None
 
 
 class ClassifyContact(ContractModel):
@@ -187,34 +199,40 @@ class SimulateOrder(ContractModel):
     text: str = Field(min_length=1, max_length=500)
 
 
+class TrackPoint(ContractModel):
+    east_m: float
+    north_m: float
+    at_s: int
+
+
 class ContactCpa(ContractModel):
     ship: str
-    contact: str
+    contact_id: str
     cpa_nm: float
     tcpa_s: int
     cpa_nm_without_order: float
-    risk: bool
+    at_risk: bool = Field(description="CPA inférieur à 0,5 NM")
 
 
 class ShipsPassing(ContractModel):
-    a: str
-    b: str
+    ship_a: str
+    ship_b: str
     distance_m: int
-    t_s: int
-    risk: bool
+    at_s: int
+    at_risk: bool = Field(description="Distance inférieure à 150 m")
 
 
 class Simulation(ContractModel):
     accepted: bool
-    error: str | None = None
+    refusal_reason: str | None = None
     hint: str | None = None
     recipients: list[str] = Field(default_factory=list)
-    fr: str | None = None
-    paths: dict[str, list[tuple[float, float, int]]] = Field(
-        default_factory=dict, description="Navire → points `[x, y, t]` sur 15 min"
+    text_fr: str | None = None
+    track_by_ship: dict[str, list[TrackPoint]] = Field(
+        default_factory=dict, description="Trajectoire sur 15 min"
     )
-    cpa: list[ContactCpa] = Field(default_factory=list)
-    ships_min: list[ShipsPassing] = Field(default_factory=list)
+    contact_cpas: list[ContactCpa] = Field(default_factory=list)
+    ships_passings: list[ShipsPassing] = Field(default_factory=list)
 
 
 class Recommendation(ContractModel):

@@ -6,43 +6,6 @@
       "title": "Accepted",
       "type": "boolean"
     },
-    "en": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "En"
-    },
-    "error": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Motif du refus, lisible par l'opérateur",
-      "title": "Error"
-    },
-    "fr": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Fr"
-    },
     "hint": {
       "anyOf": [
         {
@@ -54,6 +17,43 @@
       ],
       "default": null,
       "title": "Hint"
+    },
+    "refusal_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Motif du refus, lisible par l'opérateur",
+      "title": "Refusal Reason"
+    },
+    "text_en": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text En"
+    },
+    "text_fr": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Fr"
     }
   },
   "required": [

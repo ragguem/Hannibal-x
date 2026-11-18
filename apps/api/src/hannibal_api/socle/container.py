@@ -7,7 +7,7 @@ from hannibal_api.application.missions import Missions
 from hannibal_api.domain.readiness import ProbeState
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
-from hannibal_api.infrastructure.simulator import FakeSimulator, UnavailableSimulator
+from hannibal_api.infrastructure.simulator import InMemorySimulator, UnavailableSimulator
 from hannibal_api.socle.settings import AdapterMode, ApiSettings
 
 
@@ -43,7 +43,9 @@ class Container(containers.DeclarativeContainer):
     clock = providers.Object(time.monotonic)
     simulator = providers.Selector(
         mode,
-        fake=providers.Singleton(FakeSimulator, origin=settings.provided.sim_origin, clock=clock),
+        fake=providers.Singleton(
+            InMemorySimulator, origin_lat_lon=settings.provided.simulator_origin_lat_lon, clock=clock
+        ),
         real=providers.Singleton(UnavailableSimulator),
     )
     scenarios = providers.Singleton(YamlScenarioCatalog, directory=settings.provided.scenarios_dir)
@@ -52,5 +54,5 @@ class Container(containers.DeclarativeContainer):
         catalog=scenarios,
         simulator=simulator,
         clock=clock,
-        tick_s=settings.provided.mission_tick_s,
+        runner_period_s=settings.provided.mission_runner_period_s,
     )

@@ -90,77 +90,96 @@ class MissionRun:
     def ended(self) -> bool:
         return bool(self.engine.run["ended"])
 
+    @property
+    def active(self) -> bool:
+        return not self.stopped and not self.ended
+
 
 class Missions:
-    def __init__(self, catalog: ScenarioCatalog, simulator: Simulator, clock: Clock, tick_s: float) -> None:
+    """Handlers `ListScenarios`, `StartMission`, `ReadMission`, `StopMission`, `SubmitOrder`, `SimulateOrder`,
+    `Recommend`, `SetHelm`, `ClassifyContact`, `ReplyRequest`, `SetAutopilot`, et le pas du `MissionRunner`.
+    """
+
+    def __init__(
+        self, catalog: ScenarioCatalog, simulator: Simulator, clock: Clock, runner_period_s: float
+    ) -> None:
         self._catalog = catalog
-        self._sim = simulator
+        self._simulator = simulator
         self._clock = clock
-        self._tick_s = tick_s
-        self._runs: dict[str, MissionRun] = {}
+        self._runner_period_s = runner_period_s
+        self._runs_by_id: dict[str, MissionRun] = {}
 
     def list_scenarios(self) -> list[dict[str, Any]]:
         return self._catalog.all()
 
     async def start(
-        self, scenario_id: str, player: str, *, operator: str, autopilot: bool, manual: bool
+        self, scenario_id: str, player_ship: str, *, operator: str, autopilot: bool, manual_helm: bool
     ) -> MissionRun:
-        sc = self._catalog.get(scenario_id)
-        if sc is None:
+        scenario = self._catalog.get(scenario_id)
+        if scenario is None:
             raise ScenarioNotFound(scenario_id=scenario_id)
-        if player not in {f["nom"] for f in sc["flotte"]}:
-            raise UnknownShip(ship=player)
-        if any(not r.stopped and not r.ended for r in self._runs.values()):
+        if player_ship not in {ship["nom"] for ship in scenario["flotte"]}:
+            raise UnknownShip(ship=player_ship)
+        if any(run.active for run in self._runs_by_id.values()):
             raise MissionAlreadyRunning
-        cap = float(sc.get("cap_initial", 0))
-        await self._sim.clear()
-        await self._sim.spawn({n: (x, y, cap) for n, (x, y) in ScenarioEngine.initial_positions(sc).items()})
+        initial_heading_deg = float(scenario.get("cap_initial", 0))
+        await self._simulator.clear()
+        await self._simulator.spawn(
+            {
+                name: (east_m, north_m, initial_heading_deg)
+                for name, (east_m, north_m) in ScenarioEngine.initial_positions(scenario).items()
+            }
+        )
         engine = ScenarioEngine(
-            sc,
-            player,
+            scenario,
+            player_ship,
             clock=self._clock,
             rng=random.Random(),  # noqa: S311 — tirage d'exercice, pas de la cryptographie
             auto=autopilot,
-            manual=manual,
+            manual=manual_helm,
         )
-        engine.st = await self._sim.states()
+        engine.st = await self._simulator.states()
         run = MissionRun(str(uuid.uuid4()), scenario_id, operator, engine)
-        self._runs[run.id] = run
-        if self._tick_s > 0:
-            run.task = asyncio.create_task(self._loop(run), name=f"mission-{run.id}")
+        self._runs_by_id[run.id] = run
+        if self._runner_period_s > 0:
+            run.task = asyncio.create_task(self._run_until_end(run), name=f"mission-{run.id}")
         log.info(
-            "mission_started", mission_id=run.id, scenario_id=scenario_id, player=player, operator=operator
+            "mission_started",
+            mission_id=run.id,
+            scenario_id=scenario_id,
+            player_ship=player_ship,
+            operator=operator,
         )
         return run
 
-    async def step(self, mission_id: str) -> None:
-        """Un pas du `MissionRunner` : état du monde, moteur, points de route."""
+    async def advance(self, mission_id: str) -> None:
+        """Un pas du `MissionRunner` : état du monde, moteur, points de route envoyés au simulateur."""
         run = self.read(mission_id)
-        if run.stopped or run.ended:
+        if not run.active:
             return
-        waypoints = run.engine.tick(await self._sim.states())
+        waypoints = run.engine.tick(await self._simulator.states())
         if waypoints:
-            await self._sim.steer(waypoints)
+            await self._simulator.steer(waypoints)
         if run.ended:
             log.info("mission_finished", mission_id=run.id, debrief=run.engine.run["debrief"])
 
-    async def _loop(self, run: MissionRun) -> None:
-        while not run.stopped and not run.ended:
+    async def _run_until_end(self, run: MissionRun) -> None:
+        while run.active:
             try:
-                await self.step(run.id)
+                await self.advance(run.id)
             except Exception:
-                log.exception("mission_tick_failed", mission_id=run.id)
-            await asyncio.sleep(self._tick_s)
+                log.exception("mission_step_failed", mission_id=run.id)
+            await asyncio.sleep(self._runner_period_s)
 
     def read(self, mission_id: str) -> MissionRun:
-        run = self._runs.get(mission_id)
+        run = self._runs_by_id.get(mission_id)
         if run is None:
             raise MissionNotFound(mission_id=mission_id)
         return run
 
-    def _live(self, mission_id: str) -> MissionRun:
+    def _read_active(self, mission_id: str) -> MissionRun:
         run = self.read(mission_id)
-        if run.stopped or run.ended:
+        if not run.active:
             raise MissionEnded(mission_id=mission_id)
         return run
 
@@ -169,39 +188,39 @@ class Missions:
         run.stopped = True
         if run.task is not None:
             run.task.cancel()
-        await self._sim.clear()
+        await self._simulator.clear()
         log.info("mission_stopped", mission_id=mission_id)
 
     async def shutdown(self) -> None:
-        for run in self._runs.values():
+        for run in self._runs_by_id.values():
             run.stopped = True
             if run.task is not None:
                 run.task.cancel()
 
     def submit_order(self, mission_id: str, text: str) -> dict[str, Any]:
-        return dict(self._live(mission_id).engine.player_order(text))
+        return self._read_active(mission_id).engine.player_order(text)
 
-    def simulate(self, mission_id: str, text: str) -> dict[str, Any]:
-        return dict(self.read(mission_id).engine.simulate(text))
+    def simulate_order(self, mission_id: str, text: str) -> dict[str, Any]:
+        return self.read(mission_id).engine.simulate(text)
 
     def recommend(self, mission_id: str) -> list[dict[str, str]]:
-        return list(self.read(mission_id).engine.recommend())
+        return self.read(mission_id).engine.recommend()
 
     def set_helm(self, mission_id: str, change: dict[str, float]) -> dict[str, Any]:
-        result = self._live(mission_id).engine.helm(change)
+        result = self._read_active(mission_id).engine.helm(change)
         if not result["ok"]:
             raise ManualHelmInactive
         return dict(result["helm"])
 
-    def classify(self, mission_id: str, contact_id: str, classification: str) -> None:
+    def classify_contact(self, mission_id: str, contact_id: str, classification: str) -> None:
         if not self.read(mission_id).engine.classify(contact_id, classification):
             raise ContactNotFound(contact_id=contact_id)
 
-    def reply(self, mission_id: str, ship: str, approve: bool) -> str:
-        result = self._live(mission_id).engine.reply(ship, approve)
+    def reply_request(self, mission_id: str, ship: str, approve: bool) -> str:
+        result = self._read_active(mission_id).engine.reply(ship, approve)
         if not result["ok"]:
             raise NoPendingRequest(ship=ship)
         return str(result["en"])
 
     def set_autopilot(self, mission_id: str, enabled: bool) -> None:
-        self._live(mission_id).engine.set_auto(enabled)
+        self._read_active(mission_id).engine.set_auto(enabled)

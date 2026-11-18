@@ -2,7 +2,7 @@
   "$id": "urn:hannibal-x:contracts:1.0.0:SetHelm",
   "additionalProperties": false,
   "properties": {
-    "course": {
+    "course_change_deg": {
       "anyOf": [
         {
           "type": "number"
@@ -12,9 +12,9 @@
         }
       ],
       "default": null,
-      "title": "Course"
+      "title": "Course Change Deg"
     },
-    "course_delta": {
+    "course_deg": {
       "anyOf": [
         {
           "type": "number"
@@ -24,7 +24,7 @@
         }
       ],
       "default": null,
-      "title": "Course Delta"
+      "title": "Course Deg"
     },
     "rudder": {
       "anyOf": [
@@ -40,7 +40,7 @@
       "default": null,
       "title": "Rudder"
     },
-    "speed_delta": {
+    "speed_change_kn": {
       "anyOf": [
         {
           "type": "number"
@@ -50,7 +50,7 @@
         }
       ],
       "default": null,
-      "title": "Speed Delta"
+      "title": "Speed Change Kn"
     },
     "speed_kn": {
       "anyOf": [

@@ -43,8 +43,14 @@ Les flottants sont comparés à 1e-6 près.
 
 ## Seuil sur le jeu réel
 
-`data_baseline.json` contient le nombre de cas réussis par champ (`spoken_text`, `written_text`), sans aucun texte.
-Tant qu'il vaut `null`, le test affiche la mesure et passe en « skipped » : reporter alors la valeur mesurée.
+Le seuil est un nombre de cas réussis par champ (`spoken_text`, `written_text`), sans aucun texte. Rien n'est à
+reporter à la main : au premier passage sur le serveur, le test écrit sa mesure dans `data_baseline.local.json`
+(ignoré par git, reste sur le serveur) ; les passages suivants échouent s'ils font moins bien. Une valeur renseignée
+dans `data_baseline.json` (commité) prime sur le fichier local.
+
+```bash
+HX_KB=/chemin/kb/signals.json HX_TESTSET=/chemin/tests/testset.jsonl uv run pytest -m data
+```
 
 ## Enregistrements serveur (Lot 0, à faire une fois)
 

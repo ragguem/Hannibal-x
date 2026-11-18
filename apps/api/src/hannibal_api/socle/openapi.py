@@ -14,7 +14,7 @@ OPENAPI_FILE = Path(__file__).resolve().parents[3] / "openapi.json"
 
 
 def render() -> str:
-    app = create_app(ApiSettings(adapters=AdapterMode.FAKE, mission_tick_s=0))
+    app = create_app(ApiSettings(adapters=AdapterMode.FAKE, mission_runner_period_s=0))
     return json.dumps(app.openapi(), indent=2, ensure_ascii=False, sort_keys=True) + "\n"
 
 

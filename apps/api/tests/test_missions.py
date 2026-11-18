@@ -10,8 +10,11 @@ from hannibal_api.socle.main import create_app
 from hannibal_api.socle.openapi import OPENAPI_FILE, render
 from hannibal_api.socle.settings import AdapterMode, ApiSettings
 
+RUNNER_PERIOD_S = 0.5
+FLEET = {"hannibal", "alfa", "charlie", "delta"}
 
-class Clock:
+
+class ManualClock:
     def __init__(self) -> None:
         self.now = 1000.0
 
@@ -19,168 +22,192 @@ class Clock:
         return self.now
 
 
-def app_client(**overrides: object) -> tuple[TestClient, Missions, Clock]:
-    settings = ApiSettings(
-        **{"adapters": AdapterMode.FAKE, "log_json": True, "mission_tick_s": 0, **overrides}
-    )  # type: ignore[arg-type]
-    clock = Clock()
-    container = Container(settings=settings)
-    container.clock.override(clock)
-    app = create_app(settings, container)
-    return TestClient(app, raise_server_exceptions=False), container.missions(), clock
+class MissionHarness:
+    """API en mode `fake` et horloge avancée à la main : le test déclenche chaque pas du `MissionRunner`."""
+
+    def __init__(self, **settings_overrides: object) -> None:
+        settings = ApiSettings(
+            **{
+                "adapters": AdapterMode.FAKE,
+                "log_json": True,
+                "mission_runner_period_s": 0,
+                **settings_overrides,
+            }  # type: ignore[arg-type]
+        )
+        self.clock = ManualClock()
+        container = Container(settings=settings)
+        container.clock.override(self.clock)
+        self.client = TestClient(create_app(settings, container), raise_server_exceptions=False)
+        self.missions: Missions = container.missions()
+
+    def start(self, **body: Any) -> dict[str, Any]:
+        response = self.client.post(
+            "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal", **body}
+        )
+        assert response.status_code == 201, response.text
+        return dict(response.json())
+
+    def read(self, mission_id: str) -> dict[str, Any]:
+        return dict(self.client.get(f"/v1/missions/{mission_id}").json())
+
+    def advance(self, mission_id: str, seconds: float) -> None:
+        for _ in range(int(seconds / RUNNER_PERIOD_S)):
+            self.clock.now += RUNNER_PERIOD_S
+            asyncio.run(self.missions.advance(mission_id))
 
 
 @pytest.fixture
-def api() -> tuple[TestClient, Missions, Clock]:
-    return app_client()
+def harness() -> MissionHarness:
+    return MissionHarness()
 
 
-def start(client: TestClient, **body: Any) -> dict[str, Any]:
-    r = client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player": "hannibal", **body})
-    assert r.status_code == 201, r.text
-    return dict(r.json())
+def test_list_scenarios(harness: MissionHarness) -> None:
+    scenarios = harness.client.get("/v1/scenarios").json()
+    assert len(scenarios) == 6
+    unknown_contact = next(s for s in scenarios if s["id"] == "contact_inconnu")
+    assert unknown_contact["guide_ship"] == "hannibal"
+    assert unknown_contact["playable_ships"][0] == "hannibal"
 
 
-def advance(missions: Missions, clock: Clock, mission_id: str, seconds: float) -> None:
-    for _ in range(int(seconds / 0.5)):
-        clock.now += 0.5
-        asyncio.run(missions.step(mission_id))
+def test_mission_runs_end_to_end_without_screen(harness: MissionHarness) -> None:
+    mission = harness.start()
+    assert mission["phase"] == "running"
+    assert {ship["name"] for ship in mission["ships"]} == FLEET
+
+    harness.advance(mission["id"], 40)
+    mission = harness.read(mission["id"])
+    assert [contact["id"] for contact in mission["contacts"]] == ["TRK017"]
+    assert mission["ships"][0]["speed_mps"] > 0
+
+    outcome = harness.client.post(
+        f"/v1/missions/{mission['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"}
+    )
+    assert outcome.json()["accepted"] is True
+    assert outcome.json()["text_en"].startswith("ALL SHIPS THIS IS HANNIBAL")
+
+    classification = harness.client.post(
+        f"/v1/missions/{mission['id']}/contacts/TRK017/classification", json={"classification": "neutre"}
+    )
+    assert classification.status_code == 204
+
+    harness.advance(mission["id"], 420)
+    mission = harness.read(mission["id"])
+    assert mission["phase"] == "ended"
+    assert mission["debrief"]["objectives_total"] == len(mission["objectives"])
+    assert mission["debrief"]["classification_by_contact"]["TRK017"] == {
+        "chosen": "neutre",
+        "actual": "neutre",
+    }
+
+    late_order = harness.client.post(
+        f"/v1/missions/{mission['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"}
+    )
+    assert late_order.status_code == 409
+    assert late_order.json()["code"] == "mission_ended"
 
 
-def test_list_scenarios(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, _, _ = api
-    body = client.get("/v1/scenarios").json()
-    assert len(body) == 6
-    sc = next(s for s in body if s["id"] == "contact_inconnu")
-    assert sc["guide"] == "hannibal"
-    assert sc["ships"][0] == "hannibal"
+def test_refused_order_carries_reason(harness: MissionHarness) -> None:
+    mission = harness.start()
+    outcome = harness.client.post(f"/v1/missions/{mission['id']}/orders", json={"text": "BONJOUR"}).json()
+    assert outcome["accepted"] is False
+    assert outcome["refusal_reason"]
 
 
-def test_mission_runs_end_to_end_without_screen(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, missions, clock = api
-    m = start(client)
-    assert m["phase"] == "running"
-    assert {s["name"] for s in m["ships"]} == {"hannibal", "alfa", "charlie", "delta"}
+def test_simulate_order_and_recommend(harness: MissionHarness) -> None:
+    mission = harness.start()
+    harness.advance(mission["id"], 40)
+    simulations = f"/v1/missions/{mission['id']}/simulations"
+    simulation = harness.client.post(simulations, json={"text": "ALL SHIPS TURN 30 STBD"}).json()
+    assert simulation["accepted"] is True
+    assert set(simulation["track_by_ship"]) == FLEET
+    assert simulation["contact_cpas"][0]["contact_id"] == "TRK017"
+    nothing_to_simulate = harness.client.post(simulations, json={"text": "ALL SHIPS ROGER"}).json()
+    assert nothing_to_simulate["accepted"] is False
+    recommendations = harness.client.get(f"/v1/missions/{mission['id']}/recommendations").json()
+    assert recommendations
+    assert {"kind", "text", "reason"} <= recommendations[0].keys()
 
-    advance(missions, clock, m["id"], 40)
-    m = client.get(f"/v1/missions/{m['id']}").json()
-    assert [c["id"] for c in m["contacts"]] == ["TRK017"]
-    assert m["ships"][0]["speed_mps"] > 0
 
-    r = client.post(f"/v1/missions/{m['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"})
-    assert r.json()["accepted"] is True
-    assert r.json()["en"].startswith("ALL SHIPS THIS IS HANNIBAL")
+def test_helm_requires_manual_mode(harness: MissionHarness) -> None:
+    mission = harness.start()
+    response = harness.client.post(f"/v1/missions/{mission['id']}/helm", json={"course_deg": 90})
+    assert response.status_code == 409
+    assert response.json()["code"] == "manual_helm_inactive"
 
+
+def test_manual_helm(harness: MissionHarness) -> None:
+    mission = harness.start(player_ship="alfa", manual_helm=True)
+    helm = harness.client.post(
+        f"/v1/missions/{mission['id']}/helm", json={"course_deg": 370, "speed_change_kn": 2}
+    ).json()
+    assert helm == {"course_deg": 10.0, "speed_kn": 14.0, "rudder": 0}
+
+
+def test_autopilot_and_reply_without_request(harness: MissionHarness) -> None:
+    mission = harness.start(player_ship="alfa")
     assert (
-        client.post(
-            f"/v1/missions/{m['id']}/contacts/TRK017/classification", json={"classification": "neutre"}
-        ).status_code
+        harness.client.put(f"/v1/missions/{mission['id']}/autopilot", json={"enabled": True}).status_code
         == 204
     )
-
-    advance(missions, clock, m["id"], 420)
-    m = client.get(f"/v1/missions/{m['id']}").json()
-    assert m["phase"] == "ended"
-    assert m["debrief"]["total"] == len(m["objectives"])
-    assert m["debrief"]["classifications"]["TRK017"] == {"chosen": "neutre", "actual": "neutre"}
-
-    r = client.post(f"/v1/missions/{m['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"})
-    assert r.status_code == 409
-    assert r.json()["code"] == "mission_ended"
-
-
-def test_rejected_order_carries_reason(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, _, _ = api
-    m = start(client)
-    body = client.post(f"/v1/missions/{m['id']}/orders", json={"text": "BONJOUR"}).json()
-    assert body["accepted"] is False
-    assert body["error"]
-
-
-def test_simulate_and_recommend(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, missions, clock = api
-    m = start(client)
-    advance(missions, clock, m["id"], 40)
-    sim = client.post(f"/v1/missions/{m['id']}/simulations", json={"text": "ALL SHIPS TURN 30 STBD"}).json()
-    assert sim["accepted"] is True
-    assert set(sim["paths"]) == {"hannibal", "alfa", "charlie", "delta"}
-    assert sim["cpa"][0]["contact"] == "TRK017"
-    nothing = client.post(f"/v1/missions/{m['id']}/simulations", json={"text": "ALL SHIPS ROGER"}).json()
-    assert nothing["accepted"] is False
-    recos = client.get(f"/v1/missions/{m['id']}/recommendations").json()
-    assert recos
-    assert {"kind", "text", "reason"} <= recos[0].keys()
-
-
-def test_helm_requires_manual_mode(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, _, _ = api
-    m = start(client)
-    r = client.post(f"/v1/missions/{m['id']}/helm", json={"course": 90})
-    assert r.status_code == 409
-    assert r.json()["code"] == "manual_helm_inactive"
-
-
-def test_manual_helm(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, _, _ = api
-    m = start(client, player="alfa", manual=True)
-    h = client.post(f"/v1/missions/{m['id']}/helm", json={"course": 370, "speed_delta": 2}).json()
-    assert h == {"course": 10.0, "speed_kn": 14.0, "rudder": 0}
-
-
-def test_autopilot_and_reply(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, _, _ = api
-    m = start(client, player="alfa")
-    assert client.put(f"/v1/missions/{m['id']}/autopilot", json={"enabled": True}).status_code == 204
-    assert client.get(f"/v1/missions/{m['id']}").json()["autopilot"] is True
-    r = client.post(f"/v1/missions/{m['id']}/requests/charlie/reply", json={"approve": True})
-    assert r.status_code == 404
-    assert r.json()["code"] == "request_not_found"
-
-
-def test_errors(api: tuple[TestClient, Missions, Clock]) -> None:
-    client, _, _ = api
-    assert client.post("/v1/missions", json={"scenario_id": "nope", "player": "x"}).json()["code"] == (
-        "scenario_not_found"
+    assert harness.read(mission["id"])["autopilot"] is True
+    reply = harness.client.post(
+        f"/v1/missions/{mission['id']}/requests/charlie/reply", json={"approve": True}
     )
-    assert client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player": "x"}).json()[
-        "code"
-    ] == ("ship_not_found")
+    assert reply.status_code == 404
+    assert reply.json()["code"] == "request_not_found"
+
+
+def test_refusals_carry_stable_codes(harness: MissionHarness) -> None:
+    client = harness.client
+    unknown_scenario = client.post("/v1/missions", json={"scenario_id": "nope", "player_ship": "x"})
+    assert unknown_scenario.json()["code"] == "scenario_not_found"
+    unknown_ship = client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "x"})
+    assert unknown_ship.json()["code"] == "ship_not_found"
     assert client.get("/v1/missions/nope").json()["code"] == "mission_not_found"
-    m = start(client)
-    assert (
-        client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player": "alfa"}).status_code
-        == 409
+
+    mission = harness.start()
+    second = client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "alfa"})
+    assert second.status_code == 409
+    unknown_contact = client.post(
+        f"/v1/missions/{mission['id']}/contacts/TRK999/classification", json={"classification": "ami"}
     )
-    r = client.post(f"/v1/missions/{m['id']}/contacts/TRK999/classification", json={"classification": "ami"})
-    assert r.json()["code"] == "contact_not_found"
-    assert client.post(f"/v1/missions/{m['id']}/orders", json={"text": ""}).status_code == 422
-    assert client.delete(f"/v1/missions/{m['id']}").status_code == 204
-    assert client.get(f"/v1/missions/{m['id']}").json()["phase"] == "ended"
-    start(client)
+    assert unknown_contact.json()["code"] == "contact_not_found"
+    assert client.post(f"/v1/missions/{mission['id']}/orders", json={"text": ""}).status_code == 422
+
+    assert client.delete(f"/v1/missions/{mission['id']}").status_code == 204
+    assert harness.read(mission["id"])["phase"] == "ended"
+    harness.start()
 
 
 def test_real_mode_without_sim_bridge() -> None:
-    client, _, _ = app_client(adapters=AdapterMode.REAL)
-    r = client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player": "hannibal"})
-    assert r.status_code == 503
-    assert r.json()["dependency"] == "sim-bridge"
+    harness = MissionHarness(adapters=AdapterMode.REAL)
+    response = harness.client.post(
+        "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal"}
+    )
+    assert response.status_code == 503
+    assert response.json()["dependency"] == "sim-bridge"
 
 
 def test_internal_token_required_when_configured() -> None:
-    client, _, _ = app_client(internal_token="s3cret")
+    client = MissionHarness(internal_token="s3cret").client
     assert client.get("/v1/scenarios").status_code == 401
     assert client.get("/v1/scenarios", headers={"X-Internal-Token": "s3cret"}).status_code == 200
 
 
-def test_runner_loop_ticks_by_itself() -> None:
-    settings = ApiSettings(adapters=AdapterMode.FAKE, log_json=True, mission_tick_s=0.01)  # type: ignore[call-arg]
+def test_runner_advances_missions_by_itself() -> None:
+    settings = ApiSettings(adapters=AdapterMode.FAKE, log_json=True, mission_runner_period_s=0.01)  # type: ignore[call-arg]
     with TestClient(create_app(settings)) as client:
-        m = start(client)
+        body = {"scenario_id": "contact_inconnu", "player_ship": "hannibal"}
+        mission_id = client.post("/v1/missions", json=body).json()["id"]
+
+        def guide_speed() -> float:
+            return float(client.get(f"/v1/missions/{mission_id}").json()["ships"][0]["speed_mps"])
+
         for _ in range(200):
-            if client.get(f"/v1/missions/{m['id']}").json()["ships"][0]["speed_mps"] > 0:
+            if guide_speed() > 0:
                 break
             asyncio.run(asyncio.sleep(0.01))
-        assert client.get(f"/v1/missions/{m['id']}").json()["ships"][0]["speed_mps"] > 0
+        assert guide_speed() > 0
 
 
 def test_openapi_file_is_up_to_date() -> None:

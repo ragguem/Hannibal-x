@@ -71,3 +71,6 @@ obj/
 TestResults/
 *.user
 .vs/
+
+# Seuil du jeu réel, mesuré sur la machine qui détient les données
+eval/characterization/data_baseline.local.json

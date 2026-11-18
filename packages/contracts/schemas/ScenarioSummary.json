@@ -18,8 +18,8 @@
       "title": "Duration S",
       "type": "integer"
     },
-    "guide": {
-      "title": "Guide",
+    "guide_ship": {
+      "title": "Guide Ship",
       "type": "string"
     },
     "id": {
@@ -38,12 +38,12 @@
       "default": null,
       "title": "Level"
     },
-    "ships": {
-      "description": "Navires jouables, le guide en premier",
+    "playable_ships": {
+      "description": "Navires que l'opérateur peut tenir, le guide en premier",
       "items": {
         "type": "string"
       },
-      "title": "Ships",
+      "title": "Playable Ships",
       "type": "array"
     },
     "summary": {
@@ -67,8 +67,8 @@
     "id",
     "title",
     "duration_s",
-    "ships",
-    "guide"
+    "playable_ships",
+    "guide_ship"
   ],
   "title": "ScenarioSummary",
   "type": "object"
