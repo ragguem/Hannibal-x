@@ -23,6 +23,7 @@ Chaque lot qui réimplémente une fonction branche son nouveau code sur les mêm
 | `legacy/app_v3/sim.py` | `apply_orders`, `path`, `ghost`, `cpa_now` | `core.orders.kinematics` |
 | `legacy/app_v3/reco.py` | `recommend` (veille, exécuter, accuser, emerg, éviter, station) | `core.orders.recommendations` |
 | `legacy/app_v3/hxbridge.py` | `to_orders`, `fr_signal`, `fix_frame`, `reply_word`, `destination` | `core.orders.mtp_mapping`, `core.orders.replies` |
+| `legacy/app_v3/server.py` (ROS remplacé par des bouchons, horloge simulée) | `Hannibal.control`, `Ros.carrot`, `_ramp`, `turn_side`, `_wake_pt`, `_slots`, `_helm_tick` : 5 scénarios en boucle fermée avec une physique simple commune | `core.fleet.control` |
 
 ## Commandes
 

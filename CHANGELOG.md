@@ -11,6 +11,9 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 - `tools/check.ps1` et `tools/check.sh` : contrôle complet local (équivalent de la CI), seuil de couverture 85 %.
 - `tools/backup.ps1` : sauvegarde du dépôt par `git bundle`.
 - Lot 1 (en cours) : `packages/core` (`hannibal-core`), avec `signals` (interpréteur) et `orders` (`grammar`, `kinematics`, `recommendations`, `mtp_mapping`), copiés de l’ancien code sans entrée-sortie ; contrat import-linter « Core : aucune entrée-sortie ».
+- `core.fleet.control` (`FleetController`) : carotte, rampe au diamètre tactique, virage du bord, postes, sillage,
+  évitement, barre manuelle, repris de `server.py` sans ROS, horloge injectée ; prouvé identique à l'ancien serveur
+  sur 5 scénarios en boucle fermée.
 - Goldens de caractérisation exécutés sur `legacy` et sur `core` ; écarts voulus du cœur dans `golden/core/`.
 - Limite de vitesse unique `SpeedLimits` (3 à 28 nœuds par défaut) pour le clavier et les signaux : un ordre hors
   bornes est ramené à la borne avec une note (le clavier refusait au-delà de 18 nœuds).

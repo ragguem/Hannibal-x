@@ -1,0 +1,81 @@
+{
+  "origin": {"lat": 43.0, "lon": 6.0},
+  "dt": 0.5,
+  "sample_every": 4,
+  "scenarios": [
+    {
+      "name": "colonne_virage_tribord_90",
+      "ticks": 240,
+      "run": {"guide": "hannibal", "player": "hannibal", "form": "column", "gcap": 0.0, "gspeed": 6.0},
+      "ships": {
+        "hannibal": {"x": 0, "y": 0, "hdg": 0, "sog": 6.0},
+        "alfa": {"x": 0, "y": -400, "hdg": 0, "sog": 6.0},
+        "charlie": {"x": 0, "y": -800, "hdg": 0, "sog": 6.0},
+        "delta": {"x": 0, "y": -1200, "hdg": 0, "sog": 6.0}
+      },
+      "events": [
+        {"t": 10, "set": {"gcap": 90.0}},
+        {"t": 10, "turn_side": ["hannibal", 1, 90]}
+      ]
+    },
+    {
+      "name": "ligne_de_front_virage_ensemble",
+      "ticks": 160,
+      "run": {"guide": "hannibal", "player": "hannibal", "form": "line_abreast", "gcap": 0.0, "gspeed": 7.0},
+      "ships": {
+        "hannibal": {"x": 0, "y": 0, "hdg": 0, "sog": 7.0},
+        "alfa": {"x": -400, "y": 0, "hdg": 0, "sog": 7.0},
+        "charlie": {"x": 400, "y": 0, "hdg": 0, "sog": 7.0},
+        "delta": {"x": 800, "y": 0, "hdg": 0, "sog": 7.0}
+      },
+      "events": [
+        {"t": 8, "set": {"gcap": 300.0, "tog": true}}
+      ]
+    },
+    {
+      "name": "releve_hors_poste_et_evitement",
+      "ticks": 240,
+      "run": {"guide": "hannibal", "player": "hannibal", "form": "bearing", "form_rel": 135.0, "gcap": 45.0, "gspeed": 5.0},
+      "ships": {
+        "hannibal": {"x": 0, "y": 0, "hdg": 45, "sog": 5.0},
+        "alfa": {"x": 150, "y": -100, "hdg": 30, "sog": 4.0},
+        "charlie": {"x": 250, "y": -150, "hdg": 60, "sog": 4.0},
+        "delta": {"x": -900, "y": -700, "hdg": 90, "sog": 3.0}
+      },
+      "events": []
+    },
+    {
+      "name": "ecran_axe_impose_et_navire_libre",
+      "ticks": 160,
+      "run": {"guide": "hannibal", "player": "hannibal", "form": "screen", "axis": 20.0, "gcap": 20.0, "gspeed": 6.0},
+      "ships": {
+        "hannibal": {"x": 0, "y": 0, "hdg": 20, "sog": 6.0},
+        "alfa": {"x": 300, "y": 300, "hdg": 20, "sog": 6.0},
+        "charlie": {"x": 800, "y": 0, "hdg": 20, "sog": 6.0},
+        "delta": {"x": -200, "y": -500, "hdg": 20, "sog": 6.0}
+      },
+      "events": [
+        {"t": 20, "ship": "charlie", "set": {"mode": "free", "cap": 200.0, "v": 4.0}},
+        {"t": 20, "turn_side": ["charlie", -1, 180]}
+      ]
+    },
+    {
+      "name": "barre_manuelle_du_joueur",
+      "ticks": 120,
+      "run": {
+        "guide": "hannibal", "player": "alfa", "form": "column", "gcap": 0.0, "gspeed": 6.0, "manual": true,
+        "helm": {"cap": 0.0, "kn": 12.0, "rudder": 0, "steady": true, "last": 0}
+      },
+      "ships": {
+        "hannibal": {"x": 0, "y": 0, "hdg": 0, "sog": 6.0},
+        "alfa": {"x": 0, "y": -400, "hdg": 0, "sog": 6.0},
+        "charlie": {"x": 0, "y": -800, "hdg": 0, "sog": 6.0}
+      },
+      "events": [
+        {"t": 10, "helm": {"rudder": 1}},
+        {"t": 25, "helm": {"rudder": 0}},
+        {"t": 40, "helm": {"kn": 16.0}}
+      ]
+    }
+  ]
+}

@@ -168,9 +168,180 @@ def run_hxbridge(impl: str = "legacy") -> dict[str, Any]:
     )
 
 
+def legacy_server() -> ModuleType:
+    """`legacy/app_v3/server.py` importé avec ROS remplacé par des bouchons (seul le calcul est exercé)."""
+    if "server" in sys.modules:
+        return sys.modules["server"]
+
+    class Msg:
+        def __init__(self, **kw: Any) -> None:
+            self.__dict__.update(kw)
+
+    class SetWaypoints:
+        Request = Msg
+
+    stubs = {
+        "rclpy": {},
+        "rclpy.node": {"Node": object},
+        "rclpy.action": {"ActionClient": object},
+        "rclpy.executors": {"SingleThreadedExecutor": object},
+        "geographic_msgs": {},
+        "geographic_msgs.msg": {"GeoPoint": Msg},
+        "geometry_msgs": {},
+        "geometry_msgs.msg": {"Pose": Msg},
+        "lotusim_msgs": {},
+        "lotusim_msgs.msg": {"VesselPositionArray": Msg, "MASCmd": Msg},
+        "lotusim_msgs.action": {"MASCmdArray": Msg},
+        "lotusim_msgs.srv": {"SetWaypoints": SetWaypoints},
+    }
+    saved = {name: sys.modules.get(name) for name in stubs}
+    for name, attrs in stubs.items():
+        module = ModuleType(name)
+        module.__dict__.update(attrs)
+        sys.modules[name] = module
+    try:
+        return legacy_module("server")
+    finally:
+        for name, previous in saved.items():
+            if previous is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = previous
+
+
+class _Clock:
+    now = 0.0
+
+    def time(self) -> float:
+        return self.now
+
+
+class _WaypointClient:
+    def __init__(self, sent: dict[str, tuple[float, float]], name: str) -> None:
+        self.sent, self.name = sent, name
+
+    def call_async(self, req: Any) -> None:
+        self.sent[self.name] = (req.path[0].latitude, req.path[0].longitude)
+
+
+class LegacyFleet:
+    """Même interface que `hannibal_core.fleet.FleetController`, branchée sur l'ancien serveur."""
+
+    def __init__(self) -> None:
+        import threading
+
+        srv = legacy_server()
+        self.clock = _Clock()
+        srv.time = self.clock  # type: ignore[attr-defined]
+        self.ros = object.__new__(srv.Ros)
+        self.ros.st, self.ros.cli, self.ros.lock = {}, {}, threading.RLock()
+        self.hannibal = object.__new__(srv.Hannibal)
+        self.hannibal.ros = self.ros
+        self.sent: dict[str, tuple[float, float]] = {}
+
+    def turn_side(self, name: str, sign: int, deg: float) -> None:
+        self.ros.turn_side(name, sign, deg)
+
+    def control(
+        self, run: dict[str, Any], states: dict[str, Any], now: float
+    ) -> dict[str, tuple[float, float]]:
+        self.clock.now = now
+        self.ros.st = states
+        for name in run["ships"]:
+            self.ros.cli.setdefault(name, _WaypointClient(self.sent, name))
+        self.sent.clear()
+        self.hannibal.control(run)
+        return dict(self.sent)
+
+
+def _fleet_controller(impl: str) -> Any:
+    if impl == "legacy":
+        return LegacyFleet()
+    from hannibal_core.fleet import FleetController
+
+    return FleetController()
+
+
+def run_fleet(impl: str = "legacy") -> list[dict[str, Any]]:
+    """Boucle fermée : contrôleur à 2 Hz et physique simple commune (cap vers le point de route à 4°/s,
+    vitesse visée par la loi de la carotte), pour comparer les deux implémentations pas à pas."""
+    cases = load_cases("fleet")
+    lat0, lon0, dt = cases["origin"]["lat"], cases["origin"]["lon"], cases["dt"]
+    m = 111320.0
+
+    def geo(x: float, y: float) -> tuple[float, float]:
+        lat = lat0 + y / m
+        return lat, lon0 + x / (m * math.cos(math.radians(lat)))
+
+    def local(lat: float, lon: float) -> tuple[float, float]:
+        return (lon - lon0) * m * math.cos(math.radians(lat)), (lat - lat0) * m
+
+    out = []
+    for sc in cases["scenarios"]:
+        fleet = _fleet_controller(impl)
+        run = json.loads(json.dumps(sc["run"]))
+        run["ships"] = {n: {"mode": "formation", "dI": 0.0, "cap": 0.0, "v": 0.0} for n in sc["ships"]}
+        ships = {n: dict(s) for n, s in sc["ships"].items()}
+        samples = []
+        for tick in range(sc["ticks"]):
+            t = tick * dt
+            for ev in sc["events"]:
+                if ev["t"] != t:
+                    continue
+                if "turn_side" in ev:
+                    fleet.turn_side(*ev["turn_side"])
+                elif "helm" in ev:
+                    run["helm"].update(ev["helm"])
+                elif "ship" in ev:
+                    run["ships"][ev["ship"]].update(ev["set"])
+                else:
+                    run.update(ev["set"])
+            states = {}
+            for n, s in ships.items():
+                lat, lon = geo(s["x"], s["y"])
+                states[n] = {
+                    "x": s["x"],
+                    "y": s["y"],
+                    "lat": lat,
+                    "lon": lon,
+                    "sog": s["sog"],
+                    "hdg": s["hdg"],
+                }
+            waypoints = fleet.control(run, states, 1000.0 + t)
+            if tick % cases["sample_every"] == 0:
+                samples.append(
+                    canon(
+                        {
+                            "t": t,
+                            "waypoints": waypoints,
+                            "ships": {
+                                n: {k: run["ships"][n].get(k) for k in ("dI", "err", "slot")} for n in ships
+                            },
+                            "positions": ships,
+                        }
+                    )
+                )
+            for n, (wlat, wlon) in waypoints.items():
+                s = ships[n]
+                wx, wy = local(wlat, wlon)
+                dist = math.hypot(wx - s["x"], wy - s["y"])
+                brg = math.degrees(math.atan2(wx - s["x"], wy - s["y"])) % 360
+                turn = ((brg - s["hdg"] + 540.0) % 360.0) - 180.0
+                s["hdg"] = (s["hdg"] + max(-4.0 * dt, min(4.0 * dt, turn))) % 360
+                target = 1.6 + 0.414 * dist
+                s["sog"] += max(-0.4 * dt, min(0.4 * dt, target - s["sog"]))
+            for s in ships.values():
+                r = math.radians(s["hdg"])
+                s["x"] += s["sog"] * math.sin(r) * dt
+                s["y"] += s["sog"] * math.cos(r) * dt
+        out.append({"name": sc["name"], "samples": samples, "gtrack": len(run.get("gtrack", []))})
+    return out
+
+
 RUNNERS: dict[str, Callable[[str], Any]] = {
     "interpret": run_interpret,
     "mtp": run_mtp,
+    "fleet": run_fleet,
     "sim": run_sim,
     "reco": run_reco,
     "hxbridge": run_hxbridge,
