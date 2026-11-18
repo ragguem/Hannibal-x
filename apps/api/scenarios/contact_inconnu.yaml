@@ -1,0 +1,28 @@
+schema_version: 1
+id: contact_inconnu
+titre: Contact inconnu
+niveau: Intermédiaire
+duree_s: 420
+resume: Une piste de surface non identifiée approche de la flotte. Classer, rendre compte, manœuvrer.
+briefing: >
+  Situation : en transit à 12 nœuds. Une piste de surface (TRK017) est détectée à 4 NM au 045,
+  route vers la flotte. Mission : rendre compte au guide (EMERG), classer la piste, puis exécuter
+  l'ordre d'évitement pour garder une distance de passage suffisante.
+formation_depart: column
+cap_initial: 0
+vitesse_initiale_kn: 12
+flotte:
+  - { nom: hannibal, role: guide }
+  - { nom: alfa, role: escorte }
+  - { nom: charlie, role: escorte }
+  - { nom: delta, role: escorte }
+evenements:
+  - { t: 30, piste: { id: TRK017, type: Surface, rel: 45, dist_nm: 4.0, cap: 228, vit_kn: 14, cls_reel: neutre } }
+  - { t: 40, de: hannibal, a: TOUS, ordres: [{ type: EMERG, text: "JULIET SURFACE CRAFT DETECTED BEARING 045 DISTANCE 4" }] }
+  - { t: 150, de: hannibal, a: TOUS, ordres: [{ type: TURN, deg: 45, side: PORT }] }
+  - { t: 300, de: hannibal, a: TOUS, ordres: [{ type: CORPEN, cap: 0 }] }
+attendu:
+  - { avant_t: 100, ordre: ACK, texte: "Rendre compte au guide (ROGER ou EMERG JULIET)" }
+  - { avant_t: 200, classe: TRK017, cls: neutre, texte: "Classer TRK017" }
+  - { avant_t: 190, ordre: TURN, texte: "Exécuter TURN 45 PORT" }
+  - { avant_t: 340, ordre: CORPEN, texte: "Reprendre la route CORPEN 000" }

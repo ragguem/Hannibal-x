@@ -338,10 +338,223 @@ def run_fleet(impl: str = "legacy") -> list[dict[str, Any]]:
     return out
 
 
+def _reraise() -> None:
+    raise
+
+
+class _Audit:
+    def log(self, *args: Any, **kwargs: Any) -> None:
+        pass
+
+    def new_id(self) -> str:
+        return "cmd"
+
+
+class LegacyScenario:
+    """Ancien `Hannibal` démarré sans Docker ni ROS : même interface que `ScenarioEngine`."""
+
+    def __init__(self, case: dict[str, Any], clock: _Clock) -> None:
+        import random
+        import threading
+        import types
+
+        srv = legacy_server()
+        clock.sleep = lambda s: None  # type: ignore[attr-defined]
+        srv.time = clock  # type: ignore[attr-defined]
+        srv.docker = lambda *a, **k: (204, "")  # type: ignore[attr-defined]
+        srv.traceback = types.SimpleNamespace(print_exc=_reraise, format_exc=lambda: "")  # type: ignore[attr-defined]
+        ros = object.__new__(srv.Ros)
+        ros.st, ros.cli, ros.lock = {}, {}, threading.RLock()
+        ros.arr = types.SimpleNamespace(wait_for_server=lambda timeout_sec=0: True)
+        ros.delete = lambda names: True
+        self.spawned: dict[str, Any] = {}
+
+        def spawn(pos: dict[str, tuple[float, float]], cap: float) -> bool:
+            self.spawned.update(pos)
+            for n, (x, y) in pos.items():
+                ros.st[n] = {"x": x, "y": y, "lat": 0.0, "lon": 0.0, "sog": 0.0, "hdg": cap}
+            return True
+
+        ros.spawn = spawn
+        h = object.__new__(srv.Hannibal)
+        h.ros, h.lock, h.steps, h.phase, h.msg_id = ros, threading.RLock(), [], "idle", 0
+        h.unity_ok, h.audit, h.cmds = threading.Event(), _Audit(), {}
+        h.auto_req, h.manual_req = bool(case.get("auto")), bool(case.get("manual"))
+        random.seed(case.get("seed", 0))
+        h._start(case["scenario"], case["player"], False)
+        assert h.phase == "running", h.steps
+        self.h, self.ros, self.sent = h, ros, {}
+
+    @property
+    def run(self) -> dict[str, Any]:
+        return self.h.run
+
+    def tick(self, states: dict[str, Any]) -> dict[str, tuple[float, float]]:
+        self.ros.st = states
+        for name in self.run["ships"]:
+            self.ros.cli.setdefault(name, _WaypointClient(self.sent, name))
+        self.sent.clear()
+        self.h.tick()
+        return dict(self.sent)
+
+    def approve(self, rec: dict[str, Any]) -> Any:
+        self.h.cmds["c"] = dict(rec, state="awaiting_review", can_execute=True)
+        return self.h.confirm("c", "execute")["en"]
+
+    def state(self) -> dict[str, Any]:
+        s = self.h.state()
+        for k in ("phase", "steps", "now"):
+            s.pop(k)
+        return s
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.h, name)
+
+
+class CoreScenario:
+    def __init__(self, case: dict[str, Any], clock: _Clock) -> None:
+        import random
+
+        import yaml
+        from hannibal_core.scenario import ScenarioEngine
+
+        path = LEGACY_APP / "scenarios" / f"{case['scenario']}.yaml"
+        sc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        self.spawned = ScenarioEngine.initial_positions(sc)
+        self.engine = ScenarioEngine(
+            sc,
+            case["player"],
+            clock=clock.time,
+            rng=random.Random(case.get("seed", 0)),  # noqa: S311
+            auto=bool(case.get("auto")),
+            manual=bool(case.get("manual")),
+        )
+
+    def reply(self, ship: str, yes: bool) -> dict[str, Any]:
+        r = self.engine.reply(ship, yes)
+        r.pop("en", None)
+        return r
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.engine, name)
+
+
+def run_scenario(impl: str = "legacy") -> list[dict[str, Any]]:
+    """Missions complètes en boucle fermée (physique de `run_fleet`) : messages, ordres, pistes, débrief."""
+    cases = load_cases("scenario")
+    lat0, lon0, dt = cases["origin"]["lat"], cases["origin"]["lon"], cases["dt"]
+    m = 111320.0
+
+    def geo(x: float, y: float) -> tuple[float, float]:
+        lat = lat0 + y / m
+        return lat, lon0 + x / (m * math.cos(math.radians(lat)))
+
+    def local(lat: float, lon: float) -> tuple[float, float]:
+        return (lon - lon0) * m * math.cos(math.radians(lat)), (lat - lat0) * m
+
+    out = []
+    for case in cases["runs"]:
+        clock = _Clock()
+        clock.now = 1000.0
+        eng: Any = LegacyScenario(case, clock) if impl == "legacy" else CoreScenario(case, clock)
+        run = eng.run
+        cap = float(run["sc"].get("cap_initial", 0))
+        ships = {n: {"x": x, "y": y, "sog": 0.0, "hdg": cap} for n, (x, y) in eng.spawned.items()}
+        samples, results, msgs, seen = [], [], [], 0
+        for tick in range(case["ticks"]):
+            t = tick * dt
+            clock.now = 1000.0 + t
+            for act in case.get("actions", []):
+                if act["t"] != t:
+                    continue
+                if "order" in act:
+                    results.append([t, eng.player_order(act["order"])])
+                elif "approve" in act:
+                    results.append([t, eng.approve(act["approve"])])
+                elif "reply" in act:
+                    results.append([t, eng.reply(*act["reply"])])
+                elif "classify" in act:
+                    results.append([t, eng.classify(*act["classify"])])
+                elif "helm" in act:
+                    results.append([t, eng.helm(act["helm"])["ok"]])
+                elif "auto" in act:
+                    results.append([t, eng.set_auto(act["auto"])])
+                elif "simulate" in act:
+                    results.append([t, eng.simulate(act["simulate"])])
+                elif "recommend" in act:
+                    results.append([t, eng.recommend()])
+            states = {}
+            for n, s in ships.items():
+                lat, lon = geo(s["x"], s["y"])
+                states[n] = {
+                    "x": s["x"],
+                    "y": s["y"],
+                    "lat": lat,
+                    "lon": lon,
+                    "sog": s["sog"],
+                    "hdg": s["hdg"],
+                }
+            waypoints = eng.tick(states)
+            msgs += [x for x in run["msgs"] if x["id"] > seen]
+            seen = max([seen] + [x["id"] for x in run["msgs"]])
+            if tick % cases["sample_every"] == 0:
+                samples.append(
+                    canon(
+                        {
+                            "t": t,
+                            "waypoints": waypoints,
+                            "positions": ships,
+                            "group": {k: run.get(k) for k in ("gcap", "gspeed", "form", "axis", "form_key")},
+                            "ships": {
+                                n: {k: sh.get(k) for k in ("mode", "cap", "v", "err")}
+                                for n, sh in run["ships"].items()
+                            },
+                            "contacts": {
+                                cid: {k: c.get(k) for k in ("x", "y", "cap", "etat", "cls", "blk")}
+                                for cid, c in run["contacts"].items()
+                            },
+                            "pending": len(run["pending"]),
+                        }
+                    )
+                )
+            if run["ended"]:
+                break
+            for n, (wlat, wlon) in waypoints.items():
+                s = ships[n]
+                wx, wy = local(wlat, wlon)
+                dist = math.hypot(wx - s["x"], wy - s["y"])
+                brg = math.degrees(math.atan2(wx - s["x"], wy - s["y"])) % 360
+                turn = ((brg - s["hdg"] + 540.0) % 360.0) - 180.0
+                s["hdg"] = (s["hdg"] + max(-4.0 * dt, min(4.0 * dt, turn))) % 360
+                target = 1.6 + 0.414 * dist
+                s["sog"] += max(-0.4 * dt, min(0.4 * dt, target - s["sog"]))
+            for s in ships.values():
+                r = math.radians(s["hdg"])
+                s["x"] += s["sog"] * math.sin(r) * dt
+                s["y"] += s["sog"] * math.cos(r) * dt
+        out.append(
+            canon(
+                {
+                    "name": case["name"],
+                    "spawn": eng.spawned,
+                    "samples": samples,
+                    "results": results,
+                    "msgs": msgs,
+                    "plog": run["plog"],
+                    "drill": run["drill"],
+                    "ended_at": t,
+                    "state": eng.state(),
+                }
+            )
+        )
+    return out
+
+
 RUNNERS: dict[str, Callable[[str], Any]] = {
     "interpret": run_interpret,
     "mtp": run_mtp,
     "fleet": run_fleet,
+    "scenario": run_scenario,
     "sim": run_sim,
     "reco": run_reco,
     "hxbridge": run_hxbridge,

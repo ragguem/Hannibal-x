@@ -24,6 +24,7 @@ Chaque lot qui réimplémente une fonction branche son nouveau code sur les mêm
 | `legacy/app_v3/reco.py` | `recommend` (veille, exécuter, accuser, emerg, éviter, station) | `core.orders.recommendations` |
 | `legacy/app_v3/hxbridge.py` | `to_orders`, `fr_signal`, `fix_frame`, `reply_word`, `destination` | `core.orders.mtp_mapping`, `core.orders.replies` |
 | `legacy/app_v3/server.py` (ROS remplacé par des bouchons, horloge simulée) | `Hannibal.control`, `Ros.carrot`, `_ramp`, `turn_side`, `_wake_pt`, `_slots`, `_helm_tick` : 5 scénarios en boucle fermée avec une physique simple commune | `core.fleet.control` |
+| `legacy/app_v3/server.py` (`_start` réel sans Docker ni ROS, horloge simulée, aléa initialisé) | `Hannibal` : événements, ordres du joueur, messages approuvés (`confirm`), pistes, exercice, capitaines, réponses, barre manuelle, `state`, `simulate`, `recommend` : 11 missions sur les 6 scénarios | `core.scenario` |
 
 ## Commandes
 
@@ -69,3 +70,4 @@ L'ancien code reste vérifié contre `golden/<nom>.json`. Quand le cœur doit s'
 | Module | Écart | Décision |
 |---|---|---|
 | `mtp` → `orders.grammar` | Vitesse : une seule limite `SpeedLimits` (3 à 28 nœuds par défaut, fournie par l'appelant) pour le clavier et les signaux ; hors bornes, l'ordre est ramené à la borne avec une note, au lieu d'être refusé. Nouveau champ `notes` dans le résultat. Seuls changent `SPEED 25` (accepté) et `SPEED 2` (ramené à 3). | 2026-11-18, Lot 1 |
+| `server.py` → `scenario` | Même limite de vitesse : dans la mission « transit guide joueur », `ALL SHIPS SPEED 30` est ramené à 28 nœuds (vitesse du guide plafonnée à 20 nœuds) au lieu d'être refusé. | 2026-11-18, Lot 1 |

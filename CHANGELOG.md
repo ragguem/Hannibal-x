@@ -14,6 +14,10 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 - `core.fleet.control` (`FleetController`) : carotte, rampe au diamètre tactique, virage du bord, postes, sillage,
   évitement, barre manuelle, repris de `server.py` sans ROS, horloge injectée ; prouvé identique à l'ancien serveur
   sur 5 scénarios en boucle fermée.
+- `core.scenario` : `ScenarioEngine` (événements, ordres, pistes, exercice, capitaines, barre manuelle, objectifs,
+  débrief) repris de `server.py` sans ROS, Docker, threads ni audit, horloge et aléa injectés ; prouvé identique à
+  l'ancien serveur sur 11 missions en boucle fermée (les 6 scénarios). Schéma `schema_version: 1` validé au
+  chargement ; catalogue migré dans `apps/api/scenarios/`.
 - Goldens de caractérisation exécutés sur `legacy` et sur `core` ; écarts voulus du cœur dans `golden/core/`.
 - Limite de vitesse unique `SpeedLimits` (3 à 28 nœuds par défaut) pour le clavier et les signaux : un ordre hors
   bornes est ramené à la borne avec une note (le clavier refusait au-delà de 18 nœuds).
