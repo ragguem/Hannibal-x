@@ -89,6 +89,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/commands/{command_id}/explanation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Explain Order */
+        post: operations["explain_order_v1_commands__command_id__explanation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/doctrine/publications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Publications */
+        get: operations["list_publications_v1_doctrine_publications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/doctrine/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask Doctrine */
+        post: operations["ask_doctrine_v1_doctrine_questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/glossary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Terms */
+        get: operations["search_terms_v1_glossary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -332,6 +400,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AnswerLanguage
+         * @enum {string}
+         */
+        AnswerLanguage: "fr" | "en";
+        /**
+         * AnswerStatus
+         * @enum {string}
+         */
+        AnswerStatus: "answered" | "refused";
         /** AuditEventView */
         AuditEventView: {
             /**
@@ -408,6 +486,42 @@ export interface components {
              */
             parent_id?: string | null;
         };
+        /** Citation */
+        Citation: {
+            /** Article */
+            article?: string | null;
+            /** Chapter */
+            chapter?: string | null;
+            /** Edition */
+            edition?: string | null;
+            /**
+             * Number
+             * @description Numéro de l'extrait, tel qu'écrit dans la réponse : [1], [2]…
+             */
+            number: number;
+            /** Page */
+            page?: string | null;
+            /** Passage Id */
+            passage_id: number;
+            /** Pdf Page */
+            pdf_page?: number | null;
+            /** Publication */
+            publication: string;
+            /** Section */
+            section?: string | null;
+            /**
+             * Table Row
+             * @description Ligne de tableau la plus proche de la question
+             */
+            table_row?: string | null;
+            /**
+             * Text
+             * @description Texte de l'extrait, à vérifier sur la publication
+             */
+            text: string;
+            /** Title */
+            title?: string | null;
+        };
         /**
          * Classification
          * @enum {string}
@@ -462,6 +576,31 @@ export interface components {
          * @enum {string}
          */
         CommandDecision: "approve" | "reject" | "retry";
+        /** CommandExplanation */
+        CommandExplanation: {
+            /** Citations */
+            citations?: components["schemas"]["Citation"][];
+            /**
+             * Command Id
+             * Format: uuid
+             */
+            command_id: string;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Explanation En */
+            explanation_en: string;
+            /** Explanation Fr */
+            explanation_fr: string;
+            /** Model */
+            model: string;
+            /**
+             * Rejected Checks
+             * @description Contrôles échoués par le modèle
+             */
+            rejected_checks?: string[];
+            /** @description `deterministic` : texte du modèle refusé par les contrôles, on rend l'interprétation */
+            source: components["schemas"]["ExplanationSource"];
+        };
         /**
          * CommandSource
          * @enum {string}
@@ -568,6 +707,65 @@ export interface components {
             name: string;
             state: components["schemas"]["DependencyState"];
         };
+        /** DoctrineAnswer */
+        DoctrineAnswer: {
+            /** Answer */
+            answer: string;
+            /**
+             * Citations
+             * @description Extraits cités par la réponse (vide en cas de refus)
+             */
+            citations: components["schemas"]["Citation"][];
+            /** Duration Ms */
+            duration_ms: number;
+            /** Index Version */
+            index_version: string;
+            /** Model */
+            model: string;
+            /**
+             * Query En
+             * @description Reformulation anglaise utilisée pour chercher
+             */
+            query_en?: string | null;
+            /**
+             * Refusal Detail
+             * @description Motif lisible, pour l'opérateur
+             */
+            refusal_detail?: string | null;
+            refusal_reason?: components["schemas"]["RefusalReason"] | null;
+            /**
+             * Second Try
+             * @default false
+             */
+            second_try: boolean;
+            status: components["schemas"]["AnswerStatus"];
+            /** Suggestions */
+            suggestions?: components["schemas"]["TermSuggestion"][];
+            /** Thresholds */
+            thresholds: {
+                [key: string]: number;
+            };
+            /**
+             * Trace Id
+             * Format: uuid
+             * @description Ligne de `ops.doctrine_traces` qui garde cette réponse
+             */
+            trace_id: string;
+            /** Unknown Terms */
+            unknown_terms?: string[];
+        };
+        /** DoctrineQuestion */
+        DoctrineQuestion: {
+            /** @default fr */
+            language: components["schemas"]["AnswerLanguage"];
+            /**
+             * Publication
+             * @description Restreint la recherche à une publication
+             */
+            publication?: string | null;
+            /** Question */
+            question: string;
+        };
         /** ErrorBody */
         ErrorBody: {
             /**
@@ -590,6 +788,39 @@ export interface components {
              * @description Identifiant de la requête, à citer au support
              */
             request_id: string | null;
+        };
+        /**
+         * ExplanationSource
+         * @enum {string}
+         */
+        ExplanationSource: "checked_model" | "deterministic";
+        /** GlossaryEntry */
+        GlossaryEntry: {
+            /** Abbreviation */
+            abbreviation?: string | null;
+            /** Definition En */
+            definition_en?: string | null;
+            /** Definition Fr */
+            definition_fr?: string | null;
+            /** En */
+            en: string;
+            /** Fr */
+            fr?: string | null;
+            /** Page */
+            page?: string | null;
+            /** Sense */
+            sense?: number | null;
+            /** Source */
+            source: string;
+            /** Status */
+            status?: string | null;
+        };
+        /** GlossaryResult */
+        GlossaryResult: {
+            /** Entries */
+            entries: components["schemas"]["GlossaryEntry"][];
+            /** Query */
+            query: string;
         };
         /** Health */
         Health: {
@@ -737,6 +968,14 @@ export interface components {
             /** Text Fr */
             text_fr: string;
         };
+        /** Publications */
+        Publications: {
+            /**
+             * Publications
+             * @description Publications consultables avec le rôle courant
+             */
+            publications: string[];
+        };
         /** RadioMessage */
         RadioMessage: {
             /** Id */
@@ -786,6 +1025,12 @@ export interface components {
              */
             text: string;
         };
+        /**
+         * RefusalReason
+         * @description Contrôle qui a refusé, dans l'ordre de la validation des preuves (architecture 1.1.0 § 7).
+         * @enum {string}
+         */
+        RefusalReason: "no_evidence" | "ungrounded_claim" | "unsupported_answer";
         /** ReplyRequest */
         ReplyRequest: {
             /** Approve */
@@ -952,6 +1197,25 @@ export interface components {
              * @description Message MTP, ex. `ALL SHIPS TURN 30 STBD`
              */
             text: string;
+        };
+        /** TermProposal */
+        TermProposal: {
+            /** En */
+            en?: string | null;
+            /** Fr */
+            fr?: string | null;
+            /** Term */
+            term: string;
+        };
+        /**
+         * TermSuggestion
+         * @description Terme absent des publications et termes proches : l'opérateur choisit, rien n'est corrigé seul.
+         */
+        TermSuggestion: {
+            /** Proposals */
+            proposals: components["schemas"]["TermProposal"][];
+            /** Unknown */
+            unknown: string;
         };
         /** TrackPoint */
         TrackPoint: {
@@ -1344,6 +1608,336 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Command"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    explain_order_v1_commands__command_id__explanation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                command_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandExplanation"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    list_publications_v1_doctrine_publications_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Permissions de la session, posées par le back-office (séparées par des virgules) */
+                "X-Hx-Permissions"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Publications"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    ask_doctrine_v1_doctrine_questions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Utilisateur authentifié, posé par le back-office */
+                "X-Hx-User"?: string;
+                /** @description Permissions de la session, posées par le back-office (séparées par des virgules) */
+                "X-Hx-Permissions"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DoctrineQuestion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoctrineAnswer"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    search_terms_v1_glossary_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryResult"];
                 };
             };
             /** @description Unauthorized */

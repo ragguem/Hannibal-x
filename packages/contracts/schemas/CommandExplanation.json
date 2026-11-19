@@ -1,0 +1,195 @@
+{
+  "$defs": {
+    "Citation": {
+      "additionalProperties": false,
+      "properties": {
+        "article": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Article"
+        },
+        "chapter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chapter"
+        },
+        "edition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edition"
+        },
+        "number": {
+          "description": "Numéro de l'extrait, tel qu'écrit dans la réponse : [1], [2]…",
+          "minimum": 1,
+          "title": "Number",
+          "type": "integer"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "passage_id": {
+          "title": "Passage Id",
+          "type": "integer"
+        },
+        "pdf_page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdf Page"
+        },
+        "publication": {
+          "title": "Publication",
+          "type": "string"
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section"
+        },
+        "table_row": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ligne de tableau la plus proche de la question",
+          "title": "Table Row"
+        },
+        "text": {
+          "description": "Texte de l'extrait, à vérifier sur la publication",
+          "title": "Text",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "number",
+        "passage_id",
+        "publication",
+        "text"
+      ],
+      "title": "Citation",
+      "type": "object"
+    },
+    "ExplanationSource": {
+      "enum": [
+        "checked_model",
+        "deterministic"
+      ],
+      "title": "ExplanationSource",
+      "type": "string"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:CommandExplanation",
+  "additionalProperties": false,
+  "properties": {
+    "citations": {
+      "items": {
+        "$ref": "#/$defs/Citation"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "command_id": {
+      "format": "uuid",
+      "title": "Command Id",
+      "type": "string"
+    },
+    "duration_ms": {
+      "title": "Duration Ms",
+      "type": "integer"
+    },
+    "explanation_en": {
+      "title": "Explanation En",
+      "type": "string"
+    },
+    "explanation_fr": {
+      "title": "Explanation Fr",
+      "type": "string"
+    },
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "rejected_checks": {
+      "description": "Contrôles échoués par le modèle",
+      "items": {
+        "type": "string"
+      },
+      "title": "Rejected Checks",
+      "type": "array"
+    },
+    "source": {
+      "$ref": "#/$defs/ExplanationSource",
+      "description": "`deterministic` : texte du modèle refusé par les contrôles, on rend l'interprétation"
+    }
+  },
+  "required": [
+    "explanation_en",
+    "explanation_fr",
+    "source",
+    "model",
+    "duration_ms",
+    "command_id"
+  ],
+  "title": "CommandExplanation",
+  "type": "object"
+}

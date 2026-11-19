@@ -62,6 +62,23 @@ jobs:
           push: false
           tags: hannibal/asr:ci
           build-args: VERSION=${{ github.sha }}
+      - name: Image rerank (processeur)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/rerank/Dockerfile
+          target: cpu
+          push: false
+          tags: hannibal/rerank:ci
+          build-args: VERSION=${{ github.sha }}
+      - name: Image doctrine
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/doctrine/Dockerfile
+          push: false
+          tags: hannibal/doctrine:ci
+          build-args: VERSION=${{ github.sha }}
       - name: Composition dev valide
         run: docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env.example config --quiet
 

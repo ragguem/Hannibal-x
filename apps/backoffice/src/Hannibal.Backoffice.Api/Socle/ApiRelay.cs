@@ -12,6 +12,7 @@ namespace Hannibal.Backoffice.Api.Socle;
 public static class ApiRelay
 {
     public const string UserHeader = "X-Hx-User";
+    public const string PermissionsHeader = "X-Hx-Permissions";
     private const string ClusterId = "api";
 
     /// <summary>Routes relayées : (identifiant, motif, méthodes, permission). Les motifs précis passent devant.</summary>
@@ -24,6 +25,9 @@ public static class ApiRelay
         ("request-reply", "/v1/missions/{missionId}/requests/{ship}/reply", ["POST"], Permission.CommandDecide),
         ("missions", "/v1/missions/{**rest}", null, Permission.MissionPlay),
         ("command-decision", "/v1/commands/{commandId}/decision", ["POST"], Permission.CommandDecide),
+        ("command-explanation", "/v1/commands/{commandId}/explanation", ["POST"], Permission.DoctrineAsk),
+        ("doctrine", "/v1/doctrine/{**rest}", ["GET", "POST"], Permission.DoctrineAsk),
+        ("glossary", "/v1/glossary", ["GET"], Permission.GlossaryRead),
         ("commands", "/v1/commands/{commandId}", ["GET"], Permission.MissionPlay),
         ("audit", "/v1/audit/{**rest}", ["GET"], Permission.AuditRead),
     ];
@@ -35,11 +39,14 @@ public static class ApiRelay
             {
                 context.RequestTransforms.Add(new RequestHeaderRemoveTransform("Cookie"));
                 context.RequestTransforms.Add(new RequestHeaderRemoveTransform(UserHeader));
+                context.RequestTransforms.Add(new RequestHeaderRemoveTransform(PermissionsHeader));
                 context.RequestTransforms.Add(new RequestHeaderRemoveTransform(Tokens.InternalHeader));
                 context.AddRequestTransform(transform =>
                 {
                     var http = transform.HttpContext;
                     transform.ProxyRequest.Headers.TryAddWithoutValidation(UserHeader, http.User.FindFirstValue(ClaimTypes.Name));
+                    var permissions = http.User.FindAll(SessionAuthentication.PermissionClaim).Select(c => c.Value);
+                    transform.ProxyRequest.Headers.TryAddWithoutValidation(PermissionsHeader, string.Join(',', permissions));
                     if (http.RequestServices.GetRequiredService<BackofficeSettings>().InternalToken is { } token)
                     {
                         transform.ProxyRequest.Headers.TryAddWithoutValidation(Tokens.InternalHeader, token);

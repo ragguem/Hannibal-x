@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from hannibal_api import __version__
 from hannibal_api.application.missions import MissionError
 from hannibal_api.presentation.audit import audit_router
+from hannibal_api.presentation.doctrine import doctrine_router
 from hannibal_api.presentation.missions import missions_router, on_mission_error
 from hannibal_api.presentation.system import system_router
 from hannibal_api.socle.container import Container
@@ -40,6 +41,7 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
         if settings.adapters is AdapterMode.REAL:
             await container.sim_bridge().aclose()
             await container.asr_client().aclose()
+            await container.doctrine_client().aclose()
         engine = container.database_engine()
         if engine is not None:
             await engine.dispose()
@@ -70,5 +72,10 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
         )
     )
     app.include_router(audit_router(container.audit_trail(), voice_orders, settings))
+    app.include_router(
+        doctrine_router(
+            container.query_doctrine(), container.search_glossary(), container.explain_command(), settings
+        )
+    )
     app.add_exception_handler(MissionError, on_mission_error)
     return app

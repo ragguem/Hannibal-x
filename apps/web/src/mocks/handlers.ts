@@ -1,5 +1,13 @@
 import { http, HttpResponse, type HttpResponseResolver } from "msw";
-import type { Classification, CommandDecision, SetHelm, SignIn, StartMission, SubmitOrder } from "../socle/ports";
+import type {
+  Classification,
+  CommandDecision,
+  DoctrineQuestion,
+  SetHelm,
+  SignIn,
+  StartMission,
+  SubmitOrder,
+} from "../socle/ports";
 import { FakeBackend, FakeError, type FakeState } from "./fake-backend";
 
 export interface Persistence {
@@ -178,6 +186,10 @@ export function createHandlers(backend = new FakeBackend(), persistence?: Persis
       }
     }),
     http.get("*/v1/commands/:commandId", handle(({ params }) => b.readCommand(params.commandId!))),
+    http.post("*/v1/commands/:commandId/explanation", handle(({ params }) => b.explainCommand(params.commandId!))),
+    http.post("*/v1/doctrine/questions", handle(({ body }) => b.askDoctrine(body as DoctrineQuestion))),
+    http.get("*/v1/doctrine/publications", handle(() => ({ publications: b.listPublications() }))),
+    http.get("*/v1/glossary", handle(({ url }) => b.searchGlossary(url.searchParams.get("q") ?? ""))),
     http.post(
       "*/v1/commands/:commandId/decision",
       handle(({ params, body }) => b.decideCommand(params.commandId!, (body as { decision: CommandDecision }).decision)),

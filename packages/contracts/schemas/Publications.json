@@ -1,0 +1,19 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:Publications",
+  "additionalProperties": false,
+  "properties": {
+    "publications": {
+      "description": "Publications consultables avec le rôle courant",
+      "items": {
+        "type": "string"
+      },
+      "title": "Publications",
+      "type": "array"
+    }
+  },
+  "required": [
+    "publications"
+  ],
+  "title": "Publications",
+  "type": "object"
+}

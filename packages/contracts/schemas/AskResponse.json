@@ -1,0 +1,317 @@
+{
+  "$defs": {
+    "AnswerStatus": {
+      "enum": [
+        "answered",
+        "refused"
+      ],
+      "title": "AnswerStatus",
+      "type": "string"
+    },
+    "Citation": {
+      "additionalProperties": false,
+      "properties": {
+        "article": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Article"
+        },
+        "chapter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chapter"
+        },
+        "edition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edition"
+        },
+        "number": {
+          "description": "Numéro de l'extrait, tel qu'écrit dans la réponse : [1], [2]…",
+          "minimum": 1,
+          "title": "Number",
+          "type": "integer"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "passage_id": {
+          "title": "Passage Id",
+          "type": "integer"
+        },
+        "pdf_page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdf Page"
+        },
+        "publication": {
+          "title": "Publication",
+          "type": "string"
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section"
+        },
+        "table_row": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ligne de tableau la plus proche de la question",
+          "title": "Table Row"
+        },
+        "text": {
+          "description": "Texte de l'extrait, à vérifier sur la publication",
+          "title": "Text",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "number",
+        "passage_id",
+        "publication",
+        "text"
+      ],
+      "title": "Citation",
+      "type": "object"
+    },
+    "RefusalReason": {
+      "description": "Contrôle qui a refusé, dans l'ordre de la validation des preuves (architecture 1.1.0 § 7).",
+      "enum": [
+        "no_evidence",
+        "ungrounded_claim",
+        "unsupported_answer"
+      ],
+      "title": "RefusalReason",
+      "type": "string"
+    },
+    "TermProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "en": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "En"
+        },
+        "fr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fr"
+        },
+        "term": {
+          "title": "Term",
+          "type": "string"
+        }
+      },
+      "required": [
+        "term"
+      ],
+      "title": "TermProposal",
+      "type": "object"
+    },
+    "TermSuggestion": {
+      "additionalProperties": false,
+      "description": "Terme absent des publications et termes proches : l'opérateur choisit, rien n'est corrigé seul.",
+      "properties": {
+        "proposals": {
+          "items": {
+            "$ref": "#/$defs/TermProposal"
+          },
+          "title": "Proposals",
+          "type": "array"
+        },
+        "unknown": {
+          "title": "Unknown",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unknown",
+        "proposals"
+      ],
+      "title": "TermSuggestion",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:AskResponse",
+  "additionalProperties": false,
+  "properties": {
+    "answer": {
+      "title": "Answer",
+      "type": "string"
+    },
+    "citations": {
+      "description": "Extraits cités par la réponse (vide en cas de refus)",
+      "items": {
+        "$ref": "#/$defs/Citation"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "duration_ms": {
+      "title": "Duration Ms",
+      "type": "integer"
+    },
+    "index_version": {
+      "title": "Index Version",
+      "type": "string"
+    },
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "query_en": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Reformulation anglaise utilisée pour chercher",
+      "title": "Query En"
+    },
+    "refusal_detail": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Motif lisible, pour l'opérateur",
+      "title": "Refusal Detail"
+    },
+    "refusal_reason": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RefusalReason"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "second_try": {
+      "default": false,
+      "title": "Second Try",
+      "type": "boolean"
+    },
+    "status": {
+      "$ref": "#/$defs/AnswerStatus"
+    },
+    "suggestions": {
+      "items": {
+        "$ref": "#/$defs/TermSuggestion"
+      },
+      "title": "Suggestions",
+      "type": "array"
+    },
+    "thresholds": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Thresholds",
+      "type": "object"
+    },
+    "unknown_terms": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unknown Terms",
+      "type": "array"
+    }
+  },
+  "required": [
+    "status",
+    "answer",
+    "citations",
+    "model",
+    "index_version",
+    "thresholds",
+    "duration_ms"
+  ],
+  "title": "AskResponse",
+  "type": "object"
+}

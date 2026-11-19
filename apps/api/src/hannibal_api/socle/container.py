@@ -6,15 +6,22 @@ from hannibal_api.application.audit import AuditTrail
 from hannibal_api.application.check_readiness import CheckReadiness
 from hannibal_api.application.commands import Commands
 from hannibal_api.application.dispatch import Dispatcher
+from hannibal_api.application.doctrine import ExplainCommand, GpuGate, QueryDoctrine, SearchGlossary
 from hannibal_api.application.missions import Missions
 from hannibal_api.application.voice_orders import VoiceOrders
 from hannibal_api.domain.readiness import ProbeState
 from hannibal_api.infrastructure.asr import AsrClient, ScriptedTranscriber
+from hannibal_api.infrastructure.doctrine import DoctrineClient, SampleDoctrine
 from hannibal_api.infrastructure.fleet import InMemoryFleet
 from hannibal_api.infrastructure.persistence.commands import PostgresCommandStore
 from hannibal_api.infrastructure.persistence.database import create_database_engine
+from hannibal_api.infrastructure.persistence.doctrine_traces import PostgresDoctrineTraceStore
 from hannibal_api.infrastructure.persistence.journal import PostgresAuditReader, PostgresMissionJournal
-from hannibal_api.infrastructure.persistence.memory import InMemoryCommandStore, InMemoryMissionJournal
+from hannibal_api.infrastructure.persistence.memory import (
+    InMemoryCommandStore,
+    InMemoryDoctrineTraceStore,
+    InMemoryMissionJournal,
+)
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
 from hannibal_api.infrastructure.recordings import FileVoiceRecordingStore, InMemoryVoiceRecordingStore
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
@@ -52,11 +59,18 @@ class Container(containers.DeclarativeContainer):
             url=settings.provided.asr_health_url,
             timeout_s=settings.provided.readiness_timeout_s,
         ),
+        providers.Singleton(
+            HttpProbe,
+            name="doctrine",
+            url=settings.provided.doctrine_health_url,
+            timeout_s=settings.provided.readiness_timeout_s,
+        ),
     )
     fake_probes = providers.List(
         providers.Singleton(FakeProbe, name="postgres"),
         providers.Singleton(FakeProbe, name="sim-bridge"),
         providers.Singleton(FakeProbe, name="asr", required=False),
+        providers.Singleton(FakeProbe, name="doctrine", required=False),
         providers.Singleton(FakeProbe, name="ollama", state=ProbeState.DISABLED, required=False),
     )
     probes = providers.Selector(mode, fake=fake_probes, real=real_probes)
@@ -155,3 +169,27 @@ class Container(containers.DeclarativeContainer):
         min_recording_bytes=settings.provided.min_recording_bytes,
         max_recording_bytes=settings.provided.max_recording_bytes,
     )
+
+    doctrine_client = providers.Singleton(
+        DoctrineClient,
+        base_url=settings.provided.doctrine_base_url,
+        token=settings.provided.internal_token_value,
+        timeout_s=settings.provided.doctrine_timeout_s,
+    )
+    doctrine = providers.Selector(mode, fake=providers.Singleton(SampleDoctrine), real=doctrine_client)
+    doctrine_traces = providers.Selector(
+        mode,
+        fake=providers.Singleton(InMemoryDoctrineTraceStore, journal=in_memory_journal),
+        real=providers.Singleton(PostgresDoctrineTraceStore, engine=database_engine),
+    )
+    gpu_gate = providers.Singleton(
+        GpuGate,
+        active=settings.provided.doctrine_active,
+        waiting=settings.provided.doctrine_waiting,
+        wait_s=settings.provided.doctrine_wait_s,
+    )
+    query_doctrine = providers.Singleton(
+        QueryDoctrine, doctrine=doctrine, traces=doctrine_traces, gate=gpu_gate
+    )
+    search_glossary = providers.Singleton(SearchGlossary, doctrine=doctrine)
+    explain_command = providers.Singleton(ExplainCommand, doctrine=doctrine, commands=commands, gate=gpu_gate)

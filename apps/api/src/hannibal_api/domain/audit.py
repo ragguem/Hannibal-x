@@ -18,6 +18,8 @@ class AuditEvent(StrEnum):
     SIMULATOR_DISPATCHED = "simulator_dispatched"
     DISPATCH_RETRY = "dispatch_retry"
     DISPATCH_FAILED = "dispatch_failed"
+    DOCTRINE_ANSWERED = "doctrine_answered"
+    DOCTRINE_REFUSED = "doctrine_refused"
 
 
 class FactType(StrEnum):

@@ -8,4 +8,7 @@ export const queryKeys = {
   command: (commandId: string) => ["commands", commandId] as const,
   audit: (missionId: string) => ["audit", missionId] as const,
   auditIntegrity: ["audit", "integrity"] as const,
+  publications: ["doctrine", "publications"] as const,
+  glossary: (query: string) => ["glossary", query] as const,
+  explanation: (commandId: string) => ["commands", commandId, "explanation"] as const,
 };

@@ -11,7 +11,15 @@ from fastapi import APIRouter, Depends, File, Form, Header, Request, Response, U
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from hannibal_api.application.commands import Commands
-from hannibal_api.application.missions import MissionError, MissionRun, Missions, NotFound, Unprocessable
+from hannibal_api.application.missions import (
+    Busy,
+    Forbidden,
+    MissionError,
+    MissionRun,
+    Missions,
+    NotFound,
+    Unprocessable,
+)
 from hannibal_api.application.voice_orders import VoiceOrderResult, VoiceOrders
 from hannibal_api.domain.commands import Command, CommandDecision
 from hannibal_api.domain.voice import VoiceRecording
@@ -53,6 +61,10 @@ async def on_mission_error(_: Request, error: Exception) -> JSONResponse:
         status = HTTPStatus.NOT_FOUND
     elif isinstance(error, Unprocessable):
         status = HTTPStatus.UNPROCESSABLE_ENTITY
+    elif isinstance(error, Forbidden):
+        status = HTTPStatus.FORBIDDEN
+    elif isinstance(error, Busy):
+        status = HTTPStatus.TOO_MANY_REQUESTS
     else:
         status = HTTPStatus.CONFLICT
     return JSONResponse(error_body(error.code, error.message), status_code=status)

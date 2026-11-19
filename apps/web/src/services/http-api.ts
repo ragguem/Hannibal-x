@@ -147,4 +147,15 @@ export class HttpApi implements ApiPort {
   verifyAudit = () => call(() => this.client.GET("/v1/audit/integrity"));
 
   recordingUrl = (commandId: string) => `${this.baseUrl}/v1/audit/${encodeURIComponent(commandId)}/audio`;
+
+  askDoctrine: ApiPort["askDoctrine"] = (body) => call(() => this.client.POST("/v1/doctrine/questions", { body }));
+
+  listPublications = async () => (await call(() => this.client.GET("/v1/doctrine/publications"))).publications;
+
+  searchGlossary = (query: string) => call(() => this.client.GET("/v1/glossary", { params: { query: { q: query } } }));
+
+  explainCommand = (commandId: string) =>
+    call(() =>
+      this.client.POST("/v1/commands/{command_id}/explanation", { params: { path: { command_id: commandId } } }),
+    );
 }

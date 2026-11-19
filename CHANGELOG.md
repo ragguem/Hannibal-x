@@ -65,12 +65,35 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   décision, historique, filtres, pagination, état de la chaîne.
 - Compose : service `asr` (moteur scripté par défaut, `HX_ASR_ENGINE=whisper` pour Whisper) et volume des
   enregistrements de l'API.
+- `services/rerank` (Lot 5) : `POST /rerank` (1 à 3 formulations, 60 passages au plus), meilleur score par passage ;
+  cross-encoder (`bge-reranker-v2-m3` ou modèle affiné) en demi-précision par lots de 16, ou score lexical sans
+  modèle. Images `cpu` et `gpu`.
+- `services/doctrine` (Lot 5) : `POST /ask`, `GET /glossary`, `GET /publications`, `POST /explain`. Pipeline repris
+  de `hx2_service_c.py` : reformulation anglaise, recherche dense sur les deux formulations, questions générées et
+  lignes de tableaux en option, reclassement, seuil de couverture, rédaction citée, contrôle d'ancrage, vérification
+  par le modèle, second essai sur les meilleurs extraits, modèle de repli, style `quotes`, termes inconnus et
+  propositions. Seuils, modèle et version d'index renvoyés dans chaque réponse. Lecture seule sur `v2` (rôle
+  `hannibal_doctrine`, `sql/roles.sql`), `v2.index_versions` (`sql/index_versions.sql`) ; aucun mot de passe par
+  défaut. Mode `sample` : corpus inventé et modèle scripté.
+- `apps/api` : `POST /v1/doctrine/questions`, `GET /v1/doctrine/publications`, `GET /v1/glossary`,
+  `POST /v1/commands/{id}/explanation`. Publications classifiées (`HX_DOCTRINE_CLASSIFIED_PUBLICATIONS`, ATP-28 par
+  défaut) seulement avec `doctrine:classified` ; file GPU (1 en cours, 2 en attente, 20 s) puis `429 doctrine_busy` ;
+  migration `0003_ops_doctrine_traces` ; audit `doctrine_answered` / `doctrine_refused`. Sonde `doctrine`.
+- `apps/backoffice` : permissions `doctrine:ask`, `glossary:read` (tous les rôles), `doctrine:classified`
+  (superviseur, administrateur) ; relais `doctrine`, `glossary`, `command-explanation` ; en-tête
+  `X-Hx-Permissions` posé depuis la session, celui du navigateur est retiré.
+- `apps/web` : page Doctrine (question, publication, langue, réponse citée, motif du refus, propositions
+  cliquables, glossaire), panneau Doctrine et « Expliquer l'ordre » dans la console.
+- `eval/doctrine` et workflow `eval.yml` (manuel et nocturne, runner du serveur) : précision ≥ 94 %, pièges tous
+  refusés, médiane ≤ 7,5 s ; le jeu de questions reste hors dépôt.
+- Compose : services `rerank` (score lexical par défaut) et `doctrine` (corpus d'exemple par défaut).
 
 ### Supprimé
 
 - Web de `legacy/app_v3` remplacé par `apps/web` : accueil, console, vue 3D, `vendor/` three.js ; modèles 3D
   déplacés dans `apps/web/public/models`. Doctrine et registre restent jusqu'aux Lots 4 et 5.
 - `legacy/app_v3/web/registre.html`, remplacé par la page Registre.
+- `legacy/app_v3/web/` (`doctrine.html`, `doctrine.js`, `app.css`, `favicon.svg`), remplacé par la page Doctrine.
 
 ### Reporté
 

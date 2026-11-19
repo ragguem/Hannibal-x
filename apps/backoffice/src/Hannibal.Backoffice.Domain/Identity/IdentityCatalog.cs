@@ -8,6 +8,11 @@ public static class Permission
     public const string CommandDecide = "command:decide";
     public const string AuditRead = "audit:read";
     public const string UserManage = "user:manage";
+    public const string DoctrineAsk = "doctrine:ask";
+    public const string GlossaryRead = "glossary:read";
+
+    /// <summary>Publications classifiées (ATP-28…) : cherchées seulement avec cette permission.</summary>
+    public const string DoctrineClassified = "doctrine:classified";
 }
 
 public static class RoleCode
@@ -26,15 +31,24 @@ public static class IdentityCatalog
 {
     public static readonly IReadOnlyList<RoleDefinition> Roles =
     [
-        new(RoleCode.Operator, "Opérateur", [Permission.MissionPlay, Permission.CommandSubmit]),
+        new(
+            RoleCode.Operator,
+            "Opérateur",
+            [Permission.MissionPlay, Permission.CommandSubmit, Permission.DoctrineAsk, Permission.GlossaryRead]),
         new(
             RoleCode.Supervisor,
             "Superviseur",
-            [Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead]),
+            [
+                Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead,
+                Permission.DoctrineAsk, Permission.GlossaryRead, Permission.DoctrineClassified,
+            ]),
         new(
             RoleCode.Admin,
             "Administrateur",
-            [Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead, Permission.UserManage]),
+            [
+                Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead,
+                Permission.UserManage, Permission.DoctrineAsk, Permission.GlossaryRead, Permission.DoctrineClassified,
+            ]),
     ];
 
     public static readonly IReadOnlyList<GameRoleDefinition> GameRoles =

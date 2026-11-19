@@ -1,0 +1,39 @@
+# Recette de l'assistant de doctrine (Lot 5) sur le serveur : ≥ 94 % de réponses justes, tous les pièges
+# refusés, latence médiane ≤ 7,5 s. Le jeu de questions reste sur le serveur (HX_DOCTRINE_TESTSET), jamais ici.
+name: eval
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval-doctrine
+  cancel-in-progress: false
+
+jobs:
+  doctrine:
+    runs-on: [self-hosted, gpu, hannibal]
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - name: Service doctrine prêt
+        run: curl --fail --silent --retry 30 --retry-delay 10 --retry-all-errors "${HX_DOCTRINE_EVAL_URL:-http://127.0.0.1:8400}/health"
+      - name: Questions et pièges
+        env:
+          HX_DOCTRINE_TOKEN: ${{ secrets.HX_DOCTRINE_INTERNAL_TOKEN }}
+        run: >-
+          python3 eval/doctrine/doctrine_eval.py "$HX_DOCTRINE_TESTSET"
+          --url "${HX_DOCTRINE_EVAL_URL:-http://127.0.0.1:8400}"
+          ${HX_DOCTRINE_TOKEN:+--token "$HX_DOCTRINE_TOKEN"}
+          | tee "$RUNNER_TEMP/doctrine-eval.json"
+      - name: Résumé (scores et identifiants seulement)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doctrine-eval
+          path: ${{ runner.temp }}/doctrine-eval.json
+          retention-days: 30

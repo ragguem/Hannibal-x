@@ -19,6 +19,8 @@ COPY packages/core/pyproject.toml packages/core/
 COPY apps/api/pyproject.toml apps/api/
 COPY services/sim_bridge/pyproject.toml services/sim_bridge/
 COPY services/asr/pyproject.toml services/asr/
+COPY services/rerank/pyproject.toml services/rerank/
+COPY services/doctrine/pyproject.toml services/doctrine/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package hannibal-sim-bridge
 COPY packages/platform packages/platform

@@ -1,0 +1,44 @@
+{
+  "$defs": {
+    "AnswerLanguage": {
+      "enum": [
+        "fr",
+        "en"
+      ],
+      "title": "AnswerLanguage",
+      "type": "string"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:DoctrineQuestion",
+  "additionalProperties": false,
+  "properties": {
+    "language": {
+      "$ref": "#/$defs/AnswerLanguage",
+      "default": "fr"
+    },
+    "publication": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Restreint la recherche à une publication",
+      "title": "Publication"
+    },
+    "question": {
+      "maxLength": 1000,
+      "minLength": 2,
+      "title": "Question",
+      "type": "string"
+    }
+  },
+  "required": [
+    "question"
+  ],
+  "title": "DoctrineQuestion",
+  "type": "object"
+}

@@ -4,9 +4,15 @@ import type {
   AuditPage,
   AuditQuery,
   AuthorizationRequest,
+  Citation,
   Classification,
   Command,
   CommandDecision,
+  CommandExplanation,
+  DoctrineAnswer,
+  DoctrineQuestion,
+  GlossaryEntry,
+  GlossaryResult,
   CommandSource,
   VoiceOrderOutcome,
   Mission,
@@ -49,10 +55,71 @@ const ACCOUNTS: Record<string, { password: string; role: string; permissions: st
   instructeur: {
     password: "demo",
     role: "instructeur",
-    permissions: ["mission:play", "command:submit", "command:decide", "audit:read", "user:manage"],
+    permissions: [
+      "mission:play",
+      "command:submit",
+      "command:decide",
+      "audit:read",
+      "user:manage",
+      "doctrine:ask",
+      "glossary:read",
+      "doctrine:classified",
+    ],
   },
-  eleve: { password: "demo", role: "eleve", permissions: ["mission:play", "command:submit"] },
+  eleve: {
+    password: "demo",
+    role: "eleve",
+    permissions: ["mission:play", "command:submit", "doctrine:ask", "glossary:read"],
+  },
 };
+
+/** Invented passages: the mocked doctrine answers about speed and replenishment, and refuses the rest. */
+const SAMPLE_PASSAGES: { citation: Citation; keywords: string[]; answer: string }[] = [
+  {
+    citation: {
+      number: 1,
+      passage_id: 2,
+      publication: "DEMO-MANUEL",
+      article: "102",
+      title: "Formation speed",
+      page: "1-4",
+      text: "The formation speed is ordered by the guide. The standard tactical speed is 12 knots unless another speed is ordered.",
+    },
+    keywords: ["vitesse", "speed"],
+    answer: "La vitesse tactique standard est de 12 nœuds, sauf autre vitesse ordonnée [1].",
+  },
+  {
+    citation: {
+      number: 1,
+      passage_id: 3,
+      publication: "DEMO-MANUEL",
+      article: "205",
+      title: "Replenishment at sea approach",
+      page: "2-7",
+      text: "During a replenishment at sea approach, the receiving ship keeps a separation of 40 metres from the delivering ship.",
+    },
+    keywords: ["ravitaillement", "replenishment", "ras"],
+    answer: "Le bâtiment ravitaillé garde un écart de 40 mètres avec le ravitailleur [1].",
+  },
+  {
+    citation: {
+      number: 1,
+      passage_id: 9,
+      publication: "DEMO-RESTREINT",
+      article: "C-1",
+      title: "Silent manoeuvres",
+      text: "The silent manoeuvre procedure is described in the restricted annex.",
+    },
+    keywords: ["silencieu", "silent"],
+    answer: "La procédure de manœuvre silencieuse figure dans l'annexe restreinte [1].",
+  },
+];
+
+const SAMPLE_GLOSSARY: GlossaryEntry[] = [
+  { en: "replenishment at sea", fr: "ravitaillement à la mer", abbreviation: "RAS", source: "DEMO-GLOSSAIRE", definition_fr: "Transfert de combustible ou de vivres entre navires en route." },
+  { en: "officer in tactical command", fr: "commandant tactique", abbreviation: "OTC", source: "DEMO-GLOSSAIRE" },
+  { en: "station", fr: "poste", source: "DEMO-GLOSSAIRE", definition_fr: "Position assignée dans la formation." },
+];
 
 const KN = 0.514444;
 const NM = 1852;
@@ -391,6 +458,78 @@ export class FakeBackend {
     return this.readCommand(commandId);
   }
 
+  // ------------------------------------------------------------------ doctrine
+  askDoctrine(body: DoctrineQuestion): DoctrineAnswer {
+    this.require("doctrine:ask");
+    const allowed = this.listPublications();
+    if (body.publication && !allowed.includes(body.publication)) {
+      throw new FakeError(403, "publication_not_allowed", "Publication inconnue ou non autorisée pour ce rôle.");
+    }
+    const asked = body.question.toLowerCase();
+    const passage = SAMPLE_PASSAGES.find(
+      ({ citation: c, keywords }) =>
+        allowed.includes(c.publication) &&
+        (!body.publication || c.publication === body.publication) &&
+        keywords.some((k) => asked.includes(k)),
+    );
+    const unknown = /\bRSA\b/.test(body.question) ? ["RSA"] : [];
+    const common = {
+      query_en: null,
+      model: "fake",
+      index_version: "fake-1",
+      thresholds: { min_similarity: 0.45 },
+      second_try: false,
+      duration_ms: 900,
+      unknown_terms: unknown,
+      suggestions: unknown.length ? [{ unknown: "RSA", proposals: [{ term: "RAS", en: "replenishment at sea", fr: "ravitaillement à la mer" }] }] : [],
+      trace_id: crypto.randomUUID(),
+    };
+    if (!passage) {
+      this.log("doctrine_refused", { refusal_reason: "no_evidence" }, { missionId: null });
+      return {
+        ...common,
+        status: "refused",
+        answer: "Je ne trouve pas cette information dans les publications chargées.",
+        refusal_reason: "no_evidence",
+        refusal_detail: "aucun passage assez proche",
+        citations: [],
+      };
+    }
+    this.log("doctrine_answered", { citations: 1 }, { missionId: null });
+    const { answer, citation } = passage;
+    return { ...common, status: "answered", answer, refusal_reason: null, refusal_detail: null, citations: [citation] };
+  }
+
+  listPublications(): string[] {
+    this.require("doctrine:ask");
+    const classified = this.state.session?.permissions.includes("doctrine:classified") ?? false;
+    return classified ? ["DEMO-MANUEL", "DEMO-RESTREINT"] : ["DEMO-MANUEL"];
+  }
+
+  searchGlossary(query: string): GlossaryResult {
+    this.require("glossary:read");
+    const q = query.trim().toLowerCase();
+    return {
+      query,
+      entries: SAMPLE_GLOSSARY.filter((e) => q && [e.en, e.fr, e.abbreviation].some((v) => v?.toLowerCase().includes(q))),
+    };
+  }
+
+  explainCommand(commandId: string): CommandExplanation {
+    this.require("doctrine:ask");
+    const c = this.command(commandId);
+    return {
+      command_id: c.id,
+      explanation_en: `${c.text_en} The ordered values are taken as decoded.`,
+      explanation_fr: `${c.text_fr} Les valeurs ordonnées sont reprises telles que décodées.`,
+      source: "deterministic",
+      citations: [],
+      rejected_checks: [],
+      model: "fake",
+      duration_ms: 300,
+    };
+  }
+
   // ------------------------------------------------------------------ internals
   private createReviewCommand(
     m: MissionRecord,
@@ -420,7 +559,7 @@ export class FakeBackend {
   private log(
     event: string,
     payload: Record<string, unknown>,
-    where: { missionId: string; commandId?: string; actor?: string | null },
+    where: { missionId: string | null; commandId?: string; actor?: string | null },
   ) {
     const last = this.state.audit.at(-1)?.seq ?? 0;
     this.state.audit.push({

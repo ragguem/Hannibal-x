@@ -51,6 +51,28 @@ class ApiSettings(BaseServiceSettings):
         default="ALL SHIPS CORPEN 045 SPEED 12", description="Ce que « entend » le mode `fake`"
     )
 
+    doctrine_url: str | None = Field(
+        default=None, description="Sans URL, une question de doctrine échoue en `503`"
+    )
+    doctrine_timeout_s: float = Field(
+        default=120.0, gt=0, description="Couvre second essai et modèle de repli"
+    )
+    doctrine_active: int = Field(
+        default=1, ge=1, description="Questions traitées en même temps (GPU partagé)"
+    )
+    doctrine_waiting: int = Field(default=2, ge=0, description="Questions en attente ; au-delà : `429`")
+    doctrine_wait_s: float = Field(
+        default=20.0, gt=0, description="Attente maximale d'un tour ; au-delà : `429`"
+    )
+
+    @property
+    def doctrine_base_url(self) -> str:
+        return self.doctrine_url.rstrip("/") if self.doctrine_url else ""
+
+    @property
+    def doctrine_health_url(self) -> str | None:
+        return f"{self.doctrine_base_url}/health" if self.doctrine_url else None
+
     @property
     def asr_base_url(self) -> str:
         return self.asr_url.rstrip("/") if self.asr_url else ""

@@ -3,8 +3,10 @@ from typing import Any, Protocol
 
 from hannibal_api.domain.audit import AuditEntry, AuditRecord, ChainVerification, MissionOutcome
 from hannibal_api.domain.commands import Command, CommandDecision, CommandState, Dispatch
+from hannibal_api.domain.doctrine import DoctrineTrace
 from hannibal_api.domain.readiness import ProbeResult
 from hannibal_api.domain.voice import VoiceRecording, VoiceTranscript
+from hannibal_contracts.doctrine import AskRequest, AskResponse, ExplainRequest, Explanation, GlossaryResult
 
 
 class DependencyProbe(Protocol):
@@ -129,6 +131,24 @@ class VoiceRecordingStore(Protocol):
     async def load(self, recording_id: str) -> VoiceRecording | None: ...
 
     async def delete(self, recording_id: str) -> None: ...
+
+
+class DoctrinePort(Protocol):
+    """Service `doctrine`. Indisponible : `DependencyUnavailable` ; jamais de réponse non citée."""
+
+    async def ask(self, request: AskRequest) -> AskResponse: ...
+
+    async def glossary(self, query: str) -> GlossaryResult: ...
+
+    async def publications(self, *, include_classified: bool) -> list[str]: ...
+
+    async def explain(self, request: ExplainRequest) -> Explanation: ...
+
+
+class DoctrineTraceStore(Protocol):
+    """Trace et audit dans la même transaction."""
+
+    async def save(self, trace: DoctrineTrace, entry: AuditEntry) -> None: ...
 
 
 class AuditReader(Protocol):

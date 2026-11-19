@@ -3,6 +3,8 @@ import { useParams } from "react-router";
 import { ErrorPanel } from "../components/ErrorPanel";
 import { Loading } from "../components/Loading";
 import { ContactList } from "../features/contacts/ContactList";
+import { DoctrinePanel } from "../features/doctrine/DoctrinePanel";
+import { OrderExplanation } from "../features/doctrine/OrderExplanation";
 import { ShipTable } from "../features/fleet/ShipTable";
 import { HelmPanel } from "../features/helm/HelmPanel";
 import { Debrief } from "../features/mission/Debrief";
@@ -36,6 +38,7 @@ function Console({ missionId }: { missionId: string }) {
   const canPlay = usePermission("mission:play");
   const canSubmit = usePermission("command:submit");
   const canDecide = usePermission("command:decide");
+  const canAskDoctrine = usePermission("doctrine:ask");
   const [draft, setDraft] = useState("");
   const [simulation, setSimulation] = useState<Simulation | null>(null);
   const [commandId, setCommandId] = useState<string | null>(null);
@@ -130,6 +133,7 @@ function Console({ missionId }: { missionId: string }) {
             {commandId && (
               <DecisionBar commandId={commandId} canDecide={canDecide} onDismiss={() => setCommandId(null)} />
             )}
+            {commandId && canAskDoctrine && <OrderExplanation key={commandId} commandId={commandId} />}
             {simulation && <SimulationReport simulation={simulation} onClose={() => setSimulation(null)} />}
             <GuideOrders pending={m.pending_orders} planned={m.planned_orders} elapsed={m.elapsed_s} />
             <RecommendationList missionId={m.id} running={running} onUse={setDraft} />
@@ -149,6 +153,7 @@ function Console({ missionId }: { missionId: string }) {
             <ObjectiveList objectives={m.objectives} />
             <ShipTable ships={m.ships} player={m.player_ship} />
             <RadioLog messages={m.radio_messages} />
+            {canAskDoctrine && <DoctrinePanel />}
           </div>
         </div>
       )}

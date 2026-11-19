@@ -17,6 +17,11 @@ export function Layout() {
           HANNIBAL <span>X</span>
         </Link>
         <span className="grow" />
+        {hasPermission(session, "doctrine:ask") && (
+          <NavLink to="/doctrine" className="btn sm ghost">
+            Doctrine
+          </NavLink>
+        )}
         {hasPermission(session, "audit:read") && (
           <NavLink to="/registre" className="btn sm ghost">
             Registre

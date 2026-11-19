@@ -1,0 +1,31 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:RerankRequest",
+  "additionalProperties": false,
+  "properties": {
+    "passages": {
+      "description": "Textes à classer, tronqués côté service",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 60,
+      "title": "Passages",
+      "type": "array"
+    },
+    "queries": {
+      "description": "Question d'origine et sa reformulation anglaise",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "title": "Queries",
+      "type": "array"
+    }
+  },
+  "required": [
+    "queries",
+    "passages"
+  ],
+  "title": "RerankRequest",
+  "type": "object"
+}

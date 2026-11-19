@@ -30,6 +30,7 @@ def test_ready_with_fake_adapters() -> None:
         "ollama": "disabled",
         "sim-bridge": "up",
         "asr": "up",
+        "doctrine": "up",
     }
 
 
@@ -43,6 +44,7 @@ def test_ready_degraded_when_database_missing_in_real_mode() -> None:
         "ollama": "disabled",
         "sim-bridge": "disabled",
         "asr": "disabled",
+        "doctrine": "disabled",
     }
 
 

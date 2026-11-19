@@ -39,6 +39,19 @@ export const routes: RouteObject[] = [
               };
             },
           },
+          {
+            path: "doctrine",
+            lazy: async () => {
+              const { DoctrinePage } = await import("../pages/DoctrinePage");
+              return {
+                Component: () => (
+                  <RequirePermission permission="doctrine:ask">
+                    <DoctrinePage />
+                  </RequirePermission>
+                ),
+              };
+            },
+          },
           { path: "*", element: <NotFoundPage /> },
         ],
       },

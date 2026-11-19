@@ -1,0 +1,24 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:RerankResponse",
+  "additionalProperties": false,
+  "properties": {
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "scores": {
+      "description": "Meilleur score sur les requêtes, un par passage, même ordre",
+      "items": {
+        "type": "number"
+      },
+      "title": "Scores",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scores",
+    "model"
+  ],
+  "title": "RerankResponse",
+  "type": "object"
+}

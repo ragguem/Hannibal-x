@@ -56,6 +56,7 @@ services:
       HX_API_OLLAMA_URL: ${HX_API_OLLAMA_URL:-}
       HX_API_SIM_BRIDGE_URL: http://sim-bridge:8100
       HX_API_ASR_URL: http://asr:8200
+      HX_API_DOCTRINE_URL: http://doctrine:8400
       HX_API_RECORDINGS_DIR: /var/lib/hannibal/recordings
       HX_API_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
     ports: ["127.0.0.1:8000:8000"]
@@ -65,6 +66,7 @@ services:
       migrate: { condition: service_completed_successfully }
       sim-bridge: { condition: service_healthy }
       asr: { condition: service_started }
+      doctrine: { condition: service_started }
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
@@ -114,6 +116,51 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     mem_limit: 4g
+    logging: *logging
+
+  # Score lexical par défaut ; HX_RERANK_SCORER=cross_encoder pour bge-reranker sur processeur (volume rerankmodels).
+  rerank:
+    build:
+      context: ../..
+      dockerfile: services/rerank/Dockerfile
+      target: cpu
+      args: { VERSION: "${HX_VERSION:-0.6.0}" }
+    image: hannibal/rerank:${HX_VERSION:-0.6.0}-dev
+    environment:
+      HX_RERANK_ENVIRONMENT: dev
+      HX_RERANK_SCORER: ${HX_RERANK_SCORER:-lexical}
+      HX_RERANK_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
+    ports: ["127.0.0.1:8300:8300"]
+    volumes: [rerankmodels:/models]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 4g
+    logging: *logging
+
+  # Corpus d'exemple inventé par défaut ; HX_DOCTRINE_ADAPTERS=real avec un index v2 chargé et le profil gpu.
+  doctrine:
+    build:
+      context: ../..
+      dockerfile: services/doctrine/Dockerfile
+      args: { VERSION: "${HX_VERSION:-0.6.0}" }
+    image: hannibal/doctrine:${HX_VERSION:-0.6.0}-dev
+    environment:
+      HX_DOCTRINE_ENVIRONMENT: dev
+      HX_DOCTRINE_ADAPTERS: ${HX_DOCTRINE_ADAPTERS:-sample}
+      HX_DOCTRINE_DATABASE_URL: ${HX_DOCTRINE_DATABASE_URL:-}
+      HX_DOCTRINE_OLLAMA_URL: ${HX_DOCTRINE_OLLAMA_URL:-http://ollama:11434}
+      HX_DOCTRINE_RERANK_URL: http://rerank:8300
+      HX_DOCTRINE_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
+    ports: ["127.0.0.1:8400:8400"]
+    depends_on:
+      rerank: { condition: service_started }
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1g
     logging: *logging
 
   backoffice-migrate:
@@ -181,4 +228,5 @@ volumes:
   simbridge:
   recordings:
   asrmodels:
+  rerankmodels:
   ollama:

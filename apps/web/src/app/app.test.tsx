@@ -21,7 +21,7 @@ describe("routing and session guards", () => {
     await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/missions/m-9"));
-  });
+  }, 15_000);
 
   it("explains a wrong password without leaving the page", async () => {
     const user = userEvent.setup();

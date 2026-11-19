@@ -71,6 +71,23 @@ Variables : préfixe `HX_ASR_` (`ENGINE`, `WHISPER_MODEL`, `WHISPER_FALLBACK_MOD
 `docker build -f services/asr/Dockerfile --target gpu`. Le micro du navigateur exige HTTPS ou `localhost` ;
 sinon, importer un WAV.
 
+## Doctrine (services doctrine et rerank)
+
+En mode `fake`, l'API répond avec un assistant d'exemple (texte inventé). Pour les services seuls, sans GPU ni base :
+
+```bash
+HX_RERANK_SCORER=lexical uv run uvicorn --factory hannibal_rerank.main:create_app --port 8300
+HX_DOCTRINE_ADAPTERS=sample HX_DOCTRINE_RERANK_URL=http://127.0.0.1:8300 \
+  uv run uvicorn --factory hannibal_doctrine.main:create_app --port 8400
+```
+
+Mode `real` : index `v2` chargé (la réindexation n'est pas encore dans le dépôt), rôle `hannibal_doctrine` créé
+par `services/doctrine/sql/roles.sql`, `HX_DOCTRINE_DATABASE_URL`, `HX_DOCTRINE_OLLAMA_URL` (modèles
+`gemma3:12b` et `bge-m3`). Réglages : préfixe `HX_DOCTRINE_` (`MIN_SIMILARITY`, `EXTRACTS`, `RETRY_EXTRACTS`,
+`FALLBACK_MODEL`, `ANSWER_STYLE`, `USE_TABLE_ROWS`, `USE_GENERATED_QUESTIONS`, `CLASSIFIED_PUBLICATIONS`…) ; côté
+API : `HX_API_DOCTRINE_URL` et la file GPU (`DOCTRINE_ACTIVE`, `DOCTRINE_WAITING`, `DOCTRINE_WAIT_S`). Recette sur
+le serveur : `python eval/doctrine/doctrine_eval.py <jeu hors dépôt>` ou le workflow `eval`.
+
 ## Lancer le back-office (.NET)
 
 ```bash

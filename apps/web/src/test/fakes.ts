@@ -33,6 +33,10 @@ export function fakeApi(backend = new FakeBackend()): ApiPort {
     readAudit: (query) => run(() => backend.readAudit(query)),
     verifyAudit: () => run(() => backend.verifyAudit()),
     recordingUrl: (commandId) => `/v1/audit/${commandId}/audio`,
+    askDoctrine: (body) => run(() => backend.askDoctrine(body)),
+    listPublications: () => run(() => backend.listPublications()),
+    searchGlossary: (query) => run(() => backend.searchGlossary(query)),
+    explainCommand: (commandId) => run(() => backend.explainCommand(commandId)),
   };
 }
 

@@ -1,6 +1,22 @@
 {
   "components": {
     "schemas": {
+      "AnswerLanguage": {
+        "enum": [
+          "fr",
+          "en"
+        ],
+        "title": "AnswerLanguage",
+        "type": "string"
+      },
+      "AnswerStatus": {
+        "enum": [
+          "answered",
+          "refused"
+        ],
+        "title": "AnswerStatus",
+        "type": "string"
+      },
       "AuditEventView": {
         "additionalProperties": false,
         "properties": {
@@ -204,6 +220,127 @@
         "title": "Body_submit_voice_order_v1_missions__mission_id__voice_post",
         "type": "object"
       },
+      "Citation": {
+        "additionalProperties": false,
+        "properties": {
+          "article": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Article"
+          },
+          "chapter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter"
+          },
+          "edition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edition"
+          },
+          "number": {
+            "description": "Numéro de l'extrait, tel qu'écrit dans la réponse : [1], [2]…",
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "passage_id": {
+            "title": "Passage Id",
+            "type": "integer"
+          },
+          "pdf_page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Page"
+          },
+          "publication": {
+            "title": "Publication",
+            "type": "string"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "table_row": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ligne de tableau la plus proche de la question",
+            "title": "Table Row"
+          },
+          "text": {
+            "description": "Texte de l'extrait, à vérifier sur la publication",
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "number",
+          "passage_id",
+          "publication",
+          "text"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
       "Classification": {
         "enum": [
           "ami",
@@ -338,6 +475,61 @@
         ],
         "title": "CommandDecision",
         "type": "string"
+      },
+      "CommandExplanation": {
+        "additionalProperties": false,
+        "properties": {
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "command_id": {
+            "format": "uuid",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "explanation_en": {
+            "title": "Explanation En",
+            "type": "string"
+          },
+          "explanation_fr": {
+            "title": "Explanation Fr",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "rejected_checks": {
+            "description": "Contrôles échoués par le modèle",
+            "items": {
+              "type": "string"
+            },
+            "title": "Rejected Checks",
+            "type": "array"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ExplanationSource",
+            "description": "`deterministic` : texte du modèle refusé par les contrôles, on rend l'interprétation"
+          }
+        },
+        "required": [
+          "explanation_en",
+          "explanation_fr",
+          "source",
+          "model",
+          "duration_ms",
+          "command_id"
+        ],
+        "title": "CommandExplanation",
+        "type": "object"
       },
       "CommandSource": {
         "enum": [
@@ -607,6 +799,148 @@
         "title": "DependencyStatus",
         "type": "object"
       },
+      "DoctrineAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "citations": {
+            "description": "Extraits cités par la réponse (vide en cas de refus)",
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "index_version": {
+            "title": "Index Version",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "query_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reformulation anglaise utilisée pour chercher",
+            "title": "Query En"
+          },
+          "refusal_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motif lisible, pour l'opérateur",
+            "title": "Refusal Detail"
+          },
+          "refusal_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RefusalReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "second_try": {
+            "default": false,
+            "title": "Second Try",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AnswerStatus"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/TermSuggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "thresholds": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Thresholds",
+            "type": "object"
+          },
+          "trace_id": {
+            "description": "Ligne de `ops.doctrine_traces` qui garde cette réponse",
+            "format": "uuid",
+            "title": "Trace Id",
+            "type": "string"
+          },
+          "unknown_terms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknown Terms",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "answer",
+          "citations",
+          "model",
+          "index_version",
+          "thresholds",
+          "duration_ms",
+          "trace_id"
+        ],
+        "title": "DoctrineAnswer",
+        "type": "object"
+      },
+      "DoctrineQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "language": {
+            "$ref": "#/components/schemas/AnswerLanguage",
+            "default": "fr"
+          },
+          "publication": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Restreint la recherche à une publication",
+            "title": "Publication"
+          },
+          "question": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "DoctrineQuestion",
+        "type": "object"
+      },
       "ErrorBody": {
         "additionalProperties": false,
         "properties": {
@@ -651,6 +985,132 @@
           "request_id"
         ],
         "title": "ErrorBody",
+        "type": "object"
+      },
+      "ExplanationSource": {
+        "enum": [
+          "checked_model",
+          "deterministic"
+        ],
+        "title": "ExplanationSource",
+        "type": "string"
+      },
+      "GlossaryEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "abbreviation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abbreviation"
+          },
+          "definition_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Definition En"
+          },
+          "definition_fr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Definition Fr"
+          },
+          "en": {
+            "title": "En",
+            "type": "string"
+          },
+          "fr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fr"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "sense": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sense"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "en",
+          "source"
+        ],
+        "title": "GlossaryEntry",
+        "type": "object"
+      },
+      "GlossaryResult": {
+        "additionalProperties": false,
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/GlossaryEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "entries"
+        ],
+        "title": "GlossaryResult",
         "type": "object"
       },
       "Health": {
@@ -1063,6 +1523,24 @@
         "title": "PlannedOrder",
         "type": "object"
       },
+      "Publications": {
+        "additionalProperties": false,
+        "properties": {
+          "publications": {
+            "description": "Publications consultables avec le rôle courant",
+            "items": {
+              "type": "string"
+            },
+            "title": "Publications",
+            "type": "array"
+          }
+        },
+        "required": [
+          "publications"
+        ],
+        "title": "Publications",
+        "type": "object"
+      },
       "RadioMessage": {
         "additionalProperties": false,
         "properties": {
@@ -1166,6 +1644,16 @@
         ],
         "title": "Recommendation",
         "type": "object"
+      },
+      "RefusalReason": {
+        "description": "Contrôle qui a refusé, dans l'ordre de la validation des preuves (architecture 1.1.0 § 7).",
+        "enum": [
+          "no_evidence",
+          "ungrounded_claim",
+          "unsupported_answer"
+        ],
+        "title": "RefusalReason",
+        "type": "string"
       },
       "ReplyRequest": {
         "additionalProperties": false,
@@ -1601,6 +2089,65 @@
           "text"
         ],
         "title": "SubmitOrder",
+        "type": "object"
+      },
+      "TermProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "En"
+          },
+          "fr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fr"
+          },
+          "term": {
+            "title": "Term",
+            "type": "string"
+          }
+        },
+        "required": [
+          "term"
+        ],
+        "title": "TermProposal",
+        "type": "object"
+      },
+      "TermSuggestion": {
+        "additionalProperties": false,
+        "description": "Terme absent des publications et termes proches : l'opérateur choisit, rien n'est corrigé seul.",
+        "properties": {
+          "proposals": {
+            "items": {
+              "$ref": "#/components/schemas/TermProposal"
+            },
+            "title": "Proposals",
+            "type": "array"
+          },
+          "unknown": {
+            "title": "Unknown",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unknown",
+          "proposals"
+        ],
+        "title": "TermSuggestion",
         "type": "object"
       },
       "TrackPoint": {
@@ -2244,6 +2791,425 @@
         "summary": "DecideCommand : `202`, l'envoi au simulateur suit en tâche de fond",
         "tags": [
           "missions"
+        ]
+      }
+    },
+    "/v1/commands/{command_id}/explanation": {
+      "post": {
+        "operationId": "explain_order_v1_commands__command_id__explanation_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "command_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Command Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandExplanation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Explain Order",
+        "tags": [
+          "doctrine"
+        ]
+      }
+    },
+    "/v1/doctrine/publications": {
+      "get": {
+        "operationId": "list_publications_v1_doctrine_publications_get",
+        "parameters": [
+          {
+            "description": "Permissions de la session, posées par le back-office (séparées par des virgules)",
+            "in": "header",
+            "name": "X-Hx-Permissions",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "Permissions de la session, posées par le back-office (séparées par des virgules)",
+              "title": "X-Hx-Permissions",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Publications"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Publications",
+        "tags": [
+          "doctrine"
+        ]
+      }
+    },
+    "/v1/doctrine/questions": {
+      "post": {
+        "operationId": "ask_doctrine_v1_doctrine_questions_post",
+        "parameters": [
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Permissions de la session, posées par le back-office (séparées par des virgules)",
+            "in": "header",
+            "name": "X-Hx-Permissions",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "Permissions de la session, posées par le back-office (séparées par des virgules)",
+              "title": "X-Hx-Permissions",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctrineQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoctrineAnswer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Ask Doctrine",
+        "tags": [
+          "doctrine"
+        ]
+      }
+    },
+    "/v1/glossary": {
+      "get": {
+        "operationId": "search_terms_v1_glossary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Search Terms",
+        "tags": [
+          "doctrine"
         ]
       }
     },

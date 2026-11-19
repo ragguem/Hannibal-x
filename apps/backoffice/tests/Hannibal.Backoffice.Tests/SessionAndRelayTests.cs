@@ -106,6 +106,7 @@ public sealed class SessionAndRelayTests : IAsyncDisposable
             Content = JsonContent.Create(new { text = "ALL SHIPS TURN 30 STBD" }),
         };
         request.Headers.Add("X-Hx-User", "usurpateur");
+        request.Headers.Add("X-Hx-Permissions", "doctrine:classified");
         request.Headers.Add("X-Internal-Token", "jeton-du-navigateur");
 
         using var response = await client.SendAsync(request, Ct);
@@ -114,6 +115,9 @@ public sealed class SessionAndRelayTests : IAsyncDisposable
         var forwarded = Assert.Single(_api.Requests);
         Assert.Equal($"/v1/missions/{MissionId}/orders", forwarded.Path);
         Assert.Equal(["olivia"], forwarded.Headers["X-Hx-User"]);
+        var permissions = Assert.Single(forwarded.Headers["X-Hx-Permissions"]).Split(',');
+        Assert.Contains("doctrine:ask", permissions);
+        Assert.DoesNotContain("doctrine:classified", permissions);
         Assert.Equal(["jeton-interne-de-test"], forwarded.Headers["X-Internal-Token"]);
         Assert.False(forwarded.Headers.ContainsKey("Cookie"));
     }
@@ -124,6 +128,11 @@ public sealed class SessionAndRelayTests : IAsyncDisposable
     [InlineData("olivia", "POST", "/v1/commands/" + MissionId + "/decision", HttpStatusCode.Forbidden)]
     [InlineData("simon", "POST", "/v1/commands/" + MissionId + "/decision", HttpStatusCode.OK)]
     [InlineData("olivia", "GET", "/v1/audit?limit=2", HttpStatusCode.Forbidden)]
+    [InlineData("olivia", "POST", "/v1/doctrine/questions", HttpStatusCode.OK)]
+    [InlineData("olivia", "GET", "/v1/doctrine/publications", HttpStatusCode.OK)]
+    [InlineData("olivia", "GET", "/v1/glossary?q=ras", HttpStatusCode.OK)]
+    [InlineData("olivia", "POST", "/v1/commands/" + MissionId + "/explanation", HttpStatusCode.OK)]
+    [InlineData(null, "POST", "/v1/doctrine/questions", HttpStatusCode.Unauthorized)]
     [InlineData("simon", "GET", "/v1/audit/integrity", HttpStatusCode.OK)]
     [InlineData("simon", "GET", "/v1/audit/" + MissionId + "/audio", HttpStatusCode.OK)]
     [InlineData("olivia", "GET", "/v1/audit/" + MissionId + "/audio", HttpStatusCode.Forbidden)]

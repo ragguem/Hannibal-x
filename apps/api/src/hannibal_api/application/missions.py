@@ -42,6 +42,14 @@ class Unprocessable(MissionError):
     pass
 
 
+class Forbidden(MissionError):
+    pass
+
+
+class Busy(MissionError):
+    pass
+
+
 class ScenarioNotFound(NotFound):
     code = "scenario_not_found"
     message = "Scénario inconnu."

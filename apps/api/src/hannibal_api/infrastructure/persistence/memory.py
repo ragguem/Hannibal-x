@@ -7,6 +7,7 @@ from typing import Any
 
 from hannibal_api.domain.audit import AuditEntry, AuditRecord, ChainVerification, MissionOutcome
 from hannibal_api.domain.commands import Command, CommandDecision, CommandState, Dispatch, DispatchStatus
+from hannibal_api.domain.doctrine import DoctrineTrace
 
 
 class InMemoryMissionJournal:
@@ -175,3 +176,13 @@ class InMemoryCommandStore:
 
     async def requeue(self, command_id: str) -> None:
         self.dispatches_by_command[command_id].status = DispatchStatus.QUEUED
+
+
+class InMemoryDoctrineTraceStore:
+    def __init__(self, journal: InMemoryMissionJournal) -> None:
+        self._journal = journal
+        self.traces: list[DoctrineTrace] = []
+
+    async def save(self, trace: DoctrineTrace, entry: AuditEntry) -> None:
+        self.traces.append(trace)
+        await self._journal.record(entry)

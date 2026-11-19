@@ -29,6 +29,14 @@ export type VoiceOrderOutcome = Schemas["VoiceOrderOutcome"];
 export type AuditEventView = Schemas["AuditEventView"];
 export type AuditPage = Schemas["AuditPage"];
 export type AuditIntegrity = Schemas["AuditIntegrity"];
+export type AnswerLanguage = Schemas["AnswerLanguage"];
+export type DoctrineQuestion = Schemas["DoctrineQuestion"];
+export type DoctrineAnswer = Schemas["DoctrineAnswer"];
+export type Citation = Schemas["Citation"];
+export type TermSuggestion = Schemas["TermSuggestion"];
+export type GlossaryEntry = Schemas["GlossaryEntry"];
+export type GlossaryResult = Schemas["GlossaryResult"];
+export type CommandExplanation = Schemas["CommandExplanation"];
 
 export interface AuditQuery {
   missionId?: string;
@@ -49,7 +57,16 @@ export interface SignIn {
   password: string;
 }
 
-export const PERMISSIONS = ["mission:play", "command:submit", "command:decide", "audit:read", "user:manage"] as const;
+export const PERMISSIONS = [
+  "mission:play",
+  "command:submit",
+  "command:decide",
+  "audit:read",
+  "user:manage",
+  "doctrine:ask",
+  "glossary:read",
+  "doctrine:classified",
+] as const;
 export type PermissionCode = (typeof PERMISSIONS)[number];
 
 /** Every server call the screens may make. Implementations own URLs, credentials and error mapping. */
@@ -76,6 +93,12 @@ export interface ApiPort {
   verifyAudit(): Promise<AuditIntegrity>;
   /** Address of a voice command's recording, for an `<audio>` element (same session cookie). */
   recordingUrl(commandId: string): string;
+  /** Cited answer or refusal; classified publications are searched only if the session allows it. */
+  askDoctrine(body: DoctrineQuestion): Promise<DoctrineAnswer>;
+  /** Publications the session may restrict a question to. */
+  listPublications(): Promise<string[]>;
+  searchGlossary(query: string): Promise<GlossaryResult>;
+  explainCommand(commandId: string): Promise<CommandExplanation>;
 }
 
 export type StreamEvent = { type: "situation"; mission: Mission } | { type: "phase"; phase: MissionPhase };

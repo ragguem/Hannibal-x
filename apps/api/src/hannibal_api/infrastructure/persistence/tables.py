@@ -63,6 +63,25 @@ command_dispatches = Table(
     Column("updated_at", DateTime(timezone=True)),
 )
 
+doctrine_traces = Table(
+    "doctrine_traces",
+    metadata,
+    Column("id", UUID(as_uuid=False), primary_key=True),
+    Column("at", DateTime(timezone=True)),
+    Column("actor_id", Text, nullable=False),
+    Column("question", Text, nullable=False),
+    Column("language", Text, nullable=False),
+    Column("publication", Text),
+    Column("status", Text, nullable=False),
+    Column("refusal_reason", Text),
+    Column("answer", Text, nullable=False),
+    Column("cited", JSONB, nullable=False),
+    Column("model", Text, nullable=False),
+    Column("index_version", Text, nullable=False),
+    Column("thresholds", JSONB, nullable=False),
+    Column("duration_ms", Integer, nullable=False),
+)
+
 integration_outbox = Table(
     "integration_outbox",
     metadata,

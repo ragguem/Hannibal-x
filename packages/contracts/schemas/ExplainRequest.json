@@ -1,0 +1,45 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ExplainRequest",
+  "additionalProperties": false,
+  "description": "Interne : l'ordre et l'interprétation déterministe que l'explication ne doit pas contredire.",
+  "properties": {
+    "meaning_en": {
+      "description": "Interprétation déterministe, en anglais",
+      "title": "Meaning En",
+      "type": "string"
+    },
+    "meaning_fr": {
+      "description": "Interprétation déterministe, en français",
+      "title": "Meaning Fr",
+      "type": "string"
+    },
+    "message": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Message",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "description": "Paramètres décodés : side, true_course, relative_degrees, speed_knots…",
+      "title": "Parameters",
+      "type": "object"
+    }
+  },
+  "required": [
+    "message",
+    "meaning_en",
+    "meaning_fr"
+  ],
+  "title": "ExplainRequest",
+  "type": "object"
+}

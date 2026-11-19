@@ -1,0 +1,26 @@
+[project]
+name = "hannibal-rerank"
+version = "0.6.0"
+description = "Reclassement des passages de doctrine Hannibal X (cross-encoder bge-reranker)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "hannibal-platform",
+    "hannibal-contracts",
+    "fastapi>=0.116",
+    "uvicorn[standard]>=0.35",
+]
+
+[project.optional-dependencies]
+# Modèle réel : installé dans l'image, pas sur le poste ni en CI (le classeur lexical suffit aux tests).
+cross-encoder = ["sentence-transformers>=3.0"]
+
+[tool.uv.sources]
+hannibal-platform = { workspace = true }
+hannibal-contracts = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hannibal_rerank"]
