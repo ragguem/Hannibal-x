@@ -67,6 +67,22 @@ Variables : préfixe `HX_BACKOFFICE_` (`ADAPTERS`, `DATABASE_URL` au format Npgs
 `INTERNAL_TOKEN`, `METRICS_TOKEN`), mêmes règles que l'API. Les réponses sont validées contre les schémas
 de `packages/contracts/schemas` : un changement de contrat côté Python casse les tests .NET.
 
+## Lancer la console web (React)
+
+```bash
+pnpm install --frozen-lockfile
+pnpm --dir apps/web dev:mock      # faux back-office MSW : instructeur / demo (tous droits), eleve / demo
+pnpm --dir apps/web dev           # vrai back-office : proxy /v1 vers HX_BACKOFFICE_URL (http://127.0.0.1:8080)
+pnpm --dir apps/web test          # Vitest ; coverage pour la couverture
+HX_E2E_CHANNEL=msedge pnpm --dir apps/web e2e   # Playwright sur les faux, avec Edge ou Chrome déjà installé
+pnpm --dir apps/web openapi       # régénère le client après un changement de apps/api/openapi.json
+```
+
+Couches (architecture 1.1.0 § 14, vérifiées par ESLint) : seul `src/socle/composition.tsx` construit les
+adaptateurs `services/http-api` et `services/sse-stream` ; `features/` et `pages/` passent par `useApi()` et
+`useStream()` ; `components/` ne reçoit que des props. La Vue 3D (`view3d.html`, `src/features/vue3d`) garde son
+moteur three.js hors React : `/vue3d/:id` l'encadre, `/view3d.html?demo` la joue sans mission.
+
 ## Règles du code
 
 - Architecture hexagonale par processus : `domain` (pur) ← `application` (cas d'usage, ports) ← `infrastructure`

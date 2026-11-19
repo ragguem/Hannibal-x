@@ -93,3 +93,21 @@ repos:
         language: system
         pass_filenames: false
         files: ^apps/backoffice/|^packages/contracts/schemas/|^global\.json$
+      - id: web-typecheck
+        name: tsc (console web)
+        entry: pnpm --dir apps/web run typecheck
+        language: system
+        pass_filenames: false
+        files: ^apps/web/|^pnpm-lock\.yaml$
+      - id: web-lint
+        name: eslint (console web)
+        entry: pnpm --dir apps/web run lint
+        language: system
+        pass_filenames: false
+        files: ^apps/web/
+      - id: web-test
+        name: vitest (console web)
+        entry: pnpm --dir apps/web run test
+        language: system
+        pass_filenames: false
+        files: ^apps/web/|^apps/api/openapi\.json$

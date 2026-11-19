@@ -44,6 +44,17 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   (Jazzy, `lotusim_msgs` compilé depuis `interfaces/`), service compose `sim-bridge`.
 - `apps/api` : client `SimBridgeClient` (simulateur et `FleetPort`) en mode `real`, sonde `sim-bridge` requise ;
   modèle cinématique partagé dans `hannibal_core.fleet.vessel_model`.
+- `apps/web` (Lot 3) : console React 19 sur ports (`ApiPort`, `StreamPort`), client OpenAPI généré, TanStack Query
+  (401 → retour à la connexion, pas de nouvel essai sur les 4xx), flux SSE avec relecture toutes les 2 s quand il
+  tombe. Pages Connexion, Préparation, Console (radar, contacts, radio et synthèse vocale, objectifs, navires, ordre,
+  simulation, validation, recommandations, demandes des commandants, mode automatique, barre manuelle, débrief) et
+  Vue 3D (moteur three.js repris, mode démo). Faux back-office MSW (`dev:mock`), tests Vitest et Playwright ;
+  contrôles web dans `tools/check` et pre-commit.
+
+### Supprimé
+
+- Web de `legacy/app_v3` remplacé par `apps/web` : accueil, console, vue 3D, `vendor/` three.js ; modèles 3D
+  déplacés dans `apps/web/public/models`. Doctrine et registre restent jusqu'aux Lots 4 et 5.
 
 ### Reporté
 

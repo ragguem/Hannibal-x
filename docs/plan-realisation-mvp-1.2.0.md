@@ -486,6 +486,8 @@ But : parité de l’interface hors voix et doctrine.
 
 Recette : un opérateur joue les 6 scénarios au clavier dans la nouvelle console sur LOTUSim, sans retour à `app_v3`.
 
+- Fait : `apps/web` (React 19, TanStack Query 5, React Router 7, client `openapi-fetch` généré depuis `apps/api/openapi.json`) ; seul `socle/composition` construit les adaptateurs `HttpApi` et `SseStream`, règle tenue par ESLint ; pages Connexion, Préparation, Console (tous les panneaux listés, débrief compris), Vue 3D (`view3d.js` repris dans `features/vue3d/engine`, three.js r179 depuis npm, état traduit par `toScene`, page `view3d.html` encadrée par `SimViewPage`, `?demo` conservé) ; faux back-office MSW (`pnpm --dir apps/web dev:mock`, comptes `instructeur` / `eleve`, mot de passe `demo`) partagé par Vitest et Playwright ; 30 tests Vitest (couverture 89 %), parcours Playwright préparation → mission → ordre → validation → vue 3D → débrief. Le web de `legacy/app_v3` remplacé est supprimé (accueil, console, vue 3D, `vendor/`, modèles déplacés dans `apps/web/public/models`) ; doctrine et registre restent jusqu’aux Lots 4 et 5. Recette sur LOTUSim à faire avec celle du Lot 2.
+
 ### Lot 4 — Voix et registre · `v0.5.0` · 2,5 semaines
 
 - `services/asr` : faster-whisper, vocabulaire du domaine et noms des navires de la mission, modèle en configuration (`large-v3-turbo` par défaut, `small` en repli), `compute_type` réglé pour le plafond VRAM.

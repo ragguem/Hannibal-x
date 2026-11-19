@@ -27,6 +27,12 @@ if command -v dotnet >/dev/null; then
 fi
 step "crochets pre-commit (tous les fichiers)" uv run --frozen pre-commit run --all-files
 [[ -f pnpm-lock.yaml ]] && step "pnpm (verrou figé)" pnpm install --frozen-lockfile --silent
+step "web : client OpenAPI à jour" bash -c \
+  "pnpm --dir apps/web run openapi --silent && git diff --exit-code -- apps/web/src/services/openapi.d.ts"
+step "web : tsc" pnpm --dir apps/web run typecheck
+step "web : eslint" pnpm --dir apps/web run lint
+step "web : vitest + couverture" pnpm --dir apps/web run coverage
+step "web : build" pnpm --dir apps/web run build
 step "composition dev valide" docker compose -f infra/compose/compose.dev.yml \
   --env-file infra/compose/dev.env.example config --quiet
 if [[ "${1:-}" == "--image" ]]; then

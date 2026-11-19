@@ -28,6 +28,14 @@ Step "back-office : format" { dotnet format apps/backoffice/Hannibal.Backoffice.
 Step "back-office : tests" { dotnet test --solution apps/backoffice/Hannibal.Backoffice.slnx --no-restore }
 Step "crochets pre-commit (tous les fichiers)" { uv run --frozen pre-commit run --all-files }
 if (Test-Path pnpm-lock.yaml) { Step "pnpm (verrou figé)" { pnpm install --frozen-lockfile --silent } }
+Step "web : client OpenAPI à jour" {
+    pnpm --dir apps/web run openapi --silent
+    git diff --exit-code -- apps/web/src/services/openapi.d.ts
+}
+Step "web : tsc" { pnpm --dir apps/web run typecheck }
+Step "web : eslint" { pnpm --dir apps/web run lint }
+Step "web : vitest + couverture" { pnpm --dir apps/web run coverage }
+Step "web : build" { pnpm --dir apps/web run build }
 Step "composition dev valide" {
     docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env.example config --quiet
 }

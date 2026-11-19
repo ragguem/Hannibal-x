@@ -1,0 +1,50 @@
+import { FakeBackend, FakeError } from "../mocks/fake-backend";
+import { ApiError } from "../services/api-error";
+import type { ApiPort, StreamHandlers, StreamPort } from "../socle/ports";
+
+/** ApiPort straight onto the fake backend: same answers as the MSW mocks, without HTTP. */
+export function fakeApi(backend = new FakeBackend()): ApiPort {
+  const run = <T>(action: () => T): Promise<T> => {
+    try {
+      return Promise.resolve(action());
+    } catch (e) {
+      if (e instanceof FakeError) return Promise.reject(new ApiError(e.status, e.code, e.message));
+      return Promise.reject(e instanceof Error ? e : new Error(String(e)));
+    }
+  };
+  return {
+    readSession: () => run(() => backend.readSession()),
+    signIn: ({ username, password }) => run(() => backend.signIn(username, password)),
+    signOut: () => run(() => backend.signOut()),
+    listScenarios: () => run(() => backend.listScenarios()),
+    startMission: (body) => run(() => backend.startMission(body)),
+    readMission: (id) => run(() => backend.readMission(id)),
+    stopMission: (id) => run(() => backend.stopMission(id)),
+    submitOrder: (id, body) => run(() => backend.submitOrder(id, body)),
+    simulateOrder: (id, text) => run(() => backend.simulateOrder(id, text)),
+    readCommand: (id) => run(() => backend.readCommand(id)),
+    decideCommand: (id, decision) => run(() => backend.decideCommand(id, decision)),
+    listRecommendations: (id) => run(() => backend.listRecommendations(id)),
+    setHelm: (id, body) => run(() => backend.setHelm(id, body)),
+    classifyContact: (id, contactId, classification) => run(() => backend.classifyContact(id, contactId, classification)),
+    replyRequest: (id, ship, approve) => run(() => backend.replyRequest(id, ship, approve)),
+    setAutopilot: (id, enabled) => run(() => backend.setAutopilot(id, enabled)),
+  };
+}
+
+/** StreamPort driven by the test: `push` delivers events to every subscriber. */
+export class ManualStream implements StreamPort {
+  readonly subscribers = new Map<string, StreamHandlers>();
+
+  subscribe(missionId: string, handlers: StreamHandlers): () => void {
+    this.subscribers.set(missionId, handlers);
+    handlers.onStatus("live");
+    return () => {
+      this.subscribers.delete(missionId);
+    };
+  }
+
+  push(missionId: string, ...events: Parameters<StreamHandlers["onEvent"]>) {
+    for (const e of events) this.subscribers.get(missionId)?.onEvent(e);
+  }
+}
