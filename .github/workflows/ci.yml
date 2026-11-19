@@ -79,6 +79,14 @@ jobs:
           push: false
           tags: hannibal/doctrine:ci
           build-args: VERSION=${{ github.sha }}
+      - name: Image proxy (Caddy et console)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/bord/Dockerfile
+          push: false
+          tags: hannibal/proxy:ci
+          build-args: VERSION=${{ github.sha }}
       - name: Composition dev valide
         run: docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env.example config --quiet
 

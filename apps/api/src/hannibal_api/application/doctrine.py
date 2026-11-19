@@ -1,16 +1,15 @@
 """Handlers `QueryDoctrine`, `SearchGlossary`, `ExplainCommand` (architecture 1.1.0 § 7).
 
 Les publications classifiées ne sont cherchées qu'avec la permission `doctrine:classified`. Le GPU est
-partagé : une question à la fois, deux en attente au plus, sinon `429 doctrine_busy`.
+partagé : chaque appel passe par `GpuGate`, sinon `429 doctrine_busy`.
 """
 
-import asyncio
 import uuid
-from collections.abc import AsyncIterator, Collection
-from contextlib import asynccontextmanager
+from collections.abc import Collection
 
 from hannibal_api.application.commands import Commands
-from hannibal_api.application.missions import Busy, Forbidden
+from hannibal_api.application.gpu_gate import DoctrineBusy, GpuGate
+from hannibal_api.application.missions import Forbidden
 from hannibal_api.application.ports import DoctrinePort, DoctrineTraceStore
 from hannibal_api.domain.audit import AuditEntry, AuditEvent
 from hannibal_api.domain.doctrine import CLASSIFIED_PERMISSION, DoctrineTrace, order_parameters
@@ -25,41 +24,14 @@ from hannibal_contracts.doctrine import (
 )
 from hannibal_platform.logging import get_logger
 
+__all__ = ["DoctrineBusy", "ExplainCommand", "PublicationNotAllowed", "QueryDoctrine", "SearchGlossary"]
+
 log = get_logger(__name__)
-
-
-class DoctrineBusy(Busy):
-    code = "doctrine_busy"
-    message = "L'assistant de doctrine est occupé, réessayez dans un instant."
 
 
 class PublicationNotAllowed(Forbidden):
     code = "publication_not_allowed"
     message = "Publication inconnue ou non autorisée pour ce rôle."
-
-
-class GpuGate:
-    def __init__(self, *, active: int, waiting: int, wait_s: float) -> None:
-        self._slots = asyncio.Semaphore(active)
-        self._waiting = 0
-        self._max_waiting = waiting
-        self._wait_s = wait_s
-
-    @asynccontextmanager
-    async def slot(self) -> AsyncIterator[None]:
-        if self._slots.locked() and self._waiting >= self._max_waiting:
-            raise DoctrineBusy(reason="queue_full")
-        self._waiting += 1
-        try:
-            await asyncio.wait_for(self._slots.acquire(), self._wait_s)
-        except TimeoutError:
-            raise DoctrineBusy(reason="wait_timeout") from None
-        finally:
-            self._waiting -= 1
-        try:
-            yield
-        finally:
-            self._slots.release()
 
 
 class QueryDoctrine:
@@ -83,7 +55,7 @@ class QueryDoctrine:
             publications=[question.publication] if question.publication else [],
             include_classified=classified,
         )
-        async with self._gate.slot():
+        async with self._gate.doctrine():
             response = await self._doctrine.ask(request)
         trace_id = str(uuid.uuid4())
         answered = response.status is AnswerStatus.ANSWERED
@@ -149,6 +121,6 @@ class ExplainCommand:
             meaning_fr=command.text_fr,
             parameters=order_parameters(command.maneuver.get("orders") or []),
         )
-        async with self._gate.slot():
+        async with self._gate.doctrine():
             explanation = await self._doctrine.explain(request)
         return CommandExplanation(**explanation.model_dump(), command_id=uuid.UUID(command_id))

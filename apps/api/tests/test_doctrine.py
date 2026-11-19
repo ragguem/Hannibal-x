@@ -8,7 +8,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from hannibal_api.application.doctrine import DoctrineBusy, GpuGate
+from hannibal_api.application.gpu_gate import DoctrineBusy, GateLimits, GpuGate, SpeechBusy
 from hannibal_api.domain.commands import Command, CommandState
 from hannibal_api.domain.doctrine import order_parameters
 from hannibal_api.infrastructure.doctrine import DoctrineClient, SampleDoctrine
@@ -130,12 +130,19 @@ def test_order_parameters_keep_side_course_and_speed() -> None:
     assert order_parameters(orders) == {"relative_degrees": 30, "side": "STBD", "speed_knots": 12}
 
 
+def make_gate(*, doctrine_waiting: int = 2, doctrine_wait_s: float = 5, voice_wait_s: float = 5) -> GpuGate:
+    return GpuGate(
+        voice=GateLimits(active=1, waiting=3, wait_s=voice_wait_s),
+        doctrine=GateLimits(active=1, waiting=doctrine_waiting, wait_s=doctrine_wait_s),
+    )
+
+
 async def test_gate_refuses_beyond_the_waiting_line() -> None:
-    gate = GpuGate(active=1, waiting=1, wait_s=5)
+    gate = make_gate(doctrine_waiting=1)
     release = asyncio.Event()
 
     async def hold() -> None:
-        async with gate.slot():
+        async with gate.doctrine():
             await release.wait()
 
     first = asyncio.create_task(hold())
@@ -143,17 +150,57 @@ async def test_gate_refuses_beyond_the_waiting_line() -> None:
     second = asyncio.create_task(hold())
     await asyncio.sleep(0)
     with pytest.raises(DoctrineBusy):
-        async with gate.slot():
+        async with gate.doctrine():
             pass
     release.set()
     await asyncio.gather(first, second)
 
 
 async def test_gate_gives_up_after_the_wait() -> None:
-    gate = GpuGate(active=1, waiting=2, wait_s=0.05)
-    async with gate.slot():
+    gate = make_gate(doctrine_wait_s=0.05)
+    async with gate.doctrine():
         with pytest.raises(DoctrineBusy):
-            async with gate.slot():
+            async with gate.doctrine():
+                pass
+
+
+async def test_voice_never_waits_behind_a_question() -> None:
+    gate = make_gate(voice_wait_s=0.05)
+    async with gate.doctrine(), gate.voice():
+        assert gate.snapshot().voice_active == 1
+
+
+async def test_question_waits_while_voice_is_active_or_waiting() -> None:
+    gate = make_gate()
+    order: list[str] = []
+    voice_done = asyncio.Event()
+
+    async def speak(name: str) -> None:
+        async with gate.voice():
+            order.append(name)
+            await voice_done.wait()
+
+    async def ask() -> None:
+        async with gate.doctrine():
+            order.append("question")
+
+    first = asyncio.create_task(speak("voice-1"))
+    await asyncio.sleep(0)
+    second = asyncio.create_task(speak("voice-2"))
+    question = asyncio.create_task(ask())
+    await asyncio.sleep(0.01)
+    assert order == ["voice-1"]
+    voice_done.set()
+    await asyncio.gather(first, second, question)
+    assert order == ["voice-1", "voice-2", "question"]
+    assert gate.snapshot() == type(gate.snapshot())(0, 0, 0, 0)
+
+
+async def test_voice_queue_is_bounded() -> None:
+    gate = make_gate(voice_wait_s=0.05)
+    async with gate.voice():
+        with pytest.raises(SpeechBusy):
+            async with gate.voice():
                 pass
 
 

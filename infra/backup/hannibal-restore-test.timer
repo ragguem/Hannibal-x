@@ -1,0 +1,9 @@
+[Unit]
+Description=Hannibal X : test de restauration le premier dimanche du mois
+
+[Timer]
+OnCalendar=Sun *-*-01..07 04:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

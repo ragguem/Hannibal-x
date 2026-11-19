@@ -1,0 +1,51 @@
+{
+  "uid": "hannibal-gpu",
+  "title": "Hannibal X — GPU",
+  "schemaVersion": 41,
+  "version": 1,
+  "editable": false,
+  "refresh": "15s",
+  "time": { "from": "now-3h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Mémoire GPU utilisée (Go)",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "decgbytes" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "DCGM_FI_DEV_FB_USED / 1024", "legendFormat": "utilisée" },
+        { "refId": "B", "expr": "(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) / 1024", "legendFormat": "totale" }
+      ]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Utilisation, température, puissance",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "utilisation %" },
+        { "refId": "B", "expr": "DCGM_FI_DEV_GPU_TEMP", "legendFormat": "température °C" },
+        { "refId": "C", "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "puissance W" }
+      ]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Jetons GpuGate",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "gpu_gate_tokens", "legendFormat": "{{kind}} {{state}}" }]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Attente d'un jeton (90e centile, s)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [{ "refId": "A", "expr": "histogram_quantile(0.9, sum by (le, kind) (rate(gpu_gate_wait_seconds_bucket[10m])))", "legendFormat": "{{kind}}" }]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Durée des appels GPU (médiane, s)",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [{ "refId": "A", "expr": "histogram_quantile(0.5, sum by (le, service) (rate(http_request_duration_seconds_bucket{service=~\"asr|rerank|doctrine\", method=\"POST\"}[15m])))", "legendFormat": "{{service}}" }]
+    }
+  ]
+}

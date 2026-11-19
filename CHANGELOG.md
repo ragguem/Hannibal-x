@@ -87,6 +87,20 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 - `eval/doctrine` et workflow `eval.yml` (manuel et nocturne, runner du serveur) : précision ≥ 94 %, pièges tous
   refusés, médiane ≤ 7,5 s ; le jeu de questions reste hors dépôt.
 - Compose : services `rerank` (score lexical par défaut) et `doctrine` (corpus d'exemple par défaut).
+- `GpuGate` (Lot 6) : file à priorité dans l'API pour la voix (1 active, 3 en attente, 10 s, sinon
+  `429 speech_busy`) et la doctrine (1 + 2 sur 20 s) ; une question ne démarre pas tant qu'une transcription est
+  active ou en attente. Métriques `gpu_gate_tokens` et `gpu_gate_wait_seconds`.
+- Bord (`infra/bord`) : image Caddy et console React construite, TLS par CA interne ou PKI du site, sans ACME,
+  `/v1` vers le back-office sans tampon (SSE), `/metrics` jamais routé, en-têtes de sécurité (CSP, HSTS).
+- `infra/compose/compose.yml` (serveur) : un seul port publié (443), réseaux `app`, `models`, `data`, `obs`
+  internes, secrets dans `/etc/hannibal/*.env` (modèle `secrets.example`), limites du plan § 3.7, GPU `0`
+  partagé par `asr`, `rerank` et `ollama`, `sim-bridge` sur l'hôte limité à la passerelle `172.21.0.1`.
+- Observabilité minimale : Prometheus (règles `ServiceDown`, `VoiceSlow`, `DoctrineQueueFull`, `GpuMemoryHigh`),
+  Grafana (tableaux Mission et GPU, par tunnel SSH), `dcgm-exporter` ; minuterie systemd sur `/v1/ready`.
+- Sauvegarde nocturne (`pg_dump` et audio vers le disque du site) et test de restauration mensuel sur une base
+  jetable avec vérification de la chaîne d'audit (`infra/backup`).
+- Paquet d'installation hors ligne (`infra/bundle`) : images `docker save`, modèles Ollama, Whisper et
+  reclassement, SBOM CycloneDX, `SHA256SUMS`, `install.sh`. Procédure : `docs/exploitation.md`.
 
 ### Supprimé
 

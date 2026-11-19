@@ -1,0 +1,33 @@
+# Règles minimales du MVP ; Alertmanager arrive en 1.1.0. Les alertes sont visibles dans Grafana.
+groups:
+  - name: hannibal
+    rules:
+      - alert: ServiceDown
+        expr: up{job="hannibal"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "{{ $labels.service }} ne répond plus à la collecte" }
+
+      - alert: ServerErrors
+        expr: sum by (service) (rate(http_requests_total{code=~"5.."}[5m])) > 0.1
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "{{ $labels.service }} renvoie des erreurs 5xx" }
+
+      - alert: VoiceSlow
+        expr: histogram_quantile(0.9, sum by (le) (rate(gpu_gate_wait_seconds_bucket{kind="voice"}[10m]))) > 2
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "La voix attend plus de 2 s un jeton GPU (90e centile)" }
+
+      - alert: DoctrineQueueFull
+        expr: gpu_gate_tokens{kind="doctrine", state="waiting"} >= 2
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "File de doctrine pleine depuis 5 min" }
+
+      - alert: GpuMemoryHigh
+        expr: max(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)) > 0.95
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "Mémoire GPU au-dessus de 95 %" }

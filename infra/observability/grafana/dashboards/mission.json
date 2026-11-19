@@ -1,0 +1,47 @@
+{
+  "uid": "hannibal-mission",
+  "title": "Hannibal X — Mission",
+  "schemaVersion": 41,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": { "from": "now-3h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Services joignables",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "up{job=\"hannibal\"}", "legendFormat": "{{service}}" }],
+      "fieldConfig": { "defaults": { "mappings": [{ "type": "value", "options": { "0": { "text": "KO", "color": "red" }, "1": { "text": "OK", "color": "green" } } }] }, "overrides": [] },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Ordres reçus par minute (texte et voix)",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (route) (rate(http_requests_total{service=\"api\", method=\"POST\", route=~\"/v1/missions/\\\\{mission_id\\\\}/(orders|voice.*)\"}[5m])) * 60", "legendFormat": "{{route}}" }]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Décisions sur les commandes par minute",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (route, code) (rate(http_requests_total{service=\"api\", method=\"POST\", route=~\"/v1/commands/.*\"}[5m])) * 60", "legendFormat": "{{route}} {{code}}" }]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Latence des questions de doctrine (s)",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.5, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"api\", route=\"/v1/doctrine/questions\"}[15m])))", "legendFormat": "médiane" },
+        { "refId": "B", "expr": "histogram_quantile(0.9, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"api\", route=\"/v1/doctrine/questions\"}[15m])))", "legendFormat": "90e centile" }
+      ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Erreurs 4xx/5xx par minute",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (service, code) (rate(http_requests_total{code=~\"4..|5..\"}[5m])) * 60", "legendFormat": "{{service}} {{code}}" }]
+    }
+  ]
+}

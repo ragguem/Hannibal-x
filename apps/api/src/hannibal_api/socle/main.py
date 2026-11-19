@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from hannibal_api import __version__
 from hannibal_api.application.missions import MissionError
+from hannibal_api.infrastructure.gpu_gate_metrics import expose_gpu_gate
 from hannibal_api.presentation.audit import audit_router
 from hannibal_api.presentation.doctrine import doctrine_router
 from hannibal_api.presentation.missions import missions_router, on_mission_error
@@ -58,6 +59,7 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
     )
     app.version = CONTRACTS_VERSION
     app.state.container = container
+    expose_gpu_gate(app.state.metrics_registry, container.gpu_gate())
     app.include_router(
         system_router(container.check_readiness(), service=settings.service_name, version=__version__)
     )

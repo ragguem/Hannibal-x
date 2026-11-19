@@ -1,0 +1,9 @@
+[Unit]
+Description=Hannibal X : test de restauration et vérification de la chaîne d'audit
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/hannibal/backup/restore-test.sh
+Nice=10

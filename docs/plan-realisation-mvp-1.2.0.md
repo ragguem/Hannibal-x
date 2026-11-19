@@ -523,6 +523,8 @@ Recette : ≥ 94 % sur le grand jeu ; 29 pièges refusés sur 29 ; médiane ≈ 
 
 Recette : installation à blanc sur une machine vierge depuis le paquet ; démonstration complète (préparation, mission avec voix et validation, doctrine, registre, vue 3D) sans intervention ; toutes les cibles du § 6 tenues.
 
+- Fait (dans le dépôt) : `GpuGate` à deux classes dans l’API (voix 1 + 3 sur 10 s, `429 speech_busy` ; doctrine 1 + 2 sur 20 s ; une question attend toute transcription active ou en attente) et ses métriques ; `infra/bord` (Caddy 2.10 et build React, CA interne ou PKI du site, `/v1` vers le back-office sans tampon, `/metrics` refusé, CSP) ; `infra/compose/compose.yml` (443 seul publié, réseaux internes, `/etc/hannibal/*.env`, limites du § 3.7, GPU `0` partagé) ; Prometheus, règles, Grafana (Mission, GPU), `dcgm-exporter` ; minuterie `/v1/ready` ; sauvegarde nocturne et test de restauration mensuel avec vérification de la chaîne ; paquet hors ligne (`build-bundle.sh`, `install.sh`, SBOM, sommes) ; `docs/exploitation.md`. L’audit était déjà chaîné par déclencheur depuis le Lot 2. Restent sur le serveur : construction du paquet et installation à blanc, mesures des limites et de la VRAM, latence de la voix pendant une rédaction, deux répétitions de démonstration, puis l’arrêt de `legacy/app_v3` (ses scripts Python servent encore aux tests de caractérisation).
+
 ### Après le MVP
 
 | Version | Contenu |

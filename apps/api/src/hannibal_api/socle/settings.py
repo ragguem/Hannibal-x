@@ -64,6 +64,9 @@ class ApiSettings(BaseServiceSettings):
     doctrine_wait_s: float = Field(
         default=20.0, gt=0, description="Attente maximale d'un tour ; au-delà : `429`"
     )
+    voice_active: int = Field(default=1, ge=1, description="Transcriptions en même temps (GPU partagé)")
+    voice_waiting: int = Field(default=3, ge=0, description="Transcriptions en attente ; au-delà : `429`")
+    voice_wait_s: float = Field(default=10.0, gt=0, description="Attente maximale d'une transcription")
 
     @property
     def doctrine_base_url(self) -> str:

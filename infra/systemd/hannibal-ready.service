@@ -1,0 +1,11 @@
+[Unit]
+Description=Hannibal X : vérification de /v1/ready et du GPU
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/hannibal/systemd/check-ready.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

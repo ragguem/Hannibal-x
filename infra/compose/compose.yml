@@ -1,0 +1,251 @@
+# Serveur du navire (hors ligne). Images importées par le paquet d'installation (infra/bundle).
+#   docker compose -f /opt/hannibal/compose/compose.yml --env-file /etc/hannibal/compose.env up -d
+#   docker compose ... --profile deploy run --rm migrate      # migrations, à chaque version
+# Secrets : un fichier par processus dans /etc/hannibal/ (0600), voir infra/compose/secrets.example.
+# Seuls 443 (proxy) et 3000 sur 127.0.0.1 (Grafana, par tunnel SSH) sont publiés.
+name: hannibal
+
+x-common: &common
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 512
+  logging:
+    driver: json-file
+    options: { max-size: "20m", max-file: "5" }
+
+x-gpu: &gpu
+  <<: *common
+  deploy:
+    resources:
+      reservations:
+        devices: [{ driver: nvidia, device_ids: ["0"], capabilities: [gpu] }]
+
+networks:
+  edge: {}
+  ops: {}
+  app: { internal: true }
+  models: { internal: true }
+  data: { internal: true }
+  obs: { internal: true }
+  sim:
+    ipam: { config: [{ subnet: 172.21.0.0/24, gateway: 172.21.0.1 }] }
+
+services:
+  proxy:
+    <<: *common
+    image: hannibal/proxy:${HX_VERSION:?}
+    environment:
+      HX_SITE_NAME: ${HX_SITE_NAME:-hannibal.local}
+      HX_TLS: ${HX_TLS:-internal}
+      XDG_DATA_HOME: /data
+    ports: ["443:443"]
+    volumes:
+      - caddy-data:/data
+      - /etc/hannibal/certs:/etc/caddy/certs:ro
+    networks: [edge]
+    cap_add: [NET_BIND_SERVICE]
+    mem_limit: 128m
+    cpus: 0.5
+    depends_on: { backoffice: { condition: service_started } }
+
+  backoffice:
+    <<: *common
+    image: hannibal/backoffice:${HX_VERSION:?}
+    env_file: /etc/hannibal/backoffice.env
+    environment:
+      HX_BACKOFFICE_ENVIRONMENT: production
+      HX_BACKOFFICE_ADAPTERS: real
+      HX_BACKOFFICE_API_URL: http://api:8000
+    networks: [edge, app, data, obs]
+    mem_limit: 512m
+    cpus: 1
+    depends_on: { api: { condition: service_healthy } }
+
+  api:
+    <<: *common
+    image: hannibal/api:${HX_VERSION:?}
+    env_file: /etc/hannibal/api.env
+    environment:
+      HX_API_ENVIRONMENT: production
+      HX_API_ADAPTERS: real
+      HX_API_SIM_BRIDGE_URL: http://172.21.0.1:8100
+      HX_API_ASR_URL: http://asr:8200
+      HX_API_DOCTRINE_URL: http://doctrine:8400
+      HX_API_RECORDINGS_DIR: /var/lib/hannibal/recordings
+    volumes: [recordings:/var/lib/hannibal/recordings]
+    networks: [app, data, sim, obs]
+    mem_limit: 1g
+    cpus: 1.5
+    stop_grace_period: 15s
+    depends_on: { postgres: { condition: service_healthy } }
+
+  asr:
+    <<: *gpu
+    image: hannibal/asr:${HX_VERSION:?}-gpu
+    env_file: /etc/hannibal/asr.env
+    environment:
+      HX_ASR_ENVIRONMENT: production
+      HX_ASR_ENGINE: whisper
+      HX_ASR_DEVICE: cuda
+      HX_ASR_GPU_COMPUTE_TYPE: ${HX_ASR_GPU_COMPUTE_TYPE:-int8_float16}
+      HX_ASR_WHISPER_MODEL: ${HX_ASR_WHISPER_MODEL:-large-v3-turbo}
+      HF_HUB_OFFLINE: "1"
+    volumes: [asr-models:/models]
+    networks: [app, obs]
+    mem_limit: 3g
+    cpus: 2
+
+  doctrine:
+    <<: *common
+    image: hannibal/doctrine:${HX_VERSION:?}
+    env_file: /etc/hannibal/doctrine.env
+    environment:
+      HX_DOCTRINE_ENVIRONMENT: production
+      HX_DOCTRINE_ADAPTERS: real
+      HX_DOCTRINE_OLLAMA_URL: http://ollama:11434
+      HX_DOCTRINE_RERANK_URL: http://rerank:8300
+    networks: [app, models, data, obs]
+    mem_limit: 1g
+    cpus: 1
+    depends_on:
+      postgres: { condition: service_healthy }
+      rerank: { condition: service_started }
+      ollama: { condition: service_started }
+
+  rerank:
+    <<: *gpu
+    image: hannibal/rerank:${HX_VERSION:?}-gpu
+    env_file: /etc/hannibal/rerank.env
+    environment:
+      HX_RERANK_ENVIRONMENT: production
+      HX_RERANK_SCORER: cross_encoder
+      HX_RERANK_DEVICE: cuda
+      HF_HUB_OFFLINE: "1"
+    volumes: [rerank-models:/models]
+    networks: [models, obs]
+    mem_limit: 2g
+    cpus: 1
+
+  ollama:
+    <<: *gpu
+    image: ollama/ollama:0.35.1
+    read_only: false
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "2"
+      OLLAMA_KEEP_ALIVE: "-1"
+      OLLAMA_MAX_QUEUE: "4"
+    volumes: [ollama-data:/root/.ollama]
+    networks: [models]
+    mem_limit: 6g
+    cpus: 3
+
+  # ROS 2 vers LOTUSim sur l'hôte ; HTTP seulement sur la passerelle du réseau sim (pare-feu : 8100 hors 172.21.0.0/24).
+  sim-bridge:
+    <<: *common
+    image: hannibal/sim-bridge:${HX_VERSION:?}-ros
+    env_file: /etc/hannibal/sim-bridge.env
+    environment:
+      HX_SIM_BRIDGE_ENVIRONMENT: production
+      HX_SIM_BRIDGE_WORLD: ros
+      HX_SIM_BRIDGE_REGISTRY_PATH: /var/lib/hannibal/ledger/maneuvers.jsonl
+      ROS_AUTOMATIC_DISCOVERY_RANGE: LOCALHOST
+    command: ["python3", "-m", "uvicorn", "--factory", "hannibal_sim_bridge.main:create_app",
+              "--host", "172.21.0.1", "--port", "8100", "--no-access-log"]
+    network_mode: host
+    volumes: [sim-ledger:/var/lib/hannibal/ledger]
+    mem_limit: 512m
+    cpus: 1
+
+  postgres:
+    <<: *common
+    image: pgvector/pgvector:0.8.7-pg17
+    read_only: false
+    env_file: /etc/hannibal/postgres.env
+    volumes: [pg-data:/var/lib/postgresql/data]
+    networks: [data]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    shm_size: 512m
+    mem_limit: 3g
+    cpus: 2
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *common
+    image: hannibal/api:${HX_VERSION:?}
+    command: ["hx-api-migrate"]
+    env_file: /etc/hannibal/migrate.env
+    networks: [data]
+    restart: "no"
+    profiles: [deploy]
+    depends_on: { postgres: { condition: service_healthy } }
+
+  backoffice-migrate:
+    <<: *common
+    image: hannibal/backoffice:${HX_VERSION:?}
+    command: ["migratedb"]
+    env_file: /etc/hannibal/backoffice.env
+    environment:
+      HX_BACKOFFICE_ENVIRONMENT: production
+      HX_BACKOFFICE_ADAPTERS: real
+    networks: [data]
+    restart: "no"
+    profiles: [deploy]
+    depends_on: { postgres: { condition: service_healthy } }
+
+  # ── observabilité minimale (≈ 1 Go au total, § 3.7) ──
+  prometheus:
+    <<: *common
+    image: prom/prometheus:v3.5.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=30d",
+              "--storage.tsdb.retention.size=4GB"]
+    volumes:
+      - ../observability/prometheus:/etc/prometheus:ro
+      - /etc/hannibal/metrics.token:/run/secrets/metrics.token:ro
+      - prom-data:/prometheus
+    networks: [obs, sim]
+    mem_limit: 512m
+    cpus: 0.5
+
+  grafana:
+    <<: *common
+    image: grafana/grafana-oss:12.1.0
+    env_file: /etc/hannibal/grafana.env
+    environment:
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports: ["127.0.0.1:3000:3000"]
+    volumes:
+      - ../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks: [obs, ops]
+    mem_limit: 256m
+    cpus: 0.5
+
+  dcgm-exporter:
+    <<: *gpu
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:4.2.3-4.1.3-ubuntu22.04
+    cap_add: [SYS_ADMIN]
+    networks: [obs]
+    mem_limit: 256m
+    cpus: 0.25
+
+volumes:
+  caddy-data:
+  recordings:
+  asr-models:
+  rerank-models:
+  ollama-data:
+  sim-ledger:
+  pg-data:
+  prom-data:
+  grafana-data:

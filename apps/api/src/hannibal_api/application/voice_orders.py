@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from hannibal_api.application.commands import Commands
+from hannibal_api.application.gpu_gate import GpuGate
 from hannibal_api.application.missions import Missions, NotFound, Unprocessable
 from hannibal_api.application.ports import (
     MissionJournal,
@@ -50,6 +51,7 @@ class VoiceOrders:
         transcriber: SpeechTranscriber,
         recordings: VoiceRecordingStore,
         journal: MissionJournal,
+        gate: GpuGate,
         *,
         min_recording_bytes: int,
         max_recording_bytes: int,
@@ -59,6 +61,7 @@ class VoiceOrders:
         self._transcriber = transcriber
         self._recordings = recordings
         self._journal = journal
+        self._gate = gate
         self._min_recording_bytes = min_recording_bytes
         self._max_recording_bytes = max_recording_bytes
 
@@ -71,7 +74,8 @@ class VoiceOrders:
         recording_id = str(uuid.uuid4())
         await self._recordings.save(recording_id, recording)
         try:
-            transcript = await self._transcriber.transcribe(recording, ship_names)
+            async with self._gate.voice():
+                transcript = await self._transcriber.transcribe(recording, ship_names)
             transcribed = AuditEntry(
                 AuditEvent.TRANSCRIBED,
                 actor_id,

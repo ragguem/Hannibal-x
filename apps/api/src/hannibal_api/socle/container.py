@@ -6,7 +6,8 @@ from hannibal_api.application.audit import AuditTrail
 from hannibal_api.application.check_readiness import CheckReadiness
 from hannibal_api.application.commands import Commands
 from hannibal_api.application.dispatch import Dispatcher
-from hannibal_api.application.doctrine import ExplainCommand, GpuGate, QueryDoctrine, SearchGlossary
+from hannibal_api.application.doctrine import ExplainCommand, QueryDoctrine, SearchGlossary
+from hannibal_api.application.gpu_gate import GateLimits, GpuGate
 from hannibal_api.application.missions import Missions
 from hannibal_api.application.voice_orders import VoiceOrders
 from hannibal_api.domain.readiness import ProbeState
@@ -143,6 +144,21 @@ class Container(containers.DeclarativeContainer):
         validity_s=settings.provided.command_validity_s,
     )
 
+    gpu_gate = providers.Singleton(
+        GpuGate,
+        voice=providers.Factory(
+            GateLimits,
+            active=settings.provided.voice_active,
+            waiting=settings.provided.voice_waiting,
+            wait_s=settings.provided.voice_wait_s,
+        ),
+        doctrine=providers.Factory(
+            GateLimits,
+            active=settings.provided.doctrine_active,
+            waiting=settings.provided.doctrine_waiting,
+            wait_s=settings.provided.doctrine_wait_s,
+        ),
+    )
     asr_client = providers.Singleton(
         AsrClient,
         base_url=settings.provided.asr_base_url,
@@ -166,6 +182,7 @@ class Container(containers.DeclarativeContainer):
         transcriber=transcriber,
         recordings=recordings,
         journal=journal,
+        gate=gpu_gate,
         min_recording_bytes=settings.provided.min_recording_bytes,
         max_recording_bytes=settings.provided.max_recording_bytes,
     )
@@ -181,12 +198,6 @@ class Container(containers.DeclarativeContainer):
         mode,
         fake=providers.Singleton(InMemoryDoctrineTraceStore, journal=in_memory_journal),
         real=providers.Singleton(PostgresDoctrineTraceStore, engine=database_engine),
-    )
-    gpu_gate = providers.Singleton(
-        GpuGate,
-        active=settings.provided.doctrine_active,
-        waiting=settings.provided.doctrine_waiting,
-        wait_s=settings.provided.doctrine_wait_s,
     )
     query_doctrine = providers.Singleton(
         QueryDoctrine, doctrine=doctrine, traces=doctrine_traces, gate=gpu_gate
