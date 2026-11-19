@@ -497,7 +497,7 @@ Recette : un opérateur joue les 6 scénarios au clavier dans la nouvelle consol
 
 Recette : 93 % sur le jeu de 491 messages audio (même mesure qu’aujourd’hui) ; ordre vocal < 3 s (p95) sur le serveur.
 
-- Fait : `services/asr` (`TranscribeRecording`, `WhisperEngine` avec repli `small` puis processeur, `ScriptedSpeechEngine`, images `cpu` et `gpu`) ; `VoiceOrders` dans l’API (audio dans `HX_API_RECORDINGS_DIR`, journal `transcribed` puis `awaiting_review`, même interprétation que le clavier, parole non reconnue conservée au registre, `GET /v1/audit/{id}/audio`) ; relais `voice` au back-office ; front `VoiceCapture`, `InterpretationCard`, page Registre (regroupement par commande, filtres, audio, intégrité) ; `registre.html` supprimé. Restent : les accusés ROGER/WILCO et l’interpréteur MTP complet passent avec le Lot 5 ; image `gpu` et recette 93 % / p95 à faire sur le serveur.
+- Fait : `services/asr` (`TranscribeRecording`, `WhisperEngine` avec repli `small` puis processeur, `ScriptedSpeechEngine`, images `cpu` et `gpu`) ; `VoiceOrders` dans l’API (audio dans `HX_API_RECORDINGS_DIR`, journal `transcribed` puis `awaiting_review`, même interprétation que le clavier, parole non reconnue conservée au registre, `GET /v1/audit/{id}/audio`) ; relais `voice` au back-office ; front `VoiceCapture`, `InterpretationCard`, page Registre (regroupement par commande, filtres, audio, intégrité) ; `registre.html` supprimé. Accusés ROGER/WILCO, réponses AFFIRMATIVE/NEGATIVE et interpréteur MTP complet faits après le Lot 6 (`core.orders.order_reading`, table MTP lue par l’API). Restent : image `gpu` et recette 93 % / p95 à faire sur le serveur.
 
 ### Lot 5 — Doctrine · `v0.6.0` · 3 semaines
 

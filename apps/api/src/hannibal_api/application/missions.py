@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from hannibal_core.scenario import ScenarioEngine
+from hannibal_core.signals import KB
 
 from hannibal_api.application.ports import Clock, MissionJournal, ScenarioCatalog, Simulator
 from hannibal_api.domain.audit import AuditEntry, AuditEvent, FactType, MissionOutcome
@@ -90,6 +91,16 @@ class ManualHelmInactive(Conflict):
     message = "La barre manuelle n'est pas active."
 
 
+def reading_summary(reading: dict[str, Any]) -> dict[str, Any]:
+    """Ce que le registre garde de la lecture : méthode, signal et référence dans la publication, notes."""
+    return {
+        "method": str(reading["method"]),
+        "signal": reading["signal"],
+        "reference": reading["reference"],
+        "notes": reading["notes"],
+    }
+
+
 @dataclass(slots=True)
 class MissionRun:
     id: str
@@ -123,11 +134,13 @@ class Missions:
         journal: MissionJournal,
         clock: Clock,
         runner_period_s: float,
+        signal_table: KB | None = None,
     ) -> None:
         self._catalog = catalog
         self._simulator = simulator
         self._journal = journal
         self._clock = clock
+        self._signal_table = signal_table
         self._runner_period_s = runner_period_s
         self._runs_by_id: dict[str, MissionRun] = {}
 
@@ -159,6 +172,7 @@ class Missions:
             rng=random.Random(),  # noqa: S311 — tirage d'exercice, pas de la cryptographie
             auto=autopilot,
             manual=manual_helm,
+            signal_table=self._signal_table,
         )
         engine.st = await self._simulator.states()
         run = MissionRun(str(uuid.uuid4()), scenario_id, operator, engine)
@@ -256,21 +270,29 @@ class Missions:
                 run.task.cancel()
 
     async def submit_order(self, mission_id: str, text: str, *, actor_id: str) -> dict[str, Any]:
-        result = self._read_active(mission_id).engine.player_order(text)
-        if result["ok"]:
+        engine = self._read_active(mission_id).engine
+        reading = engine.read_order(text)
+        if reading["ok"]:
+            engine.execute_reading(reading)
             await self._journal.record(
                 AuditEntry(
                     AuditEvent.APPROVED,
                     actor_id,
                     mission_id,
-                    {"source": "keyboard", "text_en": result["en"], "text_fr": result["fr"]},
+                    {
+                        "source": "keyboard",
+                        "text_en": reading["en"],
+                        "text_fr": reading["fr"],
+                        **reading_summary(reading),
+                    },
                     FactType.COMMAND_APPROVED,
                 )
             )
-        return result
+        return reading
 
     def check_order(self, mission_id: str, text: str) -> dict[str, Any]:
-        return self._read_active(mission_id).engine.check_order(text)
+        """Lecture de l'ordre (accusés, réponses, signaux MTP, syntaxe simplifiée) sans rien appliquer."""
+        return self._read_active(mission_id).engine.read_order(text)
 
     def ship_names(self, mission_id: str) -> list[str]:
         """Indicatifs de la mission en cours, ajoutés au vocabulaire de la transcription."""
@@ -282,7 +304,11 @@ class Missions:
 
     def apply_dispatched_order(self, mission_id: str, text: str) -> dict[str, Any]:
         """Applique au moteur un ordre que le simulateur a accepté (le pilotage vit encore dans le moteur)."""
-        return self._read_active(mission_id).engine.player_order(text)
+        engine = self._read_active(mission_id).engine
+        reading = engine.read_order(text)
+        if reading["ok"]:
+            engine.execute_reading(reading)
+        return reading
 
     def simulate_order(self, mission_id: str, text: str) -> dict[str, Any]:
         return self.read(mission_id).engine.simulate(text)

@@ -2,6 +2,7 @@ import { useId, useState, type SyntheticEvent } from "react";
 import { ErrorPanel } from "../../components/ErrorPanel";
 import { describeError } from "../../services/api-error";
 import type { OrderMode, Simulation } from "../../socle/ports";
+import { ReadingDetails } from "./ReadingDetails";
 import { useSimulateOrder, useSubmitOrder } from "./use-orders";
 
 interface OrderFormProps {
@@ -118,6 +119,7 @@ export function OrderForm({
           {outcome.text_fr && <span className="fr"> · {outcome.text_fr}</span>}
         </p>
       )}
+      {outcome && <ReadingDetails outcome={outcome} />}
       {failure && <ErrorPanel message={describeError(failure).message} />}
     </form>
   );

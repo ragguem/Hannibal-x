@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from hannibal_api.application.missions import Conflict, Missions, NotFound
+from hannibal_api.application.missions import Conflict, Missions, NotFound, reading_summary
 from hannibal_api.application.ports import CommandStore
 from hannibal_api.domain.audit import AuditEntry, AuditEvent, FactType
 from hannibal_api.domain.commands import (
@@ -102,6 +102,7 @@ class Commands:
                 "text_en": command.text_en,
                 "text_fr": command.text_fr,
                 "parent_id": parent_id,
+                **reading_summary(checked),
             },
             command_id=command.id,
         )

@@ -15,11 +15,12 @@ sha256sum --quiet -c SHA256SUMS
 
 echo "2/7 secrets"
 required=(compose.env postgres.env migrate.env api.env backoffice.env asr.env rerank.env doctrine.env
-  sim-bridge.env grafana.env alert.env metrics.token)
+  sim-bridge.env grafana.env alert.env metrics.token mtp/signals.json)
 for file in "${required[@]}"; do
   [[ -f "/etc/hannibal/$file" ]] || { echo "manquant : /etc/hannibal/$file" >&2; exit 1; }
 done
 chmod 0700 /etc/hannibal && chmod 0600 /etc/hannibal/*.env /etc/hannibal/metrics.token
+chmod 0644 /etc/hannibal/mtp/signals.json
 mkdir -p /etc/hannibal/certs
 grep -q "^HX_VERSION=$version$" /etc/hannibal/compose.env \
   || { echo "HX_VERSION=$version attendu dans /etc/hannibal/compose.env" >&2; exit 1; }

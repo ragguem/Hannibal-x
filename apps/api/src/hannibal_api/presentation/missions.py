@@ -248,6 +248,10 @@ def to_order_outcome(result: dict[str, Any]) -> contracts.OrderOutcome:
         text_fr=result.get("fr"),
         refusal_reason=result.get("error"),
         hint=result.get("hint"),
+        signal=result.get("signal"),
+        reference=result.get("reference"),
+        effect=result.get("effect"),
+        notes=result.get("notes") or [],
     )
 
 

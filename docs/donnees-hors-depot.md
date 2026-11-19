@@ -23,7 +23,7 @@ Racine : `HANNIBAL_HOME` (défaut `~/hannibal`) sur le serveur de démonstration
 
 | Chemin | Contenu |
 |---|---|
-| `$HANNIBAL_HOME/hx/kb/signals.json` | Table de signaux (interpréteur) |
+| `$HANNIBAL_HOME/hx/kb/signals.json` | Table de signaux (interpréteur) ; copiée en `/etc/hannibal/mtp/signals.json` pour l'API (`HX_API_SIGNAL_TABLE_PATH`) |
 | `$HANNIBAL_HOME/hx/tests/testset.jsonl` | Jeu de 1541 messages de test |
 | `$HANNIBAL_HOME/v2/data/` | Passages extraits des publications |
 | `$HANNIBAL_HOME/v2/eval/` | Jeux de questions de mesure |

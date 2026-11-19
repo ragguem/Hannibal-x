@@ -147,7 +147,7 @@ def compact(code):
 
 
 class KB:
-    def __init__(self, path):
+    def __init__(self, path: str | Path) -> None:
         self.signals = json.loads(Path(path).read_text("utf-8"))
         self.by_code: dict[str, list[dict[str, Any]]] = {}
         for s in self.signals:

@@ -947,13 +947,33 @@ export interface components {
              */
             command_id?: string | null;
             command_state?: components["schemas"]["CommandState"] | null;
+            /**
+             * Effect
+             * @description Ce que l'ordre fait dans le simulateur
+             */
+            effect?: string | null;
             /** Hint */
             hint?: string | null;
+            /**
+             * Notes
+             * @description Ce que la lecture a rétabli ou supposé, à vérifier
+             */
+            notes?: string[];
+            /**
+             * Reference
+             * @description Référence du signal dans la publication
+             */
+            reference?: string | null;
             /**
              * Refusal Reason
              * @description Motif du refus, lisible par l'opérateur
              */
             refusal_reason?: string | null;
+            /**
+             * Signal
+             * @description Signal MTP reconnu dans la publication, ex. `TURN`
+             */
+            signal?: string | null;
             /** Text En */
             text_en?: string | null;
             /** Text Fr */
@@ -1239,10 +1259,20 @@ export interface components {
              */
             command_id?: string | null;
             command_state?: components["schemas"]["CommandState"] | null;
+            /**
+             * Effect
+             * @description Ce que l'ordre fait dans le simulateur
+             */
+            effect?: string | null;
             /** Heard Words */
             heard_words: components["schemas"]["HeardWord"][];
             /** Hint */
             hint?: string | null;
+            /**
+             * Notes
+             * @description Ce que la lecture a rétabli ou supposé, à vérifier
+             */
+            notes?: string[];
             /**
              * Recording Id
              * Format: uuid
@@ -1250,10 +1280,20 @@ export interface components {
              */
             recording_id: string;
             /**
+             * Reference
+             * @description Référence du signal dans la publication
+             */
+            reference?: string | null;
+            /**
              * Refusal Reason
              * @description Motif du refus, lisible par l'opérateur
              */
             refusal_reason?: string | null;
+            /**
+             * Signal
+             * @description Signal MTP reconnu dans la publication, ex. `TURN`
+             */
+            signal?: string | null;
             /** Text En */
             text_en?: string | null;
             /** Text Fr */

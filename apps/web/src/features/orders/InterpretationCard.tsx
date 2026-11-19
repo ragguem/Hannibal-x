@@ -1,4 +1,5 @@
 import type { HeardWord, VoiceOrderOutcome } from "../../socle/ports";
+import { ReadingDetails } from "./ReadingDetails";
 
 /** Below this, the word is shown as doubtful: the operator checks it before approving. */
 export const DOUBTFUL_CONFIDENCE = 0.6;
@@ -50,6 +51,7 @@ export function InterpretationCard({ outcome, canSubmit, onCorrect, onDismiss }:
           {outcome.hint && <p className="mut">{outcome.hint}</p>}
         </div>
       )}
+      <ReadingDetails outcome={outcome} />
       <div className="row">
         <small className="mut grow">Transcrit en {outcome.transcription_seconds.toFixed(1)} s</small>
         {canSubmit && (

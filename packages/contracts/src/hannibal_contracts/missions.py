@@ -187,6 +187,12 @@ class OrderOutcome(ContractModel):
     text_fr: str | None = None
     refusal_reason: str | None = Field(default=None, description="Motif du refus, lisible par l'opérateur")
     hint: str | None = None
+    signal: str | None = Field(default=None, description="Signal MTP reconnu dans la publication, ex. `TURN`")
+    reference: str | None = Field(default=None, description="Référence du signal dans la publication")
+    effect: str | None = Field(default=None, description="Ce que l'ordre fait dans le simulateur")
+    notes: list[str] = Field(
+        default_factory=list, description="Ce que la lecture a rétabli ou supposé, à vérifier"
+    )
     command_id: UUID | None = Field(default=None, description="Commande créée en mode `review`")
     command_state: CommandState | None = None
 

@@ -7,6 +7,13 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
 
 ### Ajouté
 
+- Interpréteur MTP complet pour les ordres (`core.orders.order_reading`, repris de l'ancien `_build`) : trame
+  rétablie, accusés ROGER et WILCO adressés au guide, réponses AFFIRMATIVE et NEGATIVE aux demandes des
+  commandants, signaux de la table MTP (`HX_API_SIGNAL_TABLE_PATH`, empreinte SHA-256 au démarrage), syntaxe
+  simplifiée en repli. Un ordre envoyé suit le chemin d'un message approuvé (`ScenarioEngine.execute_reading`) :
+  consignes aux commandants (TA62, INT…) et accusés des navires. `OrderOutcome` porte le signal, sa référence,
+  l'effet et les notes ; le registre les garde. Le front les affiche sous l'ordre et la transcription.
+
 - Contrat HTTP public 1.0.0 (`apps/api/openapi.json`, contrats `hannibal_contracts.missions`) : scénarios, missions,
   ordres directs, simulation d'un ordre, recommandations, barre manuelle, classification, réponse aux demandes,
   pilote automatique. Test de dérive : `uv run hx-export-openapi`.
@@ -101,6 +108,11 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   jetable avec vérification de la chaîne d'audit (`infra/backup`).
 - Paquet d'installation hors ligne (`infra/bundle`) : images `docker save`, modèles Ollama, Whisper et
   reclassement, SBOM CycloneDX, `SHA256SUMS`, `install.sh`. Procédure : `docs/exploitation.md`.
+
+### Modifié
+
+- Une escorte ne donne plus d'ordre de manœuvre au clavier ni à la voix, comme dans l'ancienne console : elle
+  rend compte au guide.
 
 ### Supprimé
 

@@ -26,6 +26,7 @@ from hannibal_api.infrastructure.persistence.memory import (
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
 from hannibal_api.infrastructure.recordings import FileVoiceRecordingStore, InMemoryVoiceRecordingStore
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
+from hannibal_api.infrastructure.signal_table import load_signal_table
 from hannibal_api.infrastructure.sim_bridge import SimBridgeClient
 from hannibal_api.infrastructure.simulator import InMemorySimulator
 from hannibal_api.socle.settings import AdapterMode, ApiSettings
@@ -112,6 +113,7 @@ class Container(containers.DeclarativeContainer):
     )
     audit_trail = providers.Singleton(AuditTrail, reader=audit_reader)
 
+    signal_table = providers.Singleton(load_signal_table, path=settings.provided.signal_table_path)
     missions = providers.Singleton(
         Missions,
         catalog=scenarios,
@@ -119,6 +121,7 @@ class Container(containers.DeclarativeContainer):
         journal=journal,
         clock=clock,
         runner_period_s=settings.provided.mission_runner_period_s,
+        signal_table=signal_table,
     )
 
     fleet = providers.Selector(mode, fake=providers.Singleton(InMemoryFleet), real=sim_bridge)

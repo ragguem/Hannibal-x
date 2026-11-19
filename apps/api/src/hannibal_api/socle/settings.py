@@ -21,6 +21,10 @@ class ApiSettings(BaseServiceSettings):
     ollama_url: str | None = None
     readiness_timeout_s: float = 2.0
     scenarios_dir: Path = Path(__file__).resolve().parents[3] / "scenarios"
+    signal_table_path: Path | None = Field(
+        default=None,
+        description="Table MTP (`signals.json`) hors dépôt ; sans elle, seule la syntaxe simplifiée est lue",
+    )
     mission_runner_period_s: float = Field(default=0.5, ge=0, description="Pas du MissionRunner ; 0 le coupe")
     mission_stream_period_s: float = Field(
         default=0.25, gt=0, description="Rythme des événements `situation`"

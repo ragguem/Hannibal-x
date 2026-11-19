@@ -77,6 +77,19 @@
       ],
       "default": null
     },
+    "effect": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ce que l'ordre fait dans le simulateur",
+      "title": "Effect"
+    },
     "heard_words": {
       "items": {
         "$ref": "#/$defs/HeardWord"
@@ -96,11 +109,32 @@
       "default": null,
       "title": "Hint"
     },
+    "notes": {
+      "description": "Ce que la lecture a rétabli ou supposé, à vérifier",
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
     "recording_id": {
       "description": "Identifiant de l'enregistrement ; celui de la commande si elle est créée",
       "format": "uuid",
       "title": "Recording Id",
       "type": "string"
+    },
+    "reference": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Référence du signal dans la publication",
+      "title": "Reference"
     },
     "refusal_reason": {
       "anyOf": [
@@ -114,6 +148,19 @@
       "default": null,
       "description": "Motif du refus, lisible par l'opérateur",
       "title": "Refusal Reason"
+    },
+    "signal": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Signal MTP reconnu dans la publication, ex. `TURN`",
+      "title": "Signal"
     },
     "text_en": {
       "anyOf": [

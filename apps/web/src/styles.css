@@ -153,6 +153,8 @@ fieldset { margin: 0; min-width: 0; }
 .interpretation.ok { border-color: #1d6b4a; }
 .interpretation.refused { border-color: #6b2a2a; }
 .interpretation .heard { font-size: 15px; }
+.reading { font-size: 12px; }
+.reading p, .reading ul { margin: 4px 0; }
 .interpretation mark { background: #4a3a10; color: var(--amber); border-radius: 4px; padding: 0 3px; }
 .order-form .correction { color: var(--amber); font-size: 12.5px; }
 

@@ -14,6 +14,8 @@ from hannibal_core.fleet.control import FORMS, KN, VMAX, FleetController, angdif
 from hannibal_core.orders import grammar as mtp
 from hannibal_core.orders import kinematics as sim
 from hannibal_core.orders import recommendations as reco
+from hannibal_core.orders.order_reading import OrderContext, ReadingMethod, read_order
+from hannibal_core.signals import KB
 
 NM = 1852.0
 START = (0.0, -300.0)
@@ -35,8 +37,10 @@ class ScenarioEngine:
         fleet: FleetController | None = None,
         auto=False,
         manual=False,
+        signal_table: KB | None = None,
     ) -> None:
         self.clock = clock
+        self.signal_table = signal_table
         self.rng = rng or random.Random()  # noqa: S311 — tirage d'exercice, pas de la cryptographie
         self.fleet = fleet or FleetController()
         self.st: dict[str, Any] = {}
@@ -277,6 +281,38 @@ class ScenarioEngine:
             "en": mtp.to_text(to, orders, me),
             "fr": mtp.fr_message(to, orders),
         }
+
+    def read_order(self, text: str, target: str = "TOUS") -> dict[str, Any]:
+        """Lecture complète d'un ordre de l'opérateur (accusés, réponses, MTP, syntaxe simplifiée), sans rien appliquer."""
+        run = self.run
+        context = OrderContext(
+            ships=list(run["ships"]),
+            player=run["player"],
+            guide=run["guide"],
+            speed_kn_of=self._speed_kn,
+            pending_requests=list(run.get("requests", {})),
+            default_target=target,
+        )
+        return read_order(text, context, self.signal_table)
+
+    def execute_reading(self, reading: dict[str, Any]) -> str:
+        """Applique une lecture `ok` comme un message approuvé : manœuvres, consignes aux commandants, accusés."""
+        return str(
+            self.approve(
+                {
+                    "to": reading["to"],
+                    "orders": reading["orders"],
+                    "legacy": reading["method"] is ReadingMethod.SIMPLIFIED,
+                    "fr": reading["fr"],
+                    "signal": reading["signal"],
+                    "written_signal": reading["written_signal"],
+                }
+            )
+        )
+
+    def _speed_kn(self, ship: str) -> float:
+        state = self.st.get(ship)
+        return float(state["sog"] if state else self.run["gspeed"]) / KN
 
     def classify(self, cid: str, cls: str) -> bool:
         c = self.run["contacts"].get(cid)

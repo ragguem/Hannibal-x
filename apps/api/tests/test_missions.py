@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -403,6 +404,45 @@ def test_restart_reconciles_dispatches_left_in_flight(
     assert harness.dispatch_next() is not already_executed
     assert harness.client.get(f"/v1/commands/{outcome['command_id']}").json()["state"] == "dispatched"
     assert harness.fleet.dispatch_calls == 1
+
+
+SYNTHETIC_SIGNAL_TABLE = (
+    Path(__file__).resolve().parents[3] / "eval/characterization/fixtures/kb_synthetic.json"
+)
+
+
+def test_mtp_order_is_read_with_the_signal_table() -> None:
+    harness = MissionHarness(signal_table_path=SYNTHETIC_SIGNAL_TABLE)
+    mission = harness.start()
+    harness.advance(mission["id"], 40)
+    outcome = harness.client.post(
+        f"/v1/missions/{mission['id']}/orders",
+        json={"text": "ALFA TURN STARBOARD NINER", "mode": "review"},
+    ).json()
+    assert outcome["accepted"] is True
+    assert outcome["signal"].startswith("TURN")
+    assert outcome["reference"] == "FICTIF §1"
+    assert outcome["notes"] == ["Le message commence par ALFA : pris comme destinataire."]
+    assert outcome["text_en"].startswith("ALFA THIS IS HANNIBAL TURN")
+
+    decide(harness, outcome["command_id"], "approve")
+    assert harness.dispatch_next() is True
+    assert harness.fleet.maneuver_by_command[outcome["command_id"]]["orders"][0]["type"] == "TURN"
+    audit = harness.client.get("/v1/audit", params={"mission_id": mission["id"]}).json()["events"]
+    awaiting = next(event for event in audit if event["event"] == "awaiting_review")
+    assert awaiting["payload"]["reference"] == "FICTIF §1"
+
+
+def test_escort_acknowledges_to_the_guide(harness: MissionHarness) -> None:
+    mission = harness.start(player_ship="alfa")
+    outcome = harness.client.post(f"/v1/missions/{mission['id']}/orders", json={"text": "ROGER"}).json()
+    assert outcome["accepted"] is True
+    assert outcome["text_en"] == "HANNIBAL THIS IS ALFA ROGER OVER"
+    maneuver = harness.client.post(
+        f"/v1/missions/{mission['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"}
+    ).json()
+    assert maneuver["accepted"] is False
+    assert maneuver["notes"][-1].startswith("Vous commandez une escorte")
 
 
 def test_openapi_file_is_up_to_date() -> None:

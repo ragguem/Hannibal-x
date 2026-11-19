@@ -75,7 +75,10 @@ services:
       HX_API_ASR_URL: http://asr:8200
       HX_API_DOCTRINE_URL: http://doctrine:8400
       HX_API_RECORDINGS_DIR: /var/lib/hannibal/recordings
-    volumes: [recordings:/var/lib/hannibal/recordings]
+      HX_API_SIGNAL_TABLE_PATH: /etc/hannibal/mtp/signals.json
+    volumes:
+      - recordings:/var/lib/hannibal/recordings
+      - /etc/hannibal/mtp/signals.json:/etc/hannibal/mtp/signals.json:ro
     networks: [app, data, sim, obs]
     mem_limit: 1g
     cpus: 1.5
