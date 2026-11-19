@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "TranscribedWord": {
+      "additionalProperties": false,
+      "properties": {
+        "end_s": {
+          "title": "End S",
+          "type": "number"
+        },
+        "probability": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Probability",
+          "type": "number"
+        },
+        "start_s": {
+          "title": "Start S",
+          "type": "number"
+        },
+        "word": {
+          "title": "Word",
+          "type": "string"
+        }
+      },
+      "required": [
+        "word",
+        "probability",
+        "start_s",
+        "end_s"
+      ],
+      "title": "TranscribedWord",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:Transcription",
+  "additionalProperties": false,
+  "properties": {
+    "audio_seconds": {
+      "description": "Durée de l'audio reçu",
+      "title": "Audio Seconds",
+      "type": "number"
+    },
+    "model": {
+      "description": "Modèle Whisper effectivement chargé (repli compris)",
+      "title": "Model",
+      "type": "string"
+    },
+    "text": {
+      "description": "Transcription complète, segments joints par une espace",
+      "title": "Text",
+      "type": "string"
+    },
+    "transcription_seconds": {
+      "description": "Temps de calcul de la transcription",
+      "title": "Transcription Seconds",
+      "type": "number"
+    },
+    "words": {
+      "items": {
+        "$ref": "#/$defs/TranscribedWord"
+      },
+      "title": "Words",
+      "type": "array"
+    }
+  },
+  "required": [
+    "text",
+    "words",
+    "audio_seconds",
+    "transcription_seconds",
+    "model"
+  ],
+  "title": "Transcription",
+  "type": "object"
+}

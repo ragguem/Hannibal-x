@@ -39,6 +39,26 @@ class ApiSettings(BaseServiceSettings):
         default=0.5, ge=0, description="Réveil du répartiteur sans notification ; 0 le désactive (tests)"
     )
 
+    asr_url: str | None = Field(default=None, description="Sans URL, un ordre vocal échoue en `503`")
+    asr_timeout_s: float = Field(default=30.0, gt=0, description="Couvre le chargement à froid du modèle")
+    recordings_dir: Path = Field(
+        default=Path("/var/lib/hannibal/recordings"),
+        description="Volume des enregistrements vocaux (mode `real`), hors dépôt",
+    )
+    min_recording_bytes: int = Field(default=2000, ge=0, description="En dessous : enregistrement trop court")
+    max_recording_bytes: int = Field(default=10 * 1024 * 1024, gt=0)
+    scripted_transcript: str = Field(
+        default="ALL SHIPS CORPEN 045 SPEED 12", description="Ce que « entend » le mode `fake`"
+    )
+
+    @property
+    def asr_base_url(self) -> str:
+        return self.asr_url.rstrip("/") if self.asr_url else ""
+
+    @property
+    def asr_health_url(self) -> str | None:
+        return f"{self.asr_base_url}/health" if self.asr_url else None
+
     @property
     def database_dsn(self) -> str | None:
         return self.database_url.get_secret_value() if self.database_url else None

@@ -16,6 +16,11 @@ class CommandState(StrEnum):
     DISPATCH_FAILED = "dispatch_failed"
 
 
+class CommandSource(StrEnum):
+    KEYBOARD = "keyboard"
+    VOICE = "voice"
+
+
 class CommandDecision(StrEnum):
     APPROVE = "approve"
     REJECT = "reject"
@@ -63,6 +68,7 @@ class Command:
     parent_id: str | None = None
     decided_by: str | None = None
     last_error: str | None = None
+    source: CommandSource = CommandSource.KEYBOARD
 
     @property
     def text_en(self) -> str:

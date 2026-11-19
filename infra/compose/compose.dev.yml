@@ -55,12 +55,16 @@ services:
       HX_API_DATABASE_URL: postgresql://hannibal:${HX_DEV_DB_PASSWORD}@postgres:5432/hannibal
       HX_API_OLLAMA_URL: ${HX_API_OLLAMA_URL:-}
       HX_API_SIM_BRIDGE_URL: http://sim-bridge:8100
+      HX_API_ASR_URL: http://asr:8200
+      HX_API_RECORDINGS_DIR: /var/lib/hannibal/recordings
       HX_API_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
     ports: ["127.0.0.1:8000:8000"]
+    volumes: [recordings:/var/lib/hannibal/recordings]
     depends_on:
       postgres: { condition: service_healthy }
       migrate: { condition: service_completed_successfully }
       sim-bridge: { condition: service_healthy }
+      asr: { condition: service_started }
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
@@ -87,6 +91,29 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     mem_limit: 512m
+    logging: *logging
+
+  # Moteur scripté par défaut : HX_ASR_ENGINE=whisper dans dev.env pour Whisper sur processeur
+  # (modèles téléchargés au premier démarrage dans le volume asrmodels).
+  asr:
+    build:
+      context: ../..
+      dockerfile: services/asr/Dockerfile
+      target: cpu
+      args: { VERSION: "${HX_VERSION:-0.5.0}" }
+    image: hannibal/asr:${HX_VERSION:-0.5.0}-dev
+    environment:
+      HX_ASR_ENVIRONMENT: dev
+      HX_ASR_ENGINE: ${HX_ASR_ENGINE:-scripted}
+      HX_ASR_WHISPER_MODEL: ${HX_ASR_WHISPER_MODEL:-small}
+      HX_ASR_LOG_LEVEL: ${HX_API_LOG_LEVEL:-INFO}
+    ports: ["127.0.0.1:8200:8200"]
+    volumes: [asrmodels:/models]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 4g
     logging: *logging
 
   backoffice-migrate:
@@ -152,4 +179,6 @@ services:
 volumes:
   pgdata:
   simbridge:
+  recordings:
+  asrmodels:
   ollama:

@@ -191,6 +191,29 @@ class OrderOutcome(ContractModel):
     command_state: CommandState | None = None
 
 
+class HeardWord(ContractModel):
+    word: str
+    confidence: float = Field(ge=0, le=1, description="Probabilité du mot selon le modèle de transcription")
+    start_s: float
+    end_s: float
+
+
+class VoiceOrderOutcome(OrderOutcome):
+    """`POST /missions/{id}/voice` : ce qui a été entendu, puis la même interprétation qu'au clavier."""
+
+    recording_id: UUID = Field(
+        description="Identifiant de l'enregistrement ; celui de la commande si elle est créée"
+    )
+    transcript: str = Field(description="Texte entendu, avant interprétation")
+    heard_words: list[HeardWord]
+    transcription_seconds: float = Field(description="Durée de la transcription côté serveur")
+
+
+class CommandSource(StrEnum):
+    KEYBOARD = "keyboard"
+    VOICE = "voice"
+
+
 class CommandDecision(StrEnum):
     APPROVE = "approve"
     REJECT = "reject"
@@ -210,6 +233,7 @@ class Command(ContractModel):
     text_en: str
     text_fr: str
     state: CommandState
+    source: CommandSource = CommandSource.KEYBOARD
     submitted_by: str
     decided_by: str | None = None
     parent_id: UUID | None = None

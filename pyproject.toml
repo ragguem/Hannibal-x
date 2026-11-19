@@ -21,13 +21,14 @@ dev = [
     "hannibal-core",
     "hannibal-api",
     "hannibal-sim-bridge",
+    "hannibal-asr",
 ]
 
 [tool.uv]
 package = false
 
 [tool.uv.workspace]
-members = ["packages/*", "apps/api", "services/sim_bridge"]
+members = ["packages/*", "apps/api", "services/sim_bridge", "services/asr"]
 
 [tool.uv.sources]
 hannibal-platform = { workspace = true }
@@ -35,6 +36,7 @@ hannibal-contracts = { workspace = true }
 hannibal-core = { workspace = true }
 hannibal-api = { workspace = true }
 hannibal-sim-bridge = { workspace = true }
+hannibal-asr = { workspace = true }
 
 [tool.ruff]
 line-length = 110
@@ -46,7 +48,7 @@ select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "PT", "SIM"]
 ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_sim_bridge"]
+known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_sim_bridge", "hannibal_asr"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106"]
@@ -57,7 +59,7 @@ known-first-party = ["hannibal_api", "hannibal_platform", "hannibal_contracts", 
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["packages/platform/src", "packages/contracts/src", "packages/core/src", "apps/api/src", "services/sim_bridge/src"]
+files = ["packages/platform/src", "packages/contracts/src", "packages/core/src", "apps/api/src", "services/sim_bridge/src", "services/asr/src"]
 plugins = ["pydantic.mypy"]
 
 # Code repris tel quel de legacy/ (Lot 1) : corps vérifiés, signatures typées au fil des lots.
@@ -69,7 +71,7 @@ disallow_untyped_calls = false
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["dependency_injector.*", "asyncpg.*", "rclpy.*", "lotusim_msgs.*", "geographic_msgs.*", "geometry_msgs.*"]
+module = ["dependency_injector.*", "asyncpg.*", "rclpy.*", "lotusim_msgs.*", "geographic_msgs.*", "geometry_msgs.*", "faster_whisper.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -84,7 +86,7 @@ markers = [
 addopts = "-ra --strict-markers --import-mode=importlib"
 
 [tool.importlinter]
-root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_core", "hannibal_sim_bridge"]
+root_packages = ["hannibal_api", "hannibal_platform", "hannibal_contracts", "hannibal_core", "hannibal_sim_bridge", "hannibal_asr"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -122,10 +124,25 @@ forbidden_modules = [
 name = "Platform et contracts ne dépendent d'aucune application"
 type = "forbidden"
 source_modules = ["hannibal_platform", "hannibal_contracts"]
-forbidden_modules = ["hannibal_api", "hannibal_core", "hannibal_sim_bridge"]
+forbidden_modules = ["hannibal_api", "hannibal_core", "hannibal_sim_bridge", "hannibal_asr"]
 
 [[tool.importlinter.contracts]]
 name = "sim-bridge ne connaît pas l'API"
 type = "forbidden"
 source_modules = ["hannibal_sim_bridge"]
 forbidden_modules = ["hannibal_api", "sqlalchemy", "asyncpg"]
+
+[[tool.importlinter.contracts]]
+name = "asr : couches hexagonales, sans l'API ni la base"
+type = "layers"
+layers = [
+    "hannibal_asr.socle",
+    "hannibal_asr.presentation | hannibal_asr.infrastructure",
+    "hannibal_asr.application",
+]
+
+[[tool.importlinter.contracts]]
+name = "asr ne connaît ni l'API, ni le noyau, ni la base"
+type = "forbidden"
+source_modules = ["hannibal_asr"]
+forbidden_modules = ["hannibal_api", "hannibal_core", "hannibal_sim_bridge", "sqlalchemy", "asyncpg"]

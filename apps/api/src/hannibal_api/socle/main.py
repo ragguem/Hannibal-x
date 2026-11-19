@@ -39,6 +39,7 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
         await missions.shutdown()
         if settings.adapters is AdapterMode.REAL:
             await container.sim_bridge().aclose()
+            await container.asr_client().aclose()
         engine = container.database_engine()
         if engine is not None:
             await engine.dispose()
@@ -58,11 +59,16 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
     app.include_router(
         system_router(container.check_readiness(), service=settings.service_name, version=__version__)
     )
+    voice_orders = container.voice_orders()
     app.include_router(
         missions_router(
-            missions, container.commands(), settings, stream_period_s=settings.mission_stream_period_s
+            missions,
+            container.commands(),
+            voice_orders,
+            settings,
+            stream_period_s=settings.mission_stream_period_s,
         )
     )
-    app.include_router(audit_router(container.audit_trail(), settings))
+    app.include_router(audit_router(container.audit_trail(), voice_orders, settings))
     app.add_exception_handler(MissionError, on_mission_error)
     return app

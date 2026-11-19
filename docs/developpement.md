@@ -55,6 +55,22 @@ Variables de l'API : préfixe `HX_API_` (`ADAPTERS`, `DATABASE_URL`, `OLLAMA_URL
 `INTERNAL_TOKEN`, `METRICS_TOKEN`, `READINESS_TIMEOUT_S`). Hors `dev`/`test`, `/metrics` et les routes internes
 exigent leur jeton.
 
+## Voix (service asr)
+
+En mode `fake`, l'API « entend » toujours `HX_API_SCRIPTED_TRANSCRIPT`. Pour le service seul :
+
+```bash
+HX_ASR_ENGINE=scripted uv run uvicorn --factory hannibal_asr.main:create_app --port 8200
+uv sync --extra whisper    # vraie reconnaissance : faster-whisper, modèle téléchargé au premier appel
+HX_ASR_ENGINE=whisper HX_ASR_DEVICE=cpu HX_ASR_WHISPER_MODEL=small uv run uvicorn --factory hannibal_asr.main:create_app --port 8200
+```
+
+Variables : préfixe `HX_ASR_` (`ENGINE`, `WHISPER_MODEL`, `WHISPER_FALLBACK_MODEL`, `DEVICE`, `GPU_COMPUTE_TYPE`,
+`CPU_COMPUTE_TYPE`, `LANGUAGE`, `BEAM_SIZE`, `MAX_AUDIO_BYTES`). Côté API : `HX_API_ASR_URL`,
+`HX_API_RECORDINGS_DIR` (audio des ordres, hors dépôt, à sauvegarder avec le registre). Sur le serveur :
+`docker build -f services/asr/Dockerfile --target gpu`. Le micro du navigateur exige HTTPS ou `localhost` ;
+sinon, importer un WAV.
+
 ## Lancer le back-office (.NET)
 
 ```bash
@@ -81,7 +97,9 @@ pnpm --dir apps/web openapi       # régénère le client après un changement d
 Couches (architecture 1.1.0 § 14, vérifiées par ESLint) : seul `src/socle/composition.tsx` construit les
 adaptateurs `services/http-api` et `services/sse-stream` ; `features/` et `pages/` passent par `useApi()` et
 `useStream()` ; `components/` ne reçoit que des props. La Vue 3D (`view3d.html`, `src/features/vue3d`) garde son
-moteur three.js hors React : `/vue3d/:id` l'encadre, `/view3d.html?demo` la joue sans mission.
+moteur three.js hors React : `/vue3d/:id` l'encadre, `/view3d.html?demo` la joue sans mission. La page
+`/registre` (permission `audit:read`) remplace `registre.html` ; dans le faux back-office, chaque enregistrement
+est « entendu » comme `ALL SHIPS CORPEN 045 SPEED 12`.
 
 ## Règles du code
 

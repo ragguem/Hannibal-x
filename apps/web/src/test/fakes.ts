@@ -29,6 +29,10 @@ export function fakeApi(backend = new FakeBackend()): ApiPort {
     classifyContact: (id, contactId, classification) => run(() => backend.classifyContact(id, contactId, classification)),
     replyRequest: (id, ship, approve) => run(() => backend.replyRequest(id, ship, approve)),
     setAutopilot: (id, enabled) => run(() => backend.setAutopilot(id, enabled)),
+    submitVoiceOrder: (id, recording, parentId) => run(() => backend.submitVoiceOrder(id, recording, parentId)),
+    readAudit: (query) => run(() => backend.readAudit(query)),
+    verifyAudit: () => run(() => backend.verifyAudit()),
+    recordingUrl: (commandId) => `/v1/audit/${commandId}/audio`,
   };
 }
 

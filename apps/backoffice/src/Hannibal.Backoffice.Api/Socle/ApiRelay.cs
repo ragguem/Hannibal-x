@@ -19,6 +19,7 @@ public static class ApiRelay
     [
         ("scenarios", "/v1/scenarios", ["GET"], Permission.MissionPlay),
         ("orders", "/v1/missions/{missionId}/orders", ["POST"], Permission.CommandSubmit),
+        ("voice", "/v1/missions/{missionId}/voice", ["POST"], Permission.CommandSubmit),
         ("simulations", "/v1/missions/{missionId}/simulations", ["POST"], Permission.CommandSubmit),
         ("request-reply", "/v1/missions/{missionId}/requests/{ship}/reply", ["POST"], Permission.CommandDecide),
         ("missions", "/v1/missions/{**rest}", null, Permission.MissionPlay),

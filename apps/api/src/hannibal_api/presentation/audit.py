@@ -1,9 +1,11 @@
+from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
 from hannibal_api.application.audit import MAX_PAGE_SIZE, AuditTrail
+from hannibal_api.application.voice_orders import VoiceOrders
 from hannibal_api.presentation.missions import ERROR_RESPONSES
 from hannibal_contracts.audit import AuditEventView, AuditIntegrity, AuditPage
 from hannibal_platform.internal_auth import require_internal_token
@@ -12,7 +14,7 @@ from hannibal_platform.settings import BaseServiceSettings
 DEFAULT_PAGE_SIZE = 100
 
 
-def audit_router(trail: AuditTrail, settings: BaseServiceSettings) -> APIRouter:
+def audit_router(trail: AuditTrail, voice_orders: VoiceOrders, settings: BaseServiceSettings) -> APIRouter:
     router = APIRouter(
         prefix="/v1", tags=["registre"], dependencies=[Depends(require_internal_token(settings))]
     )
@@ -38,6 +40,20 @@ def audit_router(trail: AuditTrail, settings: BaseServiceSettings) -> APIRouter:
                 for record in records
             ],
             next_after_seq=records[-1].seq if len(records) == limit else None,
+        )
+
+    @router.get(
+        "/audit/{command_id}/audio",
+        response_class=Response,
+        responses={HTTPStatus.OK: {"content": {"audio/wav": {}, "audio/webm": {}}}, **ERROR_RESPONSES},
+        summary="Enregistrement d'un ordre vocal, même politique d'accès que ReadAudit",
+    )
+    async def read_recording(command_id: UUID) -> Response:
+        recording = await voice_orders.read_recording(str(command_id))
+        return Response(
+            recording.content,
+            media_type=recording.media_type,
+            headers={"Cache-Control": "private, max-age=3600"},
         )
 
     @router.get("/audit/integrity", response_model=AuditIntegrity, responses=ERROR_RESPONSES)

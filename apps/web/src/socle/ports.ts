@@ -23,6 +23,18 @@ export type Simulation = Schemas["Simulation"];
 export type Recommendation = Schemas["Recommendation"];
 export type SetHelm = Schemas["SetHelm"];
 export type Helm = Schemas["Helm"];
+export type CommandSource = Schemas["CommandSource"];
+export type HeardWord = Schemas["HeardWord"];
+export type VoiceOrderOutcome = Schemas["VoiceOrderOutcome"];
+export type AuditEventView = Schemas["AuditEventView"];
+export type AuditPage = Schemas["AuditPage"];
+export type AuditIntegrity = Schemas["AuditIntegrity"];
+
+export interface AuditQuery {
+  missionId?: string;
+  afterSeq?: number;
+  limit?: number;
+}
 
 /** Back-office session (packages/contracts/schemas/SessionView.json — not part of the API's OpenAPI). */
 export interface SessionView {
@@ -58,6 +70,12 @@ export interface ApiPort {
   classifyContact(missionId: string, contactId: string, classification: Classification): Promise<void>;
   replyRequest(missionId: string, ship: string, approve: boolean): Promise<void>;
   setAutopilot(missionId: string, enabled: boolean): Promise<void>;
+  /** `parentId`: the command this recording corrects. */
+  submitVoiceOrder(missionId: string, recording: Blob, parentId?: string): Promise<VoiceOrderOutcome>;
+  readAudit(query: AuditQuery): Promise<AuditPage>;
+  verifyAudit(): Promise<AuditIntegrity>;
+  /** Address of a voice command's recording, for an `<audio>` element (same session cookie). */
+  recordingUrl(commandId: string): string;
 }
 
 export type StreamEvent = { type: "situation"; mission: Mission } | { type: "phase"; phase: MissionPhase };

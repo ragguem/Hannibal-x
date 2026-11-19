@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from hannibal_contracts import CONTRACTS_VERSION, audit, session
+from hannibal_contracts import CONTRACTS_VERSION, asr, audit, session
 from hannibal_contracts import missions as m
 from hannibal_contracts import sim_bridge as sb
 from hannibal_contracts.common import DependencyStatus, ErrorBody, Health, Readiness
@@ -24,6 +24,7 @@ MODELS: tuple[type[BaseModel], ...] = (
     m.Mission,
     m.SubmitOrder,
     m.OrderOutcome,
+    m.VoiceOrderOutcome,
     m.DecideCommand,
     m.Command,
     m.SetHelm,
@@ -44,6 +45,7 @@ MODELS: tuple[type[BaseModel], ...] = (
     sb.WorldState,
     sb.RecordManeuver,
     sb.ManeuverRecord,
+    asr.Transcription,
 )
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
 

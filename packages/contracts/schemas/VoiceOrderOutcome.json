@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "CommandState": {
+      "enum": [
+        "awaiting_review",
+        "rejected",
+        "dispatching",
+        "dispatched",
+        "dispatch_failed"
+      ],
+      "title": "CommandState",
+      "type": "string"
+    },
+    "HeardWord": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "description": "Probabilité du mot selon le modèle de transcription",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "end_s": {
+          "title": "End S",
+          "type": "number"
+        },
+        "start_s": {
+          "title": "Start S",
+          "type": "number"
+        },
+        "word": {
+          "title": "Word",
+          "type": "string"
+        }
+      },
+      "required": [
+        "word",
+        "confidence",
+        "start_s",
+        "end_s"
+      ],
+      "title": "HeardWord",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:VoiceOrderOutcome",
+  "additionalProperties": false,
+  "description": "`POST /missions/{id}/voice` : ce qui a été entendu, puis la même interprétation qu'au clavier.",
+  "properties": {
+    "accepted": {
+      "title": "Accepted",
+      "type": "boolean"
+    },
+    "command_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Commande créée en mode `review`",
+      "title": "Command Id"
+    },
+    "command_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CommandState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "heard_words": {
+      "items": {
+        "$ref": "#/$defs/HeardWord"
+      },
+      "title": "Heard Words",
+      "type": "array"
+    },
+    "hint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hint"
+    },
+    "recording_id": {
+      "description": "Identifiant de l'enregistrement ; celui de la commande si elle est créée",
+      "format": "uuid",
+      "title": "Recording Id",
+      "type": "string"
+    },
+    "refusal_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Motif du refus, lisible par l'opérateur",
+      "title": "Refusal Reason"
+    },
+    "text_en": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text En"
+    },
+    "text_fr": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Fr"
+    },
+    "transcript": {
+      "description": "Texte entendu, avant interprétation",
+      "title": "Transcript",
+      "type": "string"
+    },
+    "transcription_seconds": {
+      "description": "Durée de la transcription côté serveur",
+      "title": "Transcription Seconds",
+      "type": "number"
+    }
+  },
+  "required": [
+    "accepted",
+    "recording_id",
+    "transcript",
+    "heard_words",
+    "transcription_seconds"
+  ],
+  "title": "VoiceOrderOutcome",
+  "type": "object"
+}

@@ -11,6 +11,7 @@ import { MissionBar } from "../features/mission/MissionBar";
 import { ObjectiveList } from "../features/mission/ObjectiveList";
 import { useMission, useMissionActions, useMissionStream } from "../features/mission/use-mission";
 import { DecisionBar } from "../features/orders/DecisionBar";
+import { InterpretationCard } from "../features/orders/InterpretationCard";
 import { OrderForm } from "../features/orders/OrderForm";
 import { SimulationReport } from "../features/orders/SimulationReport";
 import { Radar } from "../features/radar/Radar";
@@ -18,8 +19,9 @@ import { RadioLog } from "../features/radio/RadioLog";
 import { RecommendationList } from "../features/recommendations/RecommendationList";
 import { RequestList } from "../features/requests/RequestList";
 import { usePermission } from "../features/session/use-session";
+import { VoiceCapture } from "../features/voice/VoiceCapture";
 import { describeError } from "../services/api-error";
-import type { Classification, Simulation } from "../socle/ports";
+import type { Classification, Simulation, VoiceOrderOutcome } from "../socle/ports";
 
 export function ConsolePage() {
   const { missionId = "" } = useParams();
@@ -37,6 +39,19 @@ function Console({ missionId }: { missionId: string }) {
   const [draft, setDraft] = useState("");
   const [simulation, setSimulation] = useState<Simulation | null>(null);
   const [commandId, setCommandId] = useState<string | null>(null);
+  const [voiceOutcome, setVoiceOutcome] = useState<VoiceOrderOutcome | null>(null);
+  const [correctionOf, setCorrectionOf] = useState<string | null>(null);
+
+  const onVoiceOutcome = useCallback((outcome: VoiceOrderOutcome) => {
+    setVoiceOutcome(outcome);
+    setCorrectionOf(null);
+    if (outcome.command_id) setCommandId(outcome.command_id);
+  }, []);
+  const onCorrect = (transcript: string, correctedId: string | null) => {
+    setDraft(transcript);
+    setCorrectionOf(correctedId);
+    setVoiceOutcome(null);
+  };
 
   const classifyMutate = classify.mutate;
   const onClassify = useCallback(
@@ -88,11 +103,27 @@ function Console({ missionId }: { missionId: string }) {
           </div>
 
           <div className="stack">
+            <VoiceCapture
+              missionId={m.id}
+              canSubmit={running && canSubmit}
+              correctionOf={correctionOf}
+              onOutcome={onVoiceOutcome}
+            />
+            {voiceOutcome && (
+              <InterpretationCard
+                outcome={voiceOutcome}
+                canSubmit={running && canSubmit}
+                onCorrect={onCorrect}
+                onDismiss={() => setVoiceOutcome(null)}
+              />
+            )}
             <OrderForm
               missionId={m.id}
               draft={draft}
               onDraftChange={setDraft}
               canSubmit={running && canSubmit}
+              correctionOf={correctionOf}
+              onCancelCorrection={() => setCorrectionOf(null)}
               onCommand={setCommandId}
               onSimulation={setSimulation}
             />

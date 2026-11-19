@@ -1,6 +1,6 @@
 """Journal en mémoire pour le mode `fake` : même contrat que PostgreSQL, sans chaînage de hachage."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Any
@@ -77,9 +77,10 @@ class InMemoryCommandStore:
         self.dispatches_by_command: dict[str, _DispatchRow] = {}
         self._queued_count = 0
 
-    async def create(self, command: Command, entry: AuditEntry) -> None:
+    async def create(self, command: Command, entries: Sequence[AuditEntry]) -> None:
         self.commands_by_id[command.id] = command
-        await self._journal.record(entry)
+        for entry in entries:
+            await self._journal.record(entry)
 
     async def get(self, command_id: str) -> Command | None:
         return self.commands_by_id.get(command_id)

@@ -53,6 +53,15 @@ jobs:
           push: false
           tags: hannibal/api:ci
           build-args: VERSION=${{ github.sha }}
+      - name: Image asr (processeur)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/asr/Dockerfile
+          target: cpu
+          push: false
+          tags: hannibal/asr:ci
+          build-args: VERSION=${{ github.sha }}
       - name: Composition dev valide
         run: docker compose -f infra/compose/compose.dev.yml --env-file infra/compose/dev.env.example config --quiet
 

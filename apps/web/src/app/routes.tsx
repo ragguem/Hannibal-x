@@ -26,6 +26,19 @@ export const routes: RouteObject[] = [
             path: "missions/:missionId",
             lazy: async () => ({ Component: (await import("../pages/ConsolePage")).ConsolePage }),
           },
+          {
+            path: "registre",
+            lazy: async () => {
+              const { AuditRegisterPage } = await import("../pages/AuditRegisterPage");
+              return {
+                Component: () => (
+                  <RequirePermission permission="audit:read">
+                    <AuditRegisterPage />
+                  </RequirePermission>
+                ),
+              };
+            },
+          },
           { path: "*", element: <NotFoundPage /> },
         ],
       },

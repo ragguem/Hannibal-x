@@ -176,6 +176,34 @@
         "title": "AuthorizationRequest",
         "type": "object"
       },
+      "Body_submit_voice_order_v1_missions__mission_id__voice_post": {
+        "properties": {
+          "audio": {
+            "contentMediaType": "application/octet-stream",
+            "description": "WAV 16 kHz mono de préférence ; webm et ogg acceptés",
+            "title": "Audio",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Commande que cet ordre corrige",
+            "title": "Parent Id"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "Body_submit_voice_order_v1_missions__mission_id__voice_post",
+        "type": "object"
+      },
       "Classification": {
         "enum": [
           "ami",
@@ -266,6 +294,10 @@
             ],
             "title": "Parent Id"
           },
+          "source": {
+            "$ref": "#/components/schemas/CommandSource",
+            "default": "keyboard"
+          },
           "state": {
             "$ref": "#/components/schemas/CommandState"
           },
@@ -305,6 +337,14 @@
           "retry"
         ],
         "title": "CommandDecision",
+        "type": "string"
+      },
+      "CommandSource": {
+        "enum": [
+          "keyboard",
+          "voice"
+        ],
+        "title": "CommandSource",
         "type": "string"
       },
       "CommandState": {
@@ -634,6 +674,38 @@
           "version"
         ],
         "title": "Health",
+        "type": "object"
+      },
+      "HeardWord": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "description": "Probabilité du mot selon le modèle de transcription",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "end_s": {
+            "title": "End S",
+            "type": "number"
+          },
+          "start_s": {
+            "title": "Start S",
+            "type": "number"
+          },
+          "word": {
+            "title": "Word",
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "confidence",
+          "start_s",
+          "end_s"
+        ],
+        "title": "HeardWord",
         "type": "object"
       },
       "Helm": {
@@ -1554,6 +1626,116 @@
         ],
         "title": "TrackPoint",
         "type": "object"
+      },
+      "VoiceOrderOutcome": {
+        "additionalProperties": false,
+        "description": "`POST /missions/{id}/voice` : ce qui a été entendu, puis la même interprétation qu'au clavier.",
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "command_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Commande créée en mode `review`",
+            "title": "Command Id"
+          },
+          "command_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CommandState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "heard_words": {
+            "items": {
+              "$ref": "#/components/schemas/HeardWord"
+            },
+            "title": "Heard Words",
+            "type": "array"
+          },
+          "hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint"
+          },
+          "recording_id": {
+            "description": "Identifiant de l'enregistrement ; celui de la commande si elle est créée",
+            "format": "uuid",
+            "title": "Recording Id",
+            "type": "string"
+          },
+          "refusal_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motif du refus, lisible par l'opérateur",
+            "title": "Refusal Reason"
+          },
+          "text_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text En"
+          },
+          "text_fr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Fr"
+          },
+          "transcript": {
+            "description": "Texte entendu, avant interprétation",
+            "title": "Transcript",
+            "type": "string"
+          },
+          "transcription_seconds": {
+            "description": "Durée de la transcription côté serveur",
+            "title": "Transcription Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "accepted",
+          "recording_id",
+          "transcript",
+          "heard_words",
+          "transcription_seconds"
+        ],
+        "title": "VoiceOrderOutcome",
+        "type": "object"
       }
     }
   },
@@ -1762,6 +1944,96 @@
           }
         },
         "summary": "Verify Audit",
+        "tags": [
+          "registre"
+        ]
+      }
+    },
+    "/v1/audit/{command_id}/audio": {
+      "get": {
+        "operationId": "read_recording_v1_audit__command_id__audio_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "command_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Command Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "audio/wav": {},
+              "audio/webm": {}
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Enregistrement d'un ordre vocal, même politique d'accès que ReadAudit",
         "tags": [
           "registre"
         ]
@@ -3124,6 +3396,120 @@
           }
         },
         "summary": "Simulate Order",
+        "tags": [
+          "missions"
+        ]
+      }
+    },
+    "/v1/missions/{mission_id}/voice": {
+      "post": {
+        "operationId": "submit_voice_order_v1_missions__mission_id__voice_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mission_id",
+            "required": true,
+            "schema": {
+              "title": "Mission Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Utilisateur authentifié, posé par le back-office",
+            "in": "header",
+            "name": "X-Hx-User",
+            "required": false,
+            "schema": {
+              "default": "local",
+              "description": "Utilisateur authentifié, posé par le back-office",
+              "title": "X-Hx-User",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_submit_voice_order_v1_missions__mission_id__voice_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceOrderOutcome"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "SubmitVoice : transcrit l'enregistrement puis le soumet à validation comme un ordre clavier",
         "tags": [
           "missions"
         ]

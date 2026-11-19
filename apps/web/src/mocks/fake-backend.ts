@@ -1,8 +1,14 @@
 import type {
+  AuditEventView,
+  AuditIntegrity,
+  AuditPage,
+  AuditQuery,
   AuthorizationRequest,
   Classification,
   Command,
   CommandDecision,
+  CommandSource,
+  VoiceOrderOutcome,
   Mission,
   Objective,
   OrderOutcome,
@@ -87,8 +93,13 @@ export interface FakeState {
   session: SessionView | null;
   missions: MissionRecord[];
   commands: CommandRecord[];
+  audit: AuditEventView[];
   seq: number;
 }
+
+/** What the fake "hears" in every recording, unless a test sets `FakeBackend.heard`. */
+export const FAKE_HEARD_ORDER = "ALL SHIPS CORPEN 045 SPEED 12";
+const MIN_RECORDING_BYTES = 2000;
 
 export class FakeError extends Error {
   constructor(
@@ -131,7 +142,10 @@ function parseOrder(text: string): { course?: number; speed?: number; fr: string
 }
 
 export class FakeBackend {
-  state: FakeState = { session: null, missions: [], commands: [], seq: 0 };
+  state: FakeState = { session: null, missions: [], commands: [], audit: [], seq: 0 };
+  heard = FAKE_HEARD_ORDER;
+  /** Recordings stay in memory: they are not shared with the 3D frame and vanish on reload. */
+  readonly recordings = new Map<string, Blob>();
 
   constructor(private readonly now: () => number = () => Date.now()) {}
 
@@ -202,6 +216,7 @@ export class FakeBackend {
       classifiedAt_s: null,
     };
     this.state.missions.push(record);
+    this.log("mission_started", { scenario_id: scenario.id, player_ship: body.player_ship }, { missionId: id });
     return this.snapshot(record);
   }
 
@@ -267,21 +282,55 @@ export class FakeBackend {
     }
     if (body.mode === "direct") {
       this.apply(m, text);
+      this.log("approved", { source: "keyboard", text_en: text, text_fr: parsed.fr }, { missionId: m.id });
       return { accepted: true, text_en: text, text_fr: parsed.fr, command_state: "dispatched" };
     }
-    const command: CommandRecord = {
-      id: `c-${String(++this.state.seq)}`,
-      mission_id: m.id,
-      state: "awaiting_review",
-      submitted_by: this.state.session?.username ?? "?",
-      text,
-      text_en: text,
-      text_fr: parsed.fr,
-      parent_id: body.parent_id ?? null,
-      dispatchAt: null,
-    };
-    this.state.commands.push(command);
+    const command = this.createReviewCommand(m, text, parsed.fr, body.parent_id ?? null, "keyboard");
     return { accepted: true, command_id: command.id, command_state: command.state, text_en: text, text_fr: parsed.fr };
+  }
+
+  /** As `POST /v1/missions/{id}/voice`: the fake does not listen, it "hears" `heard`. */
+  submitVoiceOrder(id: string, recording: Blob, parentId?: string): VoiceOrderOutcome {
+    this.require("command:submit");
+    const m = this.running(id);
+    if (recording.size < MIN_RECORDING_BYTES) {
+      throw new FakeError(422, "recording_rejected", "Enregistrement inutilisable : trop court, trop long ou format inconnu.");
+    }
+    const recordingId = `c-${String(++this.state.seq)}`;
+    this.recordings.set(recordingId, recording);
+    const heard = this.heard.trim().toUpperCase();
+    const words = heard.split(/\s+/).map((word, i) => ({ word, confidence: i === 1 ? 0.42 : 0.97, start_s: i * 0.4, end_s: i * 0.4 + 0.35 }));
+    const transcribed = { source: "voice", transcript: heard, audio: true, asr_model: "fake", parent_id: parentId ?? null };
+    const parsed = parseOrder(heard);
+    const base = { recording_id: recordingId, transcript: heard, heard_words: words, transcription_seconds: 0.8 };
+    if (!parsed) {
+      const refusal = "Signal non reconnu.";
+      this.log("transcribed", { ...transcribed, refusal_reason: refusal }, { missionId: m.id, commandId: recordingId });
+      return { ...base, accepted: false, refusal_reason: refusal, hint: "Exemple : ALL SHIPS CORPEN 045 SPEED 12" };
+    }
+    this.log("transcribed", transcribed, { missionId: m.id, commandId: recordingId });
+    const command = this.createReviewCommand(m, heard, parsed.fr, parentId ?? null, "voice", recordingId);
+    return { ...base, accepted: true, command_id: command.id, command_state: command.state, text_en: heard, text_fr: parsed.fr };
+  }
+
+  // ------------------------------------------------------------------ register
+  readAudit({ missionId, afterSeq = 0, limit = 100 }: AuditQuery): AuditPage {
+    this.require("audit:read");
+    const events = this.state.audit.filter((e) => e.seq > afterSeq && (!missionId || e.mission_id === missionId)).slice(0, limit);
+    return { events, next_after_seq: events.length === limit ? (events.at(-1)?.seq ?? null) : null };
+  }
+
+  verifyAudit(): AuditIntegrity {
+    this.require("audit:read");
+    const head = this.state.audit.at(-1)?.seq ?? null;
+    return { intact: true, checked_events: this.state.audit.length, first_broken_seq: null, head_seq: head };
+  }
+
+  readRecording(commandId: string): Blob {
+    this.require("audit:read");
+    const recording = this.recordings.get(commandId);
+    if (!recording) throw new FakeError(404, "recording_not_found", "Aucun enregistrement pour cette commande.");
+    return recording;
   }
 
   simulateOrder(id: string, text: string): Simulation {
@@ -315,6 +364,7 @@ export class FakeBackend {
     if (c.state === "dispatching" && c.dispatchAt !== null && this.now() >= c.dispatchAt) {
       c.state = "dispatched";
       c.dispatchAt = null;
+      this.log("simulator_dispatched", { text_en: c.text_en }, { missionId: c.mission_id, commandId: c.id, actor: null });
       const m = this.state.missions.find((x) => x.id === c.mission_id);
       if (m?.stoppedAt_s === null) this.apply(m, c.text);
     }
@@ -329,6 +379,10 @@ export class FakeBackend {
     const allowed = decision === "retry" ? c.state === "dispatch_failed" : c.state === "awaiting_review";
     if (!allowed) throw new FakeError(409, "invalid_transition", "Décision impossible dans cet état.");
     c.decided_by = this.state.session?.username ?? null;
+    this.log(decision === "reject" ? "rejected" : "approved", { source: "review", decision, text_en: c.text_en }, {
+      missionId: c.mission_id,
+      commandId: c.id,
+    });
     if (decision === "reject") c.state = "rejected";
     else {
       c.state = "dispatching";
@@ -338,6 +392,48 @@ export class FakeBackend {
   }
 
   // ------------------------------------------------------------------ internals
+  private createReviewCommand(
+    m: MissionRecord,
+    text: string,
+    textFr: string,
+    parentId: string | null,
+    source: CommandSource,
+    id = `c-${String(++this.state.seq)}`,
+  ): CommandRecord {
+    const command: CommandRecord = {
+      id,
+      mission_id: m.id,
+      state: "awaiting_review",
+      source,
+      submitted_by: this.state.session?.username ?? "?",
+      text,
+      text_en: text,
+      text_fr: textFr,
+      parent_id: parentId,
+      dispatchAt: null,
+    };
+    this.state.commands.push(command);
+    this.log("awaiting_review", { source, text_en: text, text_fr: textFr, parent_id: parentId }, { missionId: m.id, commandId: id });
+    return command;
+  }
+
+  private log(
+    event: string,
+    payload: Record<string, unknown>,
+    where: { missionId: string; commandId?: string; actor?: string | null },
+  ) {
+    const last = this.state.audit.at(-1)?.seq ?? 0;
+    this.state.audit.push({
+      seq: last + 1,
+      at: new Date(this.now()).toISOString(),
+      actor_id: where.actor === undefined ? (this.state.session?.username ?? null) : where.actor,
+      mission_id: where.missionId,
+      command_id: where.commandId ?? null,
+      event,
+      payload,
+    });
+  }
+
   private mission(id: string): MissionRecord {
     const m = this.state.missions.find((x) => x.id === id);
     if (!m) throw new FakeError(404, "mission_not_found", "Mission inconnue.");

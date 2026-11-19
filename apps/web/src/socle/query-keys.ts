@@ -6,4 +6,6 @@ export const queryKeys = {
   mission: (missionId: string) => ["missions", missionId] as const,
   recommendations: (missionId: string) => ["missions", missionId, "recommendations"] as const,
   command: (commandId: string) => ["commands", commandId] as const,
+  audit: (missionId: string) => ["audit", missionId] as const,
+  auditIntegrity: ["audit", "integrity"] as const,
 };

@@ -7,12 +7,14 @@ from http import HTTPStatus
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, Request, Response
+from fastapi import APIRouter, Depends, File, Form, Header, Request, Response, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from hannibal_api.application.commands import Commands
-from hannibal_api.application.missions import MissionError, MissionRun, Missions, NotFound
+from hannibal_api.application.missions import MissionError, MissionRun, Missions, NotFound, Unprocessable
+from hannibal_api.application.voice_orders import VoiceOrderResult, VoiceOrders
 from hannibal_api.domain.commands import Command, CommandDecision
+from hannibal_api.domain.voice import VoiceRecording
 from hannibal_contracts import missions as contracts
 from hannibal_contracts.common import ErrorBody
 from hannibal_platform.errors import error_body
@@ -47,7 +49,12 @@ async def on_mission_error(_: Request, error: Exception) -> JSONResponse:
     if not isinstance(error, MissionError):
         raise error
     log.warning("request_refused", code=error.code, **error.context)
-    status = HTTPStatus.NOT_FOUND if isinstance(error, NotFound) else HTTPStatus.CONFLICT
+    if isinstance(error, NotFound):
+        status = HTTPStatus.NOT_FOUND
+    elif isinstance(error, Unprocessable):
+        status = HTTPStatus.UNPROCESSABLE_ENTITY
+    else:
+        status = HTTPStatus.CONFLICT
     return JSONResponse(error_body(error.code, error.message), status_code=status)
 
 
@@ -249,6 +256,7 @@ def to_command(command: Command) -> contracts.Command:
         text_en=command.text_en,
         text_fr=command.text_fr,
         state=contracts.CommandState(command.state.value),
+        source=contracts.CommandSource(command.source.value),
         submitted_by=command.submitted_by,
         decided_by=command.decided_by,
         parent_id=None if command.parent_id is None else UUID(command.parent_id),
@@ -256,8 +264,32 @@ def to_command(command: Command) -> contracts.Command:
     )
 
 
+def to_voice_order_outcome(result: VoiceOrderResult) -> contracts.VoiceOrderOutcome:
+    outcome = to_order_outcome(result.interpretation)
+    command = result.command
+    return contracts.VoiceOrderOutcome(
+        **outcome.model_dump(exclude={"command_id", "command_state"}),
+        command_id=None if command is None else UUID(command.id),
+        command_state=None if command is None else contracts.CommandState(command.state.value),
+        recording_id=UUID(result.recording_id),
+        transcript=result.transcript.text,
+        heard_words=[
+            contracts.HeardWord(
+                word=word.text, confidence=word.confidence, start_s=word.start_s, end_s=word.end_s
+            )
+            for word in result.transcript.words
+        ],
+        transcription_seconds=result.transcript.transcription_seconds,
+    )
+
+
 def missions_router(
-    missions: Missions, commands: Commands, settings: BaseServiceSettings, *, stream_period_s: float
+    missions: Missions,
+    commands: Commands,
+    voice_orders: VoiceOrders,
+    settings: BaseServiceSettings,
+    *,
+    stream_period_s: float,
 ) -> APIRouter:
     router = APIRouter(
         prefix="/v1", tags=["missions"], dependencies=[Depends(require_internal_token(settings))]
@@ -348,6 +380,29 @@ def missions_router(
                 "command_state": contracts.CommandState(command.state.value),
             }
         )
+
+    @router.post(
+        "/missions/{mission_id}/voice",
+        response_model=contracts.VoiceOrderOutcome,
+        responses=ERROR_RESPONSES,
+        summary="SubmitVoice : transcrit l'enregistrement puis le soumet à validation comme un ordre clavier",
+    )
+    async def submit_voice_order(
+        mission_id: str,
+        audio: Annotated[
+            UploadFile, File(description="WAV 16 kHz mono de préférence ; webm et ogg acceptés")
+        ],
+        parent_id: Annotated[UUID | None, Form(description="Commande que cet ordre corrige")] = None,
+        user: AuthenticatedUser = "local",
+    ) -> contracts.VoiceOrderOutcome:
+        recording = VoiceRecording(await audio.read(), audio.content_type or "application/octet-stream")
+        result = await voice_orders.submit(
+            mission_id,
+            recording,
+            actor_id=user,
+            parent_id=None if parent_id is None else str(parent_id),
+        )
+        return to_voice_order_outcome(result)
 
     @router.get("/commands/{command_id}", response_model=contracts.Command, responses=ERROR_RESPONSES)
     async def read_command(command_id: UUID) -> contracts.Command:

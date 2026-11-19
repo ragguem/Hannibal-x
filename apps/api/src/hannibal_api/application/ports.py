@@ -1,9 +1,10 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 
 from hannibal_api.domain.audit import AuditEntry, AuditRecord, ChainVerification, MissionOutcome
 from hannibal_api.domain.commands import Command, CommandDecision, CommandState, Dispatch
 from hannibal_api.domain.readiness import ProbeResult
+from hannibal_api.domain.voice import VoiceRecording, VoiceTranscript
 
 
 class DependencyProbe(Protocol):
@@ -76,7 +77,7 @@ class FleetPort(Protocol):
 class CommandStore(Protocol):
     """Commandes et registre des envois. Chaque écriture se fait avec son audit, dans une transaction."""
 
-    async def create(self, command: Command, entry: AuditEntry) -> None: ...
+    async def create(self, command: Command, entries: Sequence[AuditEntry]) -> None: ...
 
     async def get(self, command_id: str) -> Command | None: ...
 
@@ -108,6 +109,26 @@ class CommandStore(Protocol):
     async def in_flight(self) -> list[Dispatch]: ...
 
     async def requeue(self, command_id: str) -> None: ...
+
+
+class RecordingUnusable(Exception):
+    """Le service de transcription refuse l'enregistrement (trop court, trop long, format inconnu)."""
+
+
+class SpeechTranscriber(Protocol):
+    """Service `asr`. Indisponible : `DependencyUnavailable` ; enregistrement refusé : `RecordingUnusable`."""
+
+    async def transcribe(self, recording: VoiceRecording, ship_names: Sequence[str]) -> VoiceTranscript: ...
+
+
+class VoiceRecordingStore(Protocol):
+    """Enregistrements des ordres vocaux, hors base et hors dépôt, rangés par identifiant de commande."""
+
+    async def save(self, recording_id: str, recording: VoiceRecording) -> None: ...
+
+    async def load(self, recording_id: str) -> VoiceRecording | None: ...
+
+    async def delete(self, recording_id: str) -> None: ...
 
 
 class AuditReader(Protocol):

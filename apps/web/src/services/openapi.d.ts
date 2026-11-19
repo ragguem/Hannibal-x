@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/audit/{command_id}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enregistrement d'un ordre vocal, même politique d'accès que ReadAudit */
+        get: operations["read_recording_v1_audit__command_id__audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/commands/{command_id}": {
         parameters: {
             query?: never;
@@ -260,6 +277,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/missions/{mission_id}/voice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SubmitVoice : transcrit l'enregistrement puis le soumet à validation comme un ordre clavier */
+        post: operations["submit_voice_order_v1_missions__mission_id__voice_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/ready": {
         parameters: {
             query?: never;
@@ -361,6 +395,19 @@ export interface components {
             /** Text Fr */
             text_fr: string;
         };
+        /** Body_submit_voice_order_v1_missions__mission_id__voice_post */
+        Body_submit_voice_order_v1_missions__mission_id__voice_post: {
+            /**
+             * Audio
+             * @description WAV 16 kHz mono de préférence ; webm et ogg acceptés
+             */
+            audio: string;
+            /**
+             * Parent Id
+             * @description Commande que cet ordre corrige
+             */
+            parent_id?: string | null;
+        };
         /**
          * Classification
          * @enum {string}
@@ -398,6 +445,8 @@ export interface components {
             mission_id: string;
             /** Parent Id */
             parent_id?: string | null;
+            /** @default keyboard */
+            source: components["schemas"]["CommandSource"];
             state: components["schemas"]["CommandState"];
             /** Submitted By */
             submitted_by: string;
@@ -413,6 +462,11 @@ export interface components {
          * @enum {string}
          */
         CommandDecision: "approve" | "reject" | "retry";
+        /**
+         * CommandSource
+         * @enum {string}
+         */
+        CommandSource: "keyboard" | "voice";
         /**
          * CommandState
          * @enum {string}
@@ -545,6 +599,20 @@ export interface components {
             status: string;
             /** Version */
             version: string;
+        };
+        /** HeardWord */
+        HeardWord: {
+            /**
+             * Confidence
+             * @description Probabilité du mot selon le modèle de transcription
+             */
+            confidence: number;
+            /** End S */
+            end_s: number;
+            /** Start S */
+            start_s: number;
+            /** Word */
+            word: string;
         };
         /** Helm */
         Helm: {
@@ -894,6 +962,49 @@ export interface components {
             /** North M */
             north_m: number;
         };
+        /**
+         * VoiceOrderOutcome
+         * @description `POST /missions/{id}/voice` : ce qui a été entendu, puis la même interprétation qu'au clavier.
+         */
+        VoiceOrderOutcome: {
+            /** Accepted */
+            accepted: boolean;
+            /**
+             * Command Id
+             * @description Commande créée en mode `review`
+             */
+            command_id?: string | null;
+            command_state?: components["schemas"]["CommandState"] | null;
+            /** Heard Words */
+            heard_words: components["schemas"]["HeardWord"][];
+            /** Hint */
+            hint?: string | null;
+            /**
+             * Recording Id
+             * Format: uuid
+             * @description Identifiant de l'enregistrement ; celui de la commande si elle est créée
+             */
+            recording_id: string;
+            /**
+             * Refusal Reason
+             * @description Motif du refus, lisible par l'opérateur
+             */
+            refusal_reason?: string | null;
+            /** Text En */
+            text_en?: string | null;
+            /** Text Fr */
+            text_fr?: string | null;
+            /**
+             * Transcript
+             * @description Texte entendu, avant interprétation
+             */
+            transcript: string;
+            /**
+             * Transcription Seconds
+             * @description Durée de la transcription côté serveur
+             */
+            transcription_seconds: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -997,6 +1108,83 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditIntegrity"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    read_recording_v1_audit__command_id__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                command_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "audio/wav": unknown;
+                    "audio/webm": unknown;
                 };
             };
             /** @description Unauthorized */
@@ -2050,6 +2238,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Simulation"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    submit_voice_order_v1_missions__mission_id__voice_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Utilisateur authentifié, posé par le back-office */
+                "X-Hx-User"?: string;
+            };
+            path: {
+                mission_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_submit_voice_order_v1_missions__mission_id__voice_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceOrderOutcome"];
                 };
             };
             /** @description Unauthorized */

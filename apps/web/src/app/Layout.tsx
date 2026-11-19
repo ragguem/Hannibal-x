@@ -1,5 +1,5 @@
-import { Link, Outlet, useNavigate } from "react-router";
-import { useSession, useSignOut } from "../features/session/use-session";
+import { Link, NavLink, Outlet, useNavigate } from "react-router";
+import { hasPermission, useSession, useSignOut } from "../features/session/use-session";
 
 export function Layout() {
   const { data: session } = useSession();
@@ -17,6 +17,11 @@ export function Layout() {
           HANNIBAL <span>X</span>
         </Link>
         <span className="grow" />
+        {hasPermission(session, "audit:read") && (
+          <NavLink to="/registre" className="btn sm ghost">
+            Registre
+          </NavLink>
+        )}
         {session && (
           <span className="mut">
             {session.username} · {session.role}

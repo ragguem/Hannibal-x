@@ -9,15 +9,28 @@ interface OrderFormProps {
   draft: string;
   onDraftChange: (text: string) => void;
   canSubmit: boolean;
+  /** Command this order corrects: the correction goes to review, chained to it. */
+  correctionOf: string | null;
+  onCancelCorrection: () => void;
   onCommand: (commandId: string) => void;
   onSimulation: (simulation: Simulation | null) => void;
 }
 
 /** The operator types a signal; whether it is valid MTP is the server's call, never the screen's. */
-export function OrderForm({ missionId, draft, onDraftChange, canSubmit, onCommand, onSimulation }: OrderFormProps) {
+export function OrderForm({
+  missionId,
+  draft,
+  onDraftChange,
+  canSubmit,
+  correctionOf,
+  onCancelCorrection,
+  onCommand,
+  onSimulation,
+}: OrderFormProps) {
   const submit = useSubmitOrder(missionId);
   const simulate = useSimulateOrder(missionId);
-  const [mode, setMode] = useState<OrderMode>("review");
+  const [chosenMode, setMode] = useState<OrderMode>("review");
+  const mode: OrderMode = correctionOf ? "review" : chosenMode;
   const inputId = useId();
   const text = draft.trim();
 
@@ -25,12 +38,13 @@ export function OrderForm({ missionId, draft, onDraftChange, canSubmit, onComman
     event.preventDefault();
     if (text === "") return;
     submit.mutate(
-      { text, mode },
+      { text, mode, parent_id: correctionOf },
       {
         onSuccess: (outcome) => {
           if (!outcome.accepted) return;
           onDraftChange("");
           onSimulation(null);
+          if (correctionOf) onCancelCorrection();
           if (outcome.command_id) onCommand(outcome.command_id);
         },
       },
@@ -71,7 +85,15 @@ export function OrderForm({ missionId, draft, onDraftChange, canSubmit, onComman
           {mode === "review" ? "Soumettre" : "Émettre"}
         </button>
       </div>
-      <fieldset className="row mode" disabled={!canSubmit}>
+      {correctionOf && (
+        <p className="row correction">
+          <span className="grow">Correction d'un ordre précédent : elle sera soumise à validation.</span>
+          <button type="button" className="btn ghost sm" onClick={onCancelCorrection}>
+            Annuler la correction
+          </button>
+        </p>
+      )}
+      <fieldset className="row mode" disabled={!canSubmit || correctionOf !== null}>
         <legend className="visually-hidden">Mode d'envoi</legend>
         <label className="check">
           <input type="radio" name="mode" checked={mode === "review"} onChange={() => setMode("review")} />

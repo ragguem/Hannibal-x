@@ -170,7 +170,9 @@ async def test_command_store_queues_retries_and_dispatches(engine: AsyncEngine) 
     store = PostgresCommandStore(engine)
     first, second = COMMAND_IDS
     for command_id in COMMAND_IDS:
-        await store.create(review_command(command_id), command_entry(AuditEvent.AWAITING_REVIEW, command_id))
+        await store.create(
+            review_command(command_id), [command_entry(AuditEvent.AWAITING_REVIEW, command_id)]
+        )
 
     approve = (CommandState.AWAITING_REVIEW, CommandDecision.APPROVE, "bob")
     decided = await store.decide(first, *approve, 30, command_entry(AuditEvent.APPROVED, first))

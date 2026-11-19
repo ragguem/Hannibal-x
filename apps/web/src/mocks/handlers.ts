@@ -8,7 +8,7 @@ export interface Persistence {
 }
 
 /** Shared by every tab and by the 3D page's frame, so they see the same session and missions. */
-export const localStoragePersistence = (key = "hx-mocks"): Persistence => ({
+export const localStoragePersistence = (key = "hx-mocks-v2"): Persistence => ({
   load: () => {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as FakeState) : null;
@@ -22,13 +22,22 @@ const errorBody = (e: FakeError) =>
 export function createHandlers(backend = new FakeBackend(), persistence?: Persistence) {
   /** Runs `action` against the latest persisted state and answers the contract's way. */
   const handle =
-    (action: (args: { params: Record<string, string>; body: unknown }) => unknown, status = 200): HttpResponseResolver =>
+    (
+      action: (args: { params: Record<string, string>; body: unknown; url: URL }) => unknown,
+      status = 200,
+    ): HttpResponseResolver =>
     async ({ request, params }) => {
       const stored = persistence?.load();
       if (stored) backend.state = stored;
-      const body: unknown = request.method === "GET" || request.method === "DELETE" ? null : await request.json().catch(() => null);
+      const isForm = request.headers.get("Content-Type")?.startsWith("multipart/form-data") ?? false;
+      const body: unknown =
+        request.method === "GET" || request.method === "DELETE"
+          ? null
+          : isForm
+            ? await request.formData()
+            : await request.json().catch(() => null);
       try {
-        const result = action({ params: params as Record<string, string>, body });
+        const result = action({ params: params as Record<string, string>, body, url: new URL(request.url) });
         persistence?.save(backend.state);
         if (status === 204 || result === undefined) return new HttpResponse(null, { status: 204 });
         return HttpResponse.json(result as Record<string, unknown>, { status });
@@ -134,6 +143,40 @@ export function createHandlers(backend = new FakeBackend(), persistence?: Persis
         b.setAutopilot(params.missionId!, (body as { enabled: boolean }).enabled);
       }, 204),
     ),
+    http.post(
+      "*/v1/missions/:missionId/voice",
+      handle(({ params, body }) => {
+        const form = body as FormData;
+        const audio = form.get("audio");
+        const parentId = form.get("parent_id");
+        return b.submitVoiceOrder(
+          params.missionId!,
+          audio instanceof Blob ? audio : new Blob(),
+          typeof parentId === "string" ? parentId : undefined,
+        );
+      }),
+    ),
+    http.get(
+      "*/v1/audit",
+      handle(({ url }) => {
+        const q = url.searchParams;
+        return b.readAudit({
+          missionId: q.get("mission_id") ?? undefined,
+          afterSeq: Number(q.get("after_seq") ?? 0),
+          limit: Number(q.get("limit") ?? 100),
+        });
+      }),
+    ),
+    http.get("*/v1/audit/integrity", handle(() => b.verifyAudit())),
+    http.get("*/v1/audit/:commandId/audio", ({ params }) => {
+      try {
+        const recording = b.readRecording(String(params.commandId));
+        return new HttpResponse(recording, { headers: { "Content-Type": recording.type || "audio/wav" } });
+      } catch (e) {
+        if (e instanceof FakeError) return errorBody(e);
+        throw e;
+      }
+    }),
     http.get("*/v1/commands/:commandId", handle(({ params }) => b.readCommand(params.commandId!))),
     http.post(
       "*/v1/commands/:commandId/decision",

@@ -16,6 +16,9 @@
 *.mp3
 *.flac
 *.ogg
+*.webm
+*.m4a
+**/recordings/
 *.gguf
 *.safetensors
 *.onnx

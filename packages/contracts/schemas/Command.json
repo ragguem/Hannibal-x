@@ -1,5 +1,13 @@
 {
   "$defs": {
+    "CommandSource": {
+      "enum": [
+        "keyboard",
+        "voice"
+      ],
+      "title": "CommandSource",
+      "type": "string"
+    },
     "CommandState": {
       "enum": [
         "awaiting_review",
@@ -62,6 +70,10 @@
       ],
       "default": null,
       "title": "Parent Id"
+    },
+    "source": {
+      "$ref": "#/$defs/CommandSource",
+      "default": "keyboard"
     },
     "state": {
       "$ref": "#/$defs/CommandState"

@@ -145,6 +145,28 @@ fieldset { margin: 0; min-width: 0; }
 .debrief { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
 .debrief .score { font-size: 18px; }
 
+/* voice */
+.small { font-size: 12px; }
+.block { display: block; }
+.voice .talk { min-width: 210px; touch-action: none; user-select: none; }
+.voice .talk.recording { background: var(--red); border-color: var(--red); color: #fff; }
+.interpretation.ok { border-color: #1d6b4a; }
+.interpretation.refused { border-color: #6b2a2a; }
+.interpretation .heard { font-size: 15px; }
+.interpretation mark { background: #4a3a10; color: var(--amber); border-radius: 4px; padding: 0 3px; }
+.order-form .correction { color: var(--amber); font-size: 12.5px; }
+
+/* register */
+.register-page { display: flex; flex-direction: column; gap: 12px; }
+.register-page .filters { gap: 8px 12px; }
+.register-page .filters .lbl { margin: 0; }
+.register td { vertical-align: top; }
+.register audio { height: 28px; width: 190px; }
+.register .history li { font-size: 11.5px; color: var(--mut); }
+.badge.outcome.approved, .badge.outcome.dispatched { color: var(--green); border-color: #1d6b4a; }
+.badge.outcome.rejected, .badge.outcome.failed, .badge.outcome.refused { color: var(--red); border-color: #6b2a2a; }
+.badge.outcome.pending { color: var(--amber); border-color: #7a5a1c; }
+
 /* 3D view */
 .sim-view { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
 

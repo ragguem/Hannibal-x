@@ -50,11 +50,27 @@ un lot livré = `0.N.0`, MVP de démonstration = `1.0.0` (ADR 0004).
   simulation, validation, recommandations, demandes des commandants, mode automatique, barre manuelle, débrief) et
   Vue 3D (moteur three.js repris, mode démo). Faux back-office MSW (`dev:mock`), tests Vitest et Playwright ;
   contrôles web dans `tools/check` et pre-commit.
+- `services/asr` (Lot 4) : `POST /transcribe` (WAV brut, noms des navires en paramètres), `WhisperEngine`
+  (faster-whisper, `large-v3-turbo` puis `small` sur le même matériel, puis `small` sur processeur), vocabulaire
+  du domaine en invite, une transcription à la fois ; `ScriptedSpeechEngine` pour le poste et les tests. Image
+  `cpu` et image `gpu` (CUDA 12, cuDNN 9) ; modèles dans un volume, jamais dans l'image.
+- `apps/api` : `POST /v1/missions/{id}/voice` (`VoiceOrders`) : l'audio est conservé, transcrit, puis suit le même
+  chemin qu'un ordre clavier ; l'identifiant de l'enregistrement est celui de la commande (`source: voice`).
+  Une parole non reconnue reste au registre (`transcribed` avec `refusal_reason`) avec son audio. Correction
+  chaînée par `parent_id`. `GET /v1/audit/{command_id}/audio` ; erreurs métier `422` (`Unprocessable`).
+  Sonde `asr` (optionnelle tant qu'aucune URL n'est fixée). Relais back-office `voice` (`command:submit`).
+- `apps/web` : `VoiceCapture` (maintenir le bouton ou la barre d'espace hors des champs, import WAV, encodage
+  WAV 16 kHz mono dans le navigateur), `InterpretationCard` (mots douteux surlignés sous 60 % de confiance,
+  correction au clavier chaînée), page Registre (`audit:read`) : lignes regroupées par commande, audio, signal,
+  décision, historique, filtres, pagination, état de la chaîne.
+- Compose : service `asr` (moteur scripté par défaut, `HX_ASR_ENGINE=whisper` pour Whisper) et volume des
+  enregistrements de l'API.
 
 ### Supprimé
 
 - Web de `legacy/app_v3` remplacé par `apps/web` : accueil, console, vue 3D, `vendor/` three.js ; modèles 3D
   déplacés dans `apps/web/public/models`. Doctrine et registre restent jusqu'aux Lots 4 et 5.
+- `legacy/app_v3/web/registre.html`, remplacé par la page Registre.
 
 ### Reporté
 

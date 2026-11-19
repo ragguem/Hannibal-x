@@ -13,6 +13,7 @@ class AuditEvent(StrEnum):
     REJECTED = "rejected"
     HELM = "helm"
     CONTACT_CLASSIFIED = "contact_classified"
+    TRANSCRIBED = "transcribed"
     AWAITING_REVIEW = "awaiting_review"
     SIMULATOR_DISPATCHED = "simulator_dispatched"
     DISPATCH_RETRY = "dispatch_retry"

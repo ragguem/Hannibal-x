@@ -29,6 +29,7 @@ def test_ready_with_fake_adapters() -> None:
         "postgres": "up",
         "ollama": "disabled",
         "sim-bridge": "up",
+        "asr": "up",
     }
 
 
@@ -41,6 +42,7 @@ def test_ready_degraded_when_database_missing_in_real_mode() -> None:
         "postgres": "down",
         "ollama": "disabled",
         "sim-bridge": "disabled",
+        "asr": "disabled",
     }
 
 

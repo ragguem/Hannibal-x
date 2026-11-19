@@ -1,0 +1,26 @@
+[project]
+name = "hannibal-asr"
+version = "0.5.0"
+description = "Transcription des ordres vocaux Hannibal X (faster-whisper, vocabulaire du domaine)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "hannibal-platform",
+    "hannibal-contracts",
+    "fastapi>=0.116",
+    "uvicorn[standard]>=0.35",
+]
+
+[project.optional-dependencies]
+# Moteur réel : installé dans l'image, pas sur le poste ni en CI (le moteur scripté suffit aux tests).
+whisper = ["faster-whisper>=1.1"]
+
+[tool.uv.sources]
+hannibal-platform = { workspace = true }
+hannibal-contracts = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hannibal_asr"]

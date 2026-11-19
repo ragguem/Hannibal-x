@@ -12,7 +12,7 @@ const api = new HttpApi("http://hx.test");
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
   server.resetHandlers();
-  backend.state = { session: null, missions: [], commands: [], seq: 0 };
+  backend.state = { session: null, missions: [], commands: [], audit: [], seq: 0 };
 });
 afterAll(() => server.close());
 

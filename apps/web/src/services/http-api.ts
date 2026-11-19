@@ -122,4 +122,29 @@ export class HttpApi implements ApiPort {
       }),
     );
   };
+
+  submitVoiceOrder: ApiPort["submitVoiceOrder"] = (missionId, recording, parentId) => {
+    const form = new FormData();
+    form.append("audio", recording, recording.type === "audio/wav" ? "ordre.wav" : "ordre");
+    if (parentId) form.append("parent_id", parentId);
+    return call(() =>
+      this.client.POST("/v1/missions/{mission_id}/voice", {
+        params: { path: { mission_id: missionId } },
+        // The browser sets the multipart boundary itself: the body goes out untouched.
+        body: form as never,
+        bodySerializer: () => form,
+      }),
+    );
+  };
+
+  readAudit: ApiPort["readAudit"] = ({ missionId, afterSeq, limit }) =>
+    call(() =>
+      this.client.GET("/v1/audit", {
+        params: { query: { mission_id: missionId === "" ? undefined : missionId, after_seq: afterSeq, limit } },
+      }),
+    );
+
+  verifyAudit = () => call(() => this.client.GET("/v1/audit/integrity"));
+
+  recordingUrl = (commandId: string) => `${this.baseUrl}/v1/audit/${encodeURIComponent(commandId)}/audio`;
 }

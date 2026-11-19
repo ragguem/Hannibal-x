@@ -5,13 +5,19 @@ le répartiteur.
 """
 
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from hannibal_api.application.missions import Conflict, Missions, NotFound
 from hannibal_api.application.ports import CommandStore
 from hannibal_api.domain.audit import AuditEntry, AuditEvent, FactType
-from hannibal_api.domain.commands import STATES_ACCEPTING_DECISION, Command, CommandDecision, CommandState
+from hannibal_api.domain.commands import (
+    STATES_ACCEPTING_DECISION,
+    Command,
+    CommandDecision,
+    CommandSource,
+    CommandState,
+)
 from hannibal_platform.logging import get_logger
 
 log = get_logger(__name__)
@@ -58,32 +64,48 @@ class Commands:
         self._validity_s = validity_s
 
     async def submit_for_review(
-        self, mission_id: str, text: str, *, actor_id: str, parent_id: str | None
+        self,
+        mission_id: str,
+        text: str,
+        *,
+        actor_id: str,
+        parent_id: str | None,
+        source: CommandSource = CommandSource.KEYBOARD,
+        command_id: str | None = None,
+        preceding_entries: Sequence[AuditEntry] = (),
     ) -> tuple[dict[str, Any], Command | None]:
+        """Interprète l'ordre et, s'il est valide, crée la commande `awaiting_review`.
+
+        `preceding_entries` (la transcription d'un ordre vocal) est écrit dans la même transaction.
+        """
         checked = self._missions.check_order(mission_id, text)
         if not checked["ok"]:
             return checked, None
         if parent_id is not None and await self._store.get(parent_id) is None:
             raise CommandNotFound(command_id=parent_id)
         command = Command(
-            id=str(uuid.uuid4()),
+            id=command_id or str(uuid.uuid4()),
             mission_id=mission_id,
             text=text,
             maneuver={key: checked[key] for key in ("to", "orders", "en", "fr")},
             state=CommandState.AWAITING_REVIEW,
             submitted_by=actor_id,
             parent_id=parent_id,
+            source=source,
         )
-        await self._store.create(
-            command,
-            AuditEntry(
-                AuditEvent.AWAITING_REVIEW,
-                actor_id,
-                mission_id,
-                {"source": "keyboard", "text_en": command.text_en, "parent_id": parent_id},
-                command_id=command.id,
-            ),
+        awaiting_review = AuditEntry(
+            AuditEvent.AWAITING_REVIEW,
+            actor_id,
+            mission_id,
+            {
+                "source": source.value,
+                "text_en": command.text_en,
+                "text_fr": command.text_fr,
+                "parent_id": parent_id,
+            },
+            command_id=command.id,
         )
+        await self._store.create(command, [*preceding_entries, awaiting_review])
         return checked, command
 
     async def read(self, command_id: str) -> Command:

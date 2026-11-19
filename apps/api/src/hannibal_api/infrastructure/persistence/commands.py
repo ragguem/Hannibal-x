@@ -3,6 +3,7 @@
 Les échéances sont calculées par l'horloge de la base (`now()`), seule commune à toutes les instances.
 """
 
+from collections.abc import Sequence
 from datetime import timedelta
 from typing import Any
 
@@ -10,7 +11,14 @@ from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
 from hannibal_api.domain.audit import AuditEntry
-from hannibal_api.domain.commands import Command, CommandDecision, CommandState, Dispatch, DispatchStatus
+from hannibal_api.domain.commands import (
+    Command,
+    CommandDecision,
+    CommandSource,
+    CommandState,
+    Dispatch,
+    DispatchStatus,
+)
 from hannibal_api.infrastructure.persistence.journal import transaction, write_audit
 from hannibal_api.infrastructure.persistence.tables import command_dispatches, commands
 
@@ -26,6 +34,7 @@ def _to_command(row: Any) -> Command:
         parent_id=None if row["parent_id"] is None else str(row["parent_id"]),
         decided_by=row["decided_by"],
         last_error=row["last_error"],
+        source=CommandSource(row["source"]),
     )
 
 
@@ -54,21 +63,22 @@ class PostgresCommandStore:
     def __init__(self, engine: AsyncEngine | None) -> None:
         self._engine = engine
 
-    async def create(self, command: Command, entry: AuditEntry) -> None:
+    async def create(self, command: Command, entries: Sequence[AuditEntry]) -> None:
         async with transaction(self._engine) as connection:
             await connection.execute(
                 insert(commands).values(
                     id=command.id,
                     mission_id=command.mission_id,
                     parent_id=command.parent_id,
-                    source="keyboard",
+                    source=command.source.value,
                     text=command.text,
                     maneuver=command.maneuver,
                     state=command.state.value,
                     submitted_by=command.submitted_by,
                 )
             )
-            await write_audit(connection, entry)
+            for entry in entries:
+                await write_audit(connection, entry)
 
     async def get(self, command_id: str) -> Command | None:
         async with transaction(self._engine) as connection:

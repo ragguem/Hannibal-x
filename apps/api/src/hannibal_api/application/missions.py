@@ -38,6 +38,10 @@ class Conflict(MissionError):
     pass
 
 
+class Unprocessable(MissionError):
+    pass
+
+
 class ScenarioNotFound(NotFound):
     code = "scenario_not_found"
     message = "Scénario inconnu."
@@ -259,6 +263,10 @@ class Missions:
 
     def check_order(self, mission_id: str, text: str) -> dict[str, Any]:
         return self._read_active(mission_id).engine.check_order(text)
+
+    def ship_names(self, mission_id: str) -> list[str]:
+        """Indicatifs de la mission en cours, ajoutés au vocabulaire de la transcription."""
+        return list(self._read_active(mission_id).engine.run["ships"])
 
     def is_active(self, mission_id: str) -> bool:
         run = self._runs_by_id.get(mission_id)

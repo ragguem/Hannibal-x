@@ -7,13 +7,16 @@ from hannibal_api.application.check_readiness import CheckReadiness
 from hannibal_api.application.commands import Commands
 from hannibal_api.application.dispatch import Dispatcher
 from hannibal_api.application.missions import Missions
+from hannibal_api.application.voice_orders import VoiceOrders
 from hannibal_api.domain.readiness import ProbeState
+from hannibal_api.infrastructure.asr import AsrClient, ScriptedTranscriber
 from hannibal_api.infrastructure.fleet import InMemoryFleet
 from hannibal_api.infrastructure.persistence.commands import PostgresCommandStore
 from hannibal_api.infrastructure.persistence.database import create_database_engine
 from hannibal_api.infrastructure.persistence.journal import PostgresAuditReader, PostgresMissionJournal
 from hannibal_api.infrastructure.persistence.memory import InMemoryCommandStore, InMemoryMissionJournal
 from hannibal_api.infrastructure.probes import FakeProbe, HttpProbe, PostgresProbe
+from hannibal_api.infrastructure.recordings import FileVoiceRecordingStore, InMemoryVoiceRecordingStore
 from hannibal_api.infrastructure.scenarios import YamlScenarioCatalog
 from hannibal_api.infrastructure.sim_bridge import SimBridgeClient
 from hannibal_api.infrastructure.simulator import InMemorySimulator
@@ -43,10 +46,17 @@ class Container(containers.DeclarativeContainer):
             timeout_s=settings.provided.readiness_timeout_s,
             required=True,
         ),
+        providers.Singleton(
+            HttpProbe,
+            name="asr",
+            url=settings.provided.asr_health_url,
+            timeout_s=settings.provided.readiness_timeout_s,
+        ),
     )
     fake_probes = providers.List(
         providers.Singleton(FakeProbe, name="postgres"),
         providers.Singleton(FakeProbe, name="sim-bridge"),
+        providers.Singleton(FakeProbe, name="asr", required=False),
         providers.Singleton(FakeProbe, name="ollama", state=ProbeState.DISABLED, required=False),
     )
     probes = providers.Selector(mode, fake=fake_probes, real=real_probes)
@@ -117,4 +127,31 @@ class Container(containers.DeclarativeContainer):
         store=command_store,
         wake_dispatcher=dispatcher.provided.wake,
         validity_s=settings.provided.command_validity_s,
+    )
+
+    asr_client = providers.Singleton(
+        AsrClient,
+        base_url=settings.provided.asr_base_url,
+        token=settings.provided.internal_token_value,
+        timeout_s=settings.provided.asr_timeout_s,
+    )
+    transcriber = providers.Selector(
+        mode,
+        fake=providers.Singleton(ScriptedTranscriber, transcript=settings.provided.scripted_transcript),
+        real=asr_client,
+    )
+    recordings = providers.Selector(
+        mode,
+        fake=providers.Singleton(InMemoryVoiceRecordingStore),
+        real=providers.Singleton(FileVoiceRecordingStore, directory=settings.provided.recordings_dir),
+    )
+    voice_orders = providers.Singleton(
+        VoiceOrders,
+        missions=missions,
+        commands=commands,
+        transcriber=transcriber,
+        recordings=recordings,
+        journal=journal,
+        min_recording_bytes=settings.provided.min_recording_bytes,
+        max_recording_bytes=settings.provided.max_recording_bytes,
     )
