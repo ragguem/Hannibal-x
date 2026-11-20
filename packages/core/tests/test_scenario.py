@@ -8,7 +8,6 @@ from hannibal_core.scenario import ScenarioEngine, ScenarioError, load, validate
 
 REPO = Path(__file__).resolve().parents[3]
 CATALOG = REPO / "apps" / "api" / "scenarios"
-LEGACY = REPO / "legacy" / "app_v3" / "scenarios"
 FILES = sorted(p.name for p in CATALOG.glob("*.yaml"))
 
 
@@ -17,15 +16,19 @@ def read(path: Path) -> dict:
 
 
 def test_catalog_has_the_six_scenarios() -> None:
-    assert sorted(p.name for p in LEGACY.glob("*.yaml")) == FILES
-    assert len(FILES) == 6
+    assert FILES == [
+        "changement_formation.yaml",
+        "contact_inconnu.yaml",
+        "exercice_formations.yaml",
+        "interception_hostile.yaml",
+        "menace_ennemie.yaml",
+        "transit_colonne.yaml",
+    ]
 
 
 @pytest.mark.parametrize("name", FILES)
-def test_migrated_scenario_is_valid_and_unchanged(name: str) -> None:
-    doc = read(CATALOG / name)
-    assert validate(doc) == []
-    assert {k: v for k, v in doc.items() if k != "schema_version"} == read(LEGACY / name)
+def test_catalog_scenario_is_valid(name: str) -> None:
+    assert validate(read(CATALOG / name)) == []
 
 
 BASE = read(CATALOG / "interception_hostile.yaml")

@@ -5,7 +5,6 @@
 
 # ── données et modèles, où qu'ils soient ──
 **/kb/
-/legacy/app*/audit/
 /var/
 **/eval_data/
 /eval/datasets/
@@ -34,19 +33,8 @@
 *.pem
 public_password.txt
 
-# ── ancien code : programmes seulement ──
-/legacy/hx/*
-!/legacy/hx/scripts/
-!/legacy/hx/README.md
-!/legacy/hx/Dockerfile.hx
-/legacy/v2/*
-!/legacy/v2/scripts/
-!/legacy/v2/docker/
-!/legacy/v2/*.sh
-!/legacy/v2/make_app_v3.py
-!/legacy/v2/patch_pubs.py
-/legacy/app*/web/models/hawaii.glb
-/legacy/app*/web/models/lowell.glb
+# ── ancien code supprimé (ADR 0002) : une copie locale avec ses données ne doit jamais revenir ──
+/legacy/
 
 # ── outils ──
 __pycache__/

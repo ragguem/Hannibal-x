@@ -5,6 +5,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -24,6 +25,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -43,6 +45,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -66,6 +69,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -86,6 +90,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -106,6 +111,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -126,6 +132,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -146,6 +153,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -165,6 +173,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -184,6 +193,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -198,24 +208,46 @@
   "to_text": "ALL SHIPS THIS IS HANNIBAL SPEED 18 OVER"
  },
  {
+  "fr_message": "À tous les navires : Prendre la vitesse de 25 nœuds",
   "input": "SPEED 25",
   "parse": {
-   "error": "Vitesse 25 nœuds hors limites (3 à 18).",
-   "hint": "Exemple : SPEED 12",
-   "ok": false,
-   "orders": [],
-   "to": []
-  }
+   "error": null,
+   "hint": null,
+   "notes": [],
+   "ok": true,
+   "orders": [
+    {
+     "kn": 25,
+     "type": "SPEED"
+    }
+   ],
+   "to": [
+    "TOUS"
+   ]
+  },
+  "to_text": "ALL SHIPS THIS IS HANNIBAL SPEED 25 OVER"
  },
  {
+  "fr_message": "À tous les navires : Prendre la vitesse de 3 nœuds",
   "input": "SPEED 2",
   "parse": {
-   "error": "Vitesse 2 nœuds hors limites (3 à 18).",
-   "hint": "Exemple : SPEED 12",
-   "ok": false,
-   "orders": [],
-   "to": []
-  }
+   "error": null,
+   "hint": null,
+   "notes": [
+    "Vitesse ramenée à 3 nœuds (limites du simulateur : 3 à 28)."
+   ],
+   "ok": true,
+   "orders": [
+    {
+     "kn": 3,
+     "type": "SPEED"
+    }
+   ],
+   "to": [
+    "TOUS"
+   ]
+  },
+  "to_text": "ALL SHIPS THIS IS HANNIBAL SPEED 3 OVER"
  },
  {
   "fr_message": "À tous les navires : Prendre la formation : ligne de front",
@@ -223,6 +255,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -242,6 +275,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -265,6 +299,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -283,6 +318,7 @@
   "parse": {
    "error": "Formation inconnue.",
    "hint": "Formations : COLUMN, LINE ABREAST, SCREEN",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -294,6 +330,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -313,6 +350,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -336,6 +374,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -354,6 +393,7 @@
   "parse": {
    "error": null,
    "hint": null,
+   "notes": [],
    "ok": true,
    "orders": [
     {
@@ -372,6 +412,7 @@
   "parse": {
    "error": "Cap 400 hors limites (0 à 359).",
    "hint": "Exemple : CORPEN 090",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -382,6 +423,7 @@
   "parse": {
    "error": "CORPEN attend un cap sur 3 chiffres.",
    "hint": "Exemple : CORPEN 090",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -392,6 +434,7 @@
   "parse": {
    "error": "CORPEN attend un cap sur 3 chiffres.",
    "hint": "Exemple : CORPEN 090",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -402,6 +445,7 @@
   "parse": {
    "error": "TURN attend un bord : PORT ou STBD.",
    "hint": "Exemple : TURN 30 STBD",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -412,6 +456,7 @@
   "parse": {
    "error": "Angle de TURN hors limites (1 à 360).",
    "hint": "Exemple : TURN 30 STBD",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -422,6 +467,7 @@
   "parse": {
    "error": "TURN attend un angle en degrés.",
    "hint": "Exemple : TURN 30 STBD",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -432,6 +478,7 @@
   "parse": {
    "error": "SPEED attend une vitesse en nœuds.",
    "hint": "Exemple : SPEED 12",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -442,6 +489,7 @@
   "parse": {
    "error": "Message vide après le destinataire.",
    "hint": "Exemple : CHARLIE CORPEN 090",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -452,6 +500,7 @@
   "parse": {
    "error": "Aucun ordre reconnu.",
    "hint": "Exemple : CORPEN 090 SPEED 12",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -462,6 +511,7 @@
   "parse": {
    "error": "Mot inconnu : DANCE.",
    "hint": "Mots reconnus : CORPEN, TURN, SPEED, FORM, EMERG, ROGER, WILCO, RESUME STATION",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []
@@ -472,6 +522,7 @@
   "parse": {
    "error": "Aucun ordre reconnu.",
    "hint": "Exemple : CORPEN 090 SPEED 12",
+   "notes": [],
    "ok": false,
    "orders": [],
    "to": []

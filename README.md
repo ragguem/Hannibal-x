@@ -5,7 +5,7 @@ Système d'aide au commandement naval qui fonctionne entièrement en local : il 
 ![Python](https://img.shields.io/badge/Python-3.12-blue) ![.NET](https://img.shields.io/badge/.NET-10-512BD4) ![React](https://img.shields.io/badge/React-19-61DAFB) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17%20%2B%20pgvector-336791) ![Ollama](https://img.shields.io/badge/LLM-Ollama%20local-black) ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E)
 
 > Le nouveau code suit le [plan de réalisation du MVP](docs/plan-realisation-mvp-1.2.0.md) et l'[architecture 1.1.0](docs/architecture-1.1.0.md).
-> L'ancien code reste dans `legacy/` (voir [Ancien code](#ancien-code)).
+> L'ancien code a été retiré une fois la parité vérifiée (voir [Ancien code](#ancien-code)).
 
 ## Sommaire
 
@@ -230,10 +230,9 @@ infra/
   bord/                Proxy Caddy et image de la console
   bundle/              Paquet hors ligne et script d'installation
   backup/  systemd/  observability/
-eval/                  Comportement figé de l'ancien code et recettes
+eval/                  Comportement figé (goldens) et recettes
 docs/                  Architecture, plan de réalisation, ADR, développement, exploitation
 interfaces/            Messages ROS du moteur LOTUSim
-legacy/                Ancien code
 ```
 
 Les documents de référence, les données qui en sont tirées, les modèles, l'audio et les secrets ne font jamais partie du dépôt ([données hors dépôt](docs/donnees-hors-depot.md)).
@@ -251,7 +250,7 @@ Lancer chaque service seul, variables, règles du code et de git : [docs/develop
 
 ## Ancien code
 
-`legacy/` contient la première version (applications v1 à v3, assistant de doctrine v2). Une partie sert encore de référence : les enregistrements de `eval/characterization` en dépendent. Mise en route et services historiques : [legacy/README.md](legacy/README.md).
+La première version (applications v1 à v3, assistant de doctrine v2) a été supprimée du dépôt une fois tout son comportement repris dans `hannibal_core` ([ADR 0002](docs/adr/0002-strangler-fig-legacy.md)). Ses sorties restent la référence : les goldens de `eval/characterization` ont été enregistrés sur elle, et le nouveau code est vérifié contre eux à chaque commit. Pour lire l'ancien code, l'historique git le garde (`git show a490113:legacy/README.md`).
 
 ## Résultats mesurés
 

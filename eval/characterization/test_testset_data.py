@@ -13,7 +13,8 @@ import os
 from pathlib import Path
 
 import pytest
-from legacy_harness import HERE, IMPLEMENTATIONS, legacy_module, load
+from golden_harness import HERE
+from hannibal_core.signals import KB, interpret, score_interpretation
 
 pytestmark = pytest.mark.data
 
@@ -44,16 +45,13 @@ def _paths() -> tuple[Path, Path]:
     return Path(kb), Path(testset)
 
 
-@pytest.mark.parametrize("impl", IMPLEMENTATIONS)
 @pytest.mark.parametrize("field", ["spoken_text", "written_text"])
-def test_interpreter_score_does_not_regress(field: str, impl: str) -> None:
+def test_interpreter_score_does_not_regress(field: str) -> None:
     kb_path, testset_path = _paths()
-    interpret = load("interpret", impl)
-    evaluate = legacy_module("evaluate")
-    kb = interpret.KB(kb_path)
+    kb = KB(kb_path)
     lines = testset_path.read_text(encoding="utf-8").splitlines()
     cases = [json.loads(line) for line in lines if line.strip()]
-    passed = sum(evaluate.check(c, interpret.interpret(c[field], kb))[0] for c in cases)
+    passed = sum(score_interpretation(c, interpret(c[field], kb))[0] for c in cases)
 
     floor = _read_floor(field)
     if floor is None:

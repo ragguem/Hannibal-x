@@ -2,8 +2,8 @@
 # Installation : uv run pre-commit install
 # Tout fonctionne hors ligne (outils verrouillés dans uv.lock, aucun dépôt de crochets à télécharger).
 default_install_hook_types: [pre-commit]
-# legacy/ est figé (ADR 0002) et interfaces/ vient de LOTUSim : aucun crochet ne les réécrit.
-exclude: ^(legacy|interfaces)/
+# interfaces/ vient de LOTUSim : aucun crochet ne le réécrit.
+exclude: ^interfaces/
 repos:
   - repo: local
     hooks:

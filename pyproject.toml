@@ -45,7 +45,7 @@ hannibal-doctrine = { workspace = true }
 [tool.ruff]
 line-length = 110
 target-version = "py312"
-extend-exclude = ["legacy", "interfaces"]
+extend-exclude = ["interfaces"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "PT", "SIM"]
