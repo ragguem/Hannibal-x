@@ -11,6 +11,9 @@ export const clock = (seconds: number): string => {
   return `${pad(s / 60, 2)}:${pad(s % 60, 2)}`;
 };
 
+/** Seconds → "15 min", rounded to the minute. */
+export const minutes = (seconds: number): string => `${String(Math.round(Math.max(0, seconds) / 60))} min`;
+
 export const knots = (mps: number): number => Math.round(mps / KNOT_MPS);
 
 export const nm = (value: number | null | undefined, digits = 1): string =>

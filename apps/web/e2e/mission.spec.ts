@@ -9,6 +9,8 @@ test("préparation → mission → ordre → validation → débrief", async ({ 
   await page.getByLabel("Mot de passe").fill("demo");
   await page.getByRole("button", { name: "Se connecter" }).click();
 
+  await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeAttached();
+  await page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link", { name: "Missions" }).click();
   await page.getByRole("radio", { name: /Transit en colonne/ }).check();
   await page.getByRole("radio", { name: /alfa/i }).check();
   await page.getByRole("button", { name: "Démarrer la mission" }).click();
@@ -22,7 +24,7 @@ test("préparation → mission → ordre → validation → débrief", async ({ 
   await expect(page.getByRole("region", { name: "Simulation" })).toBeVisible();
 
   await page.getByRole("button", { name: "Soumettre" }).click();
-  const decision = page.getByRole("region", { name: /^Ordre / });
+  const decision = page.getByRole("region", { name: /^Ordre (en attente|transmis)/ });
   await expect(decision).toHaveAccessibleName("Ordre en attente de validation");
   await decision.getByRole("button", { name: "Valider" }).click();
   await expect(decision).toHaveAccessibleName("Ordre transmis");
@@ -34,7 +36,7 @@ test("préparation → mission → ordre → validation → débrief", async ({ 
   const view = page.frameLocator('iframe[title="Vue 3D de la mission"]');
   // The dev server compiles three.js on first load of the frame.
   await expect(view.locator("#sc")).toHaveText("Transit en colonne", { timeout: 30_000 });
-  await page.goBack();
+  await page.getByRole("link", { name: "Retour à la console" }).click();
 
   await page.getByRole("button", { name: "Arrêter la mission" }).click();
   await page.getByRole("button", { name: "Confirmer l'arrêt" }).click();

@@ -2,10 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ErrorPanel } from "../components/ErrorPanel";
 import { Loading } from "../components/Loading";
-import { FormationPreview } from "../features/mission-setup/FormationPreview";
+import { ExecutionSettings } from "../features/mission-setup/ExecutionSettings";
+import { FleetRoster } from "../features/mission-setup/FleetRoster";
+import { FormationMap } from "../features/mission-setup/FormationMap";
+import { FormationSettings } from "../features/mission-setup/FormationSettings";
+import { LaunchPanel } from "../features/mission-setup/LaunchPanel";
+import { MissionBriefing } from "../features/mission-setup/MissionBriefing";
+import { PlannerHeader } from "../features/mission-setup/PlannerHeader";
+import {
+  DEFAULT_EXECUTION_OPTIONS,
+  DEFAULT_FORMATION_PLAN,
+  fleetOrder,
+  type PlannerStepId,
+} from "../features/mission-setup/planner-config";
 import { ScenarioList } from "../features/mission-setup/ScenarioList";
-import { ShipPicker } from "../features/mission-setup/ShipPicker";
-import { StartBar } from "../features/mission-setup/StartBar";
 import { useScenarios, useStartMission } from "../features/mission-setup/use-mission-setup";
 import { describeError } from "../services/api-error";
 
@@ -15,7 +25,9 @@ export function SetupPage() {
   const navigate = useNavigate();
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [chosenShip, setChosenShip] = useState<string | null>(null);
-  const [options, setOptions] = useState({ autopilot: false, manualHelm: false });
+  const [options, setOptions] = useState(DEFAULT_EXECUTION_OPTIONS);
+  const [formationPlan, setFormationPlan] = useState(DEFAULT_FORMATION_PLAN);
+  const [activeStep, setActiveStep] = useState<PlannerStepId>("scenario");
 
   if (scenarios.isPending) return <Loading label="Chargement des scénarios…" />;
   if (scenarios.isError) {
@@ -33,36 +45,44 @@ export function SetupPage() {
     );
   };
 
+  if (!scenario || !ship) {
+    return (
+      <main className="page planner">
+        <PlannerHeader activeStep={activeStep} onStepSelect={setActiveStep} />
+        <p className="card mut">Aucun scénario jouable n'est disponible.</p>
+      </main>
+    );
+  }
+
+  const order = fleetOrder(scenario.guide_ship, scenario.playable_ships);
+
   return (
-    <main className="page setup">
-      <h1 className="visually-hidden">Préparation de la mission</h1>
-      <ScenarioList scenarios={scenarios.data} selectedId={scenario?.id} onSelect={setScenarioId} />
-      {scenario && ship && (
-        <div className="stack">
-          <section className="card" aria-labelledby="briefing-title">
-            <h2 id="briefing-title" className="lbl amber">
-              Briefing
-            </h2>
-            <h3>{scenario.title}</h3>
-            <p>{scenario.briefing ?? scenario.summary ?? "Pas de briefing pour ce scénario."}</p>
-          </section>
-          <ShipPicker
-            ships={scenario.playable_ships}
-            guide={scenario.guide_ship}
-            selected={ship}
-            onSelect={setChosenShip}
-          />
-          <FormationPreview guide={scenario.guide_ship} ships={scenario.playable_ships} player={ship} />
-          <StartBar
-            options={options}
-            onOptionsChange={setOptions}
-            canStart={!start.isSuccess}
-            pending={start.isPending || start.isSuccess}
-            error={start.error}
-            onStart={launch}
-          />
+    <main className="page planner">
+      <PlannerHeader activeStep={activeStep} onStepSelect={setActiveStep} />
+      <div className="planner-main">
+        <div className="planner-side">
+          <div onFocus={() => setActiveStep("scenario")}>
+            <ScenarioList scenarios={scenarios.data} selectedId={scenario.id} onSelect={setScenarioId} />
+          </div>
+          <div onFocus={() => setActiveStep("fleet")}>
+            <FleetRoster ships={order} guide={scenario.guide_ship} selected={ship} onSelect={setChosenShip} />
+          </div>
         </div>
-      )}
+        <FormationMap order={order} guide={scenario.guide_ship} player={ship} plan={formationPlan} />
+        <div className="planner-settings" onFocus={() => setActiveStep("formation")}>
+          <FormationSettings guide={scenario.guide_ship} plan={formationPlan} onPlanChange={setFormationPlan} />
+        </div>
+      </div>
+      <div className="planner-footer" onFocus={() => setActiveStep("execution")}>
+        <ExecutionSettings
+          options={options}
+          onOptionsChange={setOptions}
+          durationS={scenario.duration_s}
+          shipCount={order.length}
+        />
+        <MissionBriefing scenario={scenario} player={ship} />
+        <LaunchPanel canStart={!start.isSuccess} pending={start.isPending || start.isSuccess} error={start.error} onStart={launch} />
+      </div>
     </main>
   );
 }

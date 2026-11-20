@@ -42,8 +42,21 @@ describe("routing and session guards", () => {
   it("refuses the setup screen to a role without mission:play", async () => {
     const backend = signedIn();
     backend.state.session = { ...backend.state.session!, permissions: ["audit:read"] };
-    renderApp("/", backend);
+    renderApp("/missions/nouvelle", backend);
     expect(await screen.findByRole("heading", { name: "Accès refusé" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Missions" })).not.toBeInTheDocument();
+  });
+
+  it("lands on the dashboard after sign-in and follows the selected ship", async () => {
+    const user = userEvent.setup();
+    renderApp("/", signedIn());
+
+    expect(await screen.findByRole("heading", { name: "Tableau de bord" })).toBeInTheDocument();
+    const fleet = screen.getByRole("region", { name: "Flotte" });
+    await user.click(within(fleet).getByRole("button", { name: /DELTA/ }));
+    const detail = screen.getByRole("region", { name: "Détails du navire" });
+    expect(within(detail).getByRole("heading", { name: "DELTA" })).toBeInTheDocument();
+    expect(within(fleet).getByRole("button", { name: /DELTA/ })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("keeps the register away from a trainee", async () => {
@@ -64,11 +77,13 @@ describe("routing and session guards", () => {
 describe("mission flow", () => {
   it("prepares, starts, orders, validates and debriefs a mission", async () => {
     const user = userEvent.setup();
-    const { router, stream, backend } = renderApp("/", signedIn());
+    const { router, stream, backend } = renderApp("/missions/nouvelle", signedIn());
 
     await user.click(await screen.findByRole("radio", { name: /alfa/i }));
     await user.click(screen.getByRole("button", { name: "Démarrer la mission" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/missions/m-1"));
+    const mainNav = screen.getByRole("navigation", { name: "Navigation principale" });
+    expect(within(mainNav).getByRole("link", { name: "Missions" })).toHaveAttribute("aria-current", "page");
     await user.type(await screen.findByLabelText("Ordre (signal)", {}, { timeout: 5000 }), "all ships corpen 045 speed 14");
     await user.click(screen.getByRole("button", { name: "Soumettre" }));
     const decision = await screen.findByRole("region", { name: "Ordre en attente de validation" });

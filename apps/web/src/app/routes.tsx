@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router";
+import { DashboardPage } from "../pages/DashboardPage";
 import { LoginPage } from "../pages/LoginPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { SetupPage } from "../pages/SetupPage";
@@ -14,8 +15,9 @@ export const routes: RouteObject[] = [
       {
         element: <Layout />,
         children: [
+          { index: true, element: <DashboardPage /> },
           {
-            index: true,
+            path: "missions/nouvelle",
             element: (
               <RequirePermission permission="mission:play">
                 <SetupPage />

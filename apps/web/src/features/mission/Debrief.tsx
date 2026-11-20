@@ -44,7 +44,7 @@ export function Debrief({ debrief }: { debrief: DebriefData }) {
           </tbody>
         </table>
       )}
-      <Link className="btn green" to="/">
+      <Link className="btn green" to="/missions/nouvelle">
         Nouvelle mission
       </Link>
     </section>

@@ -1,5 +1,9 @@
-import { clock } from "../../components/format";
+import { minutes } from "../../components/format";
+import { Icon } from "../../components/Icon";
+import { Panel } from "../../components/Panel";
+import { ShipIllustration } from "../../components/ShipIllustration";
 import type { ScenarioSummary } from "../../socle/ports";
+import { levelTone } from "./planner-config";
 
 interface ScenarioListProps {
   scenarios: ScenarioSummary[];
@@ -9,20 +13,43 @@ interface ScenarioListProps {
 
 export function ScenarioList({ scenarios, selectedId, onSelect }: ScenarioListProps) {
   return (
-    <fieldset className="card choice-list">
-      <legend className="lbl">Scénario</legend>
-      {scenarios.map((s) => (
-        <label key={s.id} className={s.id === selectedId ? "choice on" : "choice"}>
-          <input type="radio" name="scenario" value={s.id} checked={s.id === selectedId} onChange={() => onSelect(s.id)} />
-          <span className="choice-body">
-            <b>{s.title}</b>
-            <small className="mut">
-              {s.level ?? "niveau libre"} · {clock(s.duration_s)}
-            </small>
-            {s.summary && <span>{s.summary}</span>}
-          </span>
-        </label>
-      ))}
-    </fieldset>
+    <Panel id="planner-scenario" title="Scénarios disponibles" icon="star" className="planner-scenarios">
+      <div className="scenario-cards">
+        {scenarios.map((scenario) => {
+          const selected = scenario.id === selectedId;
+          return (
+            <label key={scenario.id} className={selected ? "scenario-card on" : "scenario-card"}>
+              <input
+                type="radio"
+                className="card-radio"
+                name="scenario"
+                value={scenario.id}
+                checked={selected}
+                onChange={() => onSelect(scenario.id)}
+              />
+              <span className="scenario-thumb" aria-hidden="true">
+                <ShipIllustration pennant="" />
+              </span>
+              <span className="scenario-body">
+                <b>{scenario.title}</b>
+                <span className="scenario-meta">
+                  <span>
+                    <Icon name="ship" size={14} /> {scenario.playable_ships.length} navires
+                  </span>
+                  <span>
+                    <Icon name="clock" size={14} /> {minutes(scenario.duration_s)}
+                  </span>
+                  <span className={`level-badge ${levelTone(scenario.level)}`}>{scenario.level ?? "niveau libre"}</span>
+                </span>
+                {scenario.summary && <small className="mut">{scenario.summary}</small>}
+              </span>
+              <span className="radio-mark" aria-hidden="true">
+                {selected && <Icon name="check" size={20} />}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </Panel>
   );
 }
