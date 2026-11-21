@@ -11,6 +11,9 @@ public static class SessionPolicy
     public static readonly TimeSpan IdleTimeout = TimeSpan.FromMinutes(30);
     public static readonly TimeSpan AbsoluteTimeout = TimeSpan.FromHours(12);
 
+    /// <summary>Une prolongation plus courte n'est pas écrite : au plus une écriture par minute et par session.</summary>
+    public static readonly TimeSpan ExtensionInterval = TimeSpan.FromMinutes(1);
+
     public static DateTimeOffset NextExpiry(DateTimeOffset now, DateTimeOffset absoluteExpiresAt) =>
         now + IdleTimeout < absoluteExpiresAt ? now + IdleTimeout : absoluteExpiresAt;
 }

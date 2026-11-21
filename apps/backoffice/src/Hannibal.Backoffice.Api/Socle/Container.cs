@@ -22,9 +22,10 @@ public static class Container
             sp => new InitialAdminOptions(Settings(sp).InitialAdminUsername, Settings(sp).InitialAdminPassword));
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<InMemoryIdentityStore>();
+        services.AddSingleton<IdentityCache>();
         services.AddScoped<IIdentityStore>(sp => Settings(sp).FakeAdapters
             ? sp.GetRequiredService<InMemoryIdentityStore>()
-            : ActivatorUtilities.CreateInstance<EfIdentityStore>(sp));
+            : new CachedIdentityStore(ActivatorUtilities.CreateInstance<EfIdentityStore>(sp), sp.GetRequiredService<IdentityCache>()));
         services.AddScoped<Sessions>();
         services.AddSessionAuthentication();
         services.AddApiRelay(sp => Settings(sp).ApiUrl ?? new Uri("http://127.0.0.1:8000"));

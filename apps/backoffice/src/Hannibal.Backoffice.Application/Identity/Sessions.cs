@@ -42,7 +42,14 @@ public sealed class Sessions(IIdentityStore store, IPasswordHasher hasher, TimeP
             return null;
         }
         var expiresAt = SessionPolicy.NextExpiry(now, session.AbsoluteExpiresAt);
-        await store.ExtendSessionAsync(session.Id, expiresAt, cancellationToken).ConfigureAwait(false);
+        if (expiresAt - session.ExpiresAt >= SessionPolicy.ExtensionInterval)
+        {
+            await store.ExtendSessionAsync(session.Id, expiresAt, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            expiresAt = session.ExpiresAt;
+        }
         var permissions = await store.PermissionsOfAsync(session.RoleCode, cancellationToken).ConfigureAwait(false);
         return new CurrentSession(new AuthenticatedUser(session.UserId, session.Username, session.RoleCode, permissions), expiresAt);
     }
