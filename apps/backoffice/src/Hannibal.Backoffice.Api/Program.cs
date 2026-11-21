@@ -30,6 +30,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapSystem();
 app.MapSession();
+app.MapUsers();
 app.MapOpenApi().AllowAnonymous();
 app.MapReverseProxy();
 await app.RunAsync().ConfigureAwait(false);

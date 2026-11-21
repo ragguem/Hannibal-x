@@ -1,0 +1,28 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:RoleView",
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "title": "Code",
+      "type": "string"
+    },
+    "label": {
+      "title": "Label",
+      "type": "string"
+    },
+    "permissions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Permissions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "code",
+    "label",
+    "permissions"
+  ],
+  "title": "RoleView",
+  "type": "object"
+}

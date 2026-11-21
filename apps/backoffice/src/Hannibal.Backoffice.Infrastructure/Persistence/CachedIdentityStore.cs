@@ -46,6 +46,18 @@ public sealed class IdentityCache(TimeProvider clock)
         }
     }
 
+    /// <summary>Après un changement de rôle, une désactivation ou un nouveau mot de passe ; rare, d'où le parcours complet.</summary>
+    public void ForgetUser(Guid userId)
+    {
+        foreach (var (key, cached) in _sessionsByTokenHash.Where(pair => pair.Value.Value.UserId == userId))
+        {
+            if (_sessionsByTokenHash.TryRemove(key, out _))
+            {
+                _tokenHashBySessionId.TryRemove(cached.Value.Id, out _);
+            }
+        }
+    }
+
     public IReadOnlySet<string>? FindPermissions(string roleCode) => Fresh(_permissionsByRole, roleCode);
 
     public void KeepPermissions(string roleCode, IReadOnlySet<string> permissions) =>

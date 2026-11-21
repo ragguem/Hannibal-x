@@ -1,6 +1,7 @@
 import createClient from "openapi-fetch";
 import type { ApiPort, SessionView, SignIn } from "../socle/ports";
 import { networkError, toApiError } from "./api-error";
+import type { paths as backofficePaths } from "./backoffice-openapi";
 import type { paths } from "./openapi";
 
 interface FetchResult<T> {
@@ -20,15 +21,17 @@ async function call<T>(request: () => Promise<FetchResult<T>>): Promise<T> {
   return result.data as T;
 }
 
-/** ApiPort over HTTP: the typed OpenAPI client for the API, plain fetch for the back-office session. */
+/** ApiPort over HTTP: one typed OpenAPI client per service, plain fetch for the back-office session. */
 export class HttpApi implements ApiPort {
   private readonly client: ReturnType<typeof createClient<paths>>;
+  private readonly backoffice: ReturnType<typeof createClient<backofficePaths>>;
 
   constructor(
     private readonly baseUrl = "",
     private readonly fetcher: typeof fetch = (...args) => globalThis.fetch(...args),
   ) {
     this.client = createClient<paths>({ baseUrl, credentials: "same-origin", fetch: fetcher });
+    this.backoffice = createClient<backofficePaths>({ baseUrl, credentials: "same-origin", fetch: fetcher });
   }
 
   private async session<T>(method: "GET" | "POST" | "DELETE", body?: SignIn): Promise<T | null> {
@@ -158,4 +161,26 @@ export class HttpApi implements ApiPort {
     call(() =>
       this.client.POST("/v1/commands/{command_id}/explanation", { params: { path: { command_id: commandId } } }),
     );
+
+  listUsers = async () => (await call(() => this.backoffice.GET("/v1/users"))).users;
+
+  listRoles = async () => (await call(() => this.backoffice.GET("/v1/roles"))).roles;
+
+  createUser: ApiPort["createUser"] = (body) => call(() => this.backoffice.POST("/v1/users", { body }));
+
+  changeUserRole = (userId: string, role: string) =>
+    call(() => this.backoffice.PUT("/v1/users/{id}/role", { params: { path: { id: userId } }, body: { role } }));
+
+  disableUser = (userId: string) =>
+    call(() => this.backoffice.POST("/v1/users/{id}/disable", { params: { path: { id: userId } } }));
+
+  enableUser = (userId: string) =>
+    call(() => this.backoffice.POST("/v1/users/{id}/enable", { params: { path: { id: userId } } }));
+
+  resetUserPassword = (userId: string) =>
+    call(() => this.backoffice.POST("/v1/users/{id}/password-reset", { params: { path: { id: userId } } }));
+
+  changeOwnPassword: ApiPort["changeOwnPassword"] = async (body) => {
+    await call(() => this.backoffice.PUT("/v1/session/password", { body }));
+  };
 }

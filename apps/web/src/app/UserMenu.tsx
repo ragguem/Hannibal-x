@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { Link } from "react-router";
 import { Icon } from "../components/Icon";
 
 interface UserMenuProps {
@@ -55,6 +56,9 @@ export function UserMenu({ username, role, signingOut, onSignOut }: UserMenuProp
         </span>
       </button>
       <div className="user-menu-list" id={panelId} hidden={!open}>
+        <Link to="/mot-de-passe" className="user-menu-item" onClick={() => setOpen(false)}>
+          <Icon name="shield" size={16} /> Changer de mot de passe
+        </Link>
         <button type="button" className="user-menu-item" disabled={signingOut} onClick={onSignOut}>
           <Icon name="logout" size={16} /> Se déconnecter
         </button>

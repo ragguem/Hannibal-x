@@ -14,6 +14,11 @@ import type {
   GlossaryEntry,
   GlossaryResult,
   CommandSource,
+  ChangePassword,
+  CreateUser,
+  IssuedPassword,
+  RoleView,
+  UserView,
   VoiceOrderOutcome,
   Mission,
   Objective,
@@ -51,10 +56,10 @@ const SCENARIOS: ScenarioSummary[] = [
   },
 ];
 
-const ACCOUNTS: Record<string, { password: string; role: string; permissions: string[] }> = {
-  instructeur: {
-    password: "demo",
-    role: "instructeur",
+const FAKE_ROLES: RoleView[] = [
+  {
+    code: "instructeur",
+    label: "Instructeur",
     permissions: [
       "mission:play",
       "command:submit",
@@ -66,12 +71,21 @@ const ACCOUNTS: Record<string, { password: string; role: string; permissions: st
       "doctrine:classified",
     ],
   },
-  eleve: {
-    password: "demo",
-    role: "eleve",
-    permissions: ["mission:play", "command:submit", "doctrine:ask", "glossary:read"],
-  },
-};
+  { code: "eleve", label: "Élève", permissions: ["mission:play", "command:submit", "doctrine:ask", "glossary:read"] },
+];
+
+/** Invented accounts; both sign in with the password `demo`. */
+const SEED_ACCOUNTS: FakeAccount[] = [
+  { id: "0190a000-0000-7000-8000-000000000001", username: "eleve", role: "eleve" },
+  { id: "0190a000-0000-7000-8000-000000000002", username: "instructeur", role: "instructeur" },
+].map((a) => ({ ...a, password: "demo", created_at: "2026-01-05T08:00:00Z", disabled_at: null, password_changed_at: "2026-01-05T08:00:00Z" }));
+
+export interface FakeAccount extends UserView {
+  password: string;
+}
+
+const USERNAME = /^[a-z0-9._-]{3,32}$/;
+const MIN_PASSWORD_LENGTH = 12;
 
 /** Invented passages: the mocked doctrine answers about speed and replenishment, and refuses the rest. */
 const SAMPLE_PASSAGES: { citation: Citation; keywords: string[]; answer: string }[] = [
@@ -162,6 +176,8 @@ export interface FakeState {
   commands: CommandRecord[];
   audit: AuditEventView[];
   seq: number;
+  /** Absent from states saved before accounts existed: seeded on first use. */
+  accounts?: FakeAccount[];
 }
 
 /** What the fake "hears" in every recording, unless a test sets `FakeBackend.heard`. */
@@ -177,6 +193,22 @@ export class FakeError extends Error {
     super(message);
   }
 }
+
+const invalid = () => new FakeError(422, "invalid_request", "Requête refusée.");
+
+const toUserView = ({ id, username, role, created_at, disabled_at, password_changed_at }: FakeAccount): UserView => ({
+  id,
+  username,
+  role,
+  created_at,
+  disabled_at,
+  password_changed_at,
+});
+
+const temporaryPassword = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("");
+};
 
 const wrap = (deg: number) => ((deg % 360) + 360) % 360;
 const advance = (leg: Leg, t: number) => {
@@ -222,11 +254,112 @@ export class FakeBackend {
   }
 
   signIn(username: string, password: string): SessionView {
-    const account = ACCOUNTS[username];
+    const account = this.accounts().find((a) => a.username === username && a.disabled_at === null);
     if (account?.password !== password) throw new FakeError(401, "invalid_credentials", "Identifiants invalides.");
     const expires = new Date(this.now() + 8 * 3600_000).toISOString();
-    this.state.session = { username, role: account.role, permissions: account.permissions, expires_at: expires };
+    this.state.session = { username, role: account.role, permissions: this.permissionsOf(account.role), expires_at: expires };
     return this.state.session;
+  }
+
+  // ------------------------------------------------------------------ accounts
+  listUsers(): UserView[] {
+    this.require("user:manage");
+    return this.accounts()
+      .map(toUserView)
+      .sort((a, b) => a.username.localeCompare(b.username));
+  }
+
+  listRoles(): RoleView[] {
+    this.require("user:manage");
+    return FAKE_ROLES;
+  }
+
+  createUser({ username, role }: CreateUser): IssuedPassword {
+    this.require("user:manage");
+    if (!USERNAME.test(username)) throw invalid();
+    this.requireRole(role);
+    if (this.accounts().some((a) => a.username === username)) {
+      throw new FakeError(409, "conflict", "Conflit avec l'état actuel.");
+    }
+    const password = temporaryPassword();
+    const account: FakeAccount = {
+      id: crypto.randomUUID(),
+      username,
+      role,
+      password,
+      created_at: new Date(this.now()).toISOString(),
+      disabled_at: null,
+      password_changed_at: null,
+    };
+    this.accounts().push(account);
+    return { user: toUserView(account), temporary_password: password };
+  }
+
+  changeUserRole(userId: string, role: string): UserView {
+    this.require("user:manage");
+    const account = this.otherAccount(userId);
+    this.requireRole(role);
+    account.role = role;
+    return toUserView(account);
+  }
+
+  disableUser(userId: string): UserView {
+    this.require("user:manage");
+    const account = this.otherAccount(userId);
+    account.disabled_at = new Date(this.now()).toISOString();
+    return toUserView(account);
+  }
+
+  enableUser(userId: string): UserView {
+    this.require("user:manage");
+    const account = this.account(userId);
+    account.disabled_at = null;
+    return toUserView(account);
+  }
+
+  resetUserPassword(userId: string): IssuedPassword {
+    this.require("user:manage");
+    const account = this.account(userId);
+    account.password = temporaryPassword();
+    account.password_changed_at = null;
+    return { user: toUserView(account), temporary_password: account.password };
+  }
+
+  changeOwnPassword({ current_password, new_password }: ChangePassword) {
+    const s = this.state.session;
+    if (!s) throw new FakeError(401, "unauthenticated", "Session absente ou expirée.");
+    const account = this.accounts().find((a) => a.username === s.username);
+    if (account?.password !== current_password) throw invalid();
+    if (new_password.length < MIN_PASSWORD_LENGTH || new_password === current_password) throw invalid();
+    account.password = new_password;
+    account.password_changed_at = new Date(this.now()).toISOString();
+    this.state.session = null;
+  }
+
+  private accounts(): FakeAccount[] {
+    this.state.accounts ??= SEED_ACCOUNTS.map((a) => ({ ...a }));
+    return this.state.accounts;
+  }
+
+  private permissionsOf(role: string): string[] {
+    return FAKE_ROLES.find((r) => r.code === role)?.permissions ?? [];
+  }
+
+  private requireRole(role: string) {
+    if (!FAKE_ROLES.some((r) => r.code === role)) throw invalid();
+  }
+
+  private account(userId: string): FakeAccount {
+    const account = this.accounts().find((a) => a.id === userId);
+    if (!account) throw new FakeError(404, "not_found", "Ressource introuvable.");
+    return account;
+  }
+
+  /** An administrator neither disables nor demotes themself. */
+  private otherAccount(userId: string): FakeAccount {
+    const account = this.account(userId);
+    if (account.username === this.state.session?.username) throw invalid();
+    return account;
   }
 
   signOut() {

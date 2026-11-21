@@ -33,7 +33,7 @@ public static class SessionEndpoints
                 IsEssential = true,
             });
             return Results.Json(ToView(signedIn.User, signedIn.ExpiresAt), Json.Options);
-        });
+        }).Produces<SessionViewBody>();
 
         session.MapGet("", (HttpContext context) =>
         {
@@ -41,7 +41,7 @@ public static class SessionEndpoints
             var permissions = user.FindAll(SessionAuthentication.PermissionClaim).Select(c => c.Value).Order(StringComparer.Ordinal).ToList();
             var expiresAt = (DateTimeOffset)context.Items[SessionAuthentication.ExpiresAtItem]!;
             return Results.Json(new SessionViewBody(user.Identity!.Name!, user.FindFirstValue(ClaimTypes.Role)!, permissions, expiresAt), Json.Options);
-        }).RequireAuthorization();
+        }).Produces<SessionViewBody>().RequireAuthorization();
 
         session.MapDelete("", async (HttpContext context, Sessions sessions, CancellationToken ct) =>
         {
@@ -51,7 +51,7 @@ public static class SessionEndpoints
             }
             context.Response.Cookies.Delete(SessionAuthentication.CookieName, new CookieOptions { Path = "/" });
             return Results.NoContent();
-        });
+        }).Produces(StatusCodes.Status204NoContent);
 
         return app;
     }

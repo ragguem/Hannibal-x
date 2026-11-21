@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "e2e": "playwright test",
-    "openapi": "openapi-typescript ../api/openapi.json -o src/services/openapi.d.ts"
+    "openapi": "openapi-typescript ../api/openapi.json -o src/services/openapi.d.ts",
+    "openapi:backoffice": "openapi-typescript ../backoffice/openapi/backoffice.v1.json -o src/services/backoffice-openapi.d.ts"
   },
   "dependencies": {
     "@fontsource-variable/roboto-condensed": "5.3.0",

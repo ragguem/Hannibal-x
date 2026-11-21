@@ -26,7 +26,11 @@ public static class Container
         services.AddScoped<IIdentityStore>(sp => Settings(sp).FakeAdapters
             ? sp.GetRequiredService<InMemoryIdentityStore>()
             : new CachedIdentityStore(ActivatorUtilities.CreateInstance<EfIdentityStore>(sp), sp.GetRequiredService<IdentityCache>()));
+        services.AddScoped<IUserDirectory>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryIdentityStore>()
+            : ActivatorUtilities.CreateInstance<EfUserDirectory>(sp));
         services.AddScoped<Sessions>();
+        services.AddScoped<Users>();
         services.AddSessionAuthentication();
         services.AddApiRelay(sp => Settings(sp).ApiUrl ?? new Uri("http://127.0.0.1:8000"));
         return services;

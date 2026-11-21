@@ -1,0 +1,21 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:CreateUser",
+  "additionalProperties": false,
+  "properties": {
+    "role": {
+      "title": "Role",
+      "type": "string"
+    },
+    "username": {
+      "pattern": "^[a-z0-9._-]{3,32}$",
+      "title": "Username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "username",
+    "role"
+  ],
+  "title": "CreateUser",
+  "type": "object"
+}

@@ -1,6 +1,14 @@
+import type { components as BackofficeComponents } from "../services/backoffice-openapi";
 import type { components } from "../services/openapi";
 
 type Schemas = components["schemas"];
+type BackofficeSchemas = BackofficeComponents["schemas"];
+
+export type UserView = BackofficeSchemas["UserViewBody"];
+export type RoleView = BackofficeSchemas["RoleViewBody"];
+export type CreateUser = BackofficeSchemas["CreateUserBody"];
+export type IssuedPassword = BackofficeSchemas["IssuedPasswordBody"];
+export type ChangePassword = BackofficeSchemas["ChangePasswordBody"];
 
 export type Mission = Schemas["Mission"];
 export type MissionPhase = Schemas["MissionPhase"];
@@ -99,6 +107,17 @@ export interface ApiPort {
   listPublications(): Promise<string[]>;
   searchGlossary(query: string): Promise<GlossaryResult>;
   explainCommand(commandId: string): Promise<CommandExplanation>;
+  /** Accounts (back-office, `user:manage`). */
+  listUsers(): Promise<UserView[]>;
+  listRoles(): Promise<RoleView[]>;
+  /** The temporary password is shown once and never readable again. */
+  createUser(body: CreateUser): Promise<IssuedPassword>;
+  changeUserRole(userId: string, role: string): Promise<UserView>;
+  disableUser(userId: string): Promise<UserView>;
+  enableUser(userId: string): Promise<UserView>;
+  resetUserPassword(userId: string): Promise<IssuedPassword>;
+  /** Every session of the user is revoked: they sign in again with the new password. */
+  changeOwnPassword(body: ChangePassword): Promise<void>;
 }
 
 export type StreamEvent = { type: "situation"; mission: Mission } | { type: "phase"; phase: MissionPhase };

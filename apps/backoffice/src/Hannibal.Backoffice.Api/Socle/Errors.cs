@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Hannibal.Backoffice.Application.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace Hannibal.Backoffice.Api.Socle;
@@ -65,6 +66,17 @@ public static class ErrorHandling
             {
                 Log(context).LogWarning("request_failed code={Code} detail={Detail}", e.Code, e.Message);
                 await Write(context, e.Status, new ErrorBody(e.Code, e.PublicMessage, RequestIds.Of(context))).ConfigureAwait(false);
+            }
+            catch (UserRuleViolation e)
+            {
+                var (status, code, message) = e.Kind switch
+                {
+                    UserRuleKind.NotFound => (StatusCodes.Status404NotFound, "not_found", "Ressource introuvable."),
+                    UserRuleKind.Conflict => (StatusCodes.Status409Conflict, "conflict", "Conflit avec l'état actuel."),
+                    _ => (StatusCodes.Status422UnprocessableEntity, "invalid_request", "Requête refusée."),
+                };
+                Log(context).LogWarning("request_failed code={Code} detail={Detail}", code, e.Message);
+                await Write(context, status, new ErrorBody(code, message, RequestIds.Of(context))).ConfigureAwait(false);
             }
 #pragma warning disable CA1031 // dernier filet : aucune exception ne sort sans ErrorBody
             catch (Exception e) when (!context.Response.HasStarted)

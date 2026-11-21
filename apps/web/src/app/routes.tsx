@@ -54,6 +54,23 @@ export const routes: RouteObject[] = [
               };
             },
           },
+          {
+            path: "utilisateurs",
+            lazy: async () => {
+              const { UsersPage } = await import("../pages/UsersPage");
+              return {
+                Component: () => (
+                  <RequirePermission permission="user:manage">
+                    <UsersPage />
+                  </RequirePermission>
+                ),
+              };
+            },
+          },
+          {
+            path: "mot-de-passe",
+            lazy: async () => ({ Component: (await import("../pages/ChangePasswordPage")).ChangePasswordPage }),
+          },
           { path: "*", element: <NotFoundPage /> },
         ],
       },

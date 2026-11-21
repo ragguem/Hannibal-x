@@ -1,0 +1,47 @@
+{
+  "$defs": {
+    "RoleView": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "permissions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Permissions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "label",
+        "permissions"
+      ],
+      "title": "RoleView",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:RoleList",
+  "additionalProperties": false,
+  "properties": {
+    "roles": {
+      "items": {
+        "$ref": "#/$defs/RoleView"
+      },
+      "title": "Roles",
+      "type": "array"
+    }
+  },
+  "required": [
+    "roles"
+  ],
+  "title": "RoleList",
+  "type": "object"
+}

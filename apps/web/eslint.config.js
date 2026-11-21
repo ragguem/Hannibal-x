@@ -25,6 +25,7 @@ export default tseslint.config(
       "test-results",
       "public/mockServiceWorker.js",
       "src/services/openapi.d.ts",
+      "src/services/backoffice-openapi.d.ts",
       "src/features/vue3d/engine/**",
     ],
   },

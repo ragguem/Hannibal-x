@@ -1,7 +1,9 @@
 import { http, HttpResponse, type HttpResponseResolver } from "msw";
 import type {
+  ChangePassword,
   Classification,
   CommandDecision,
+  CreateUser,
   DoctrineQuestion,
   SetHelm,
   SignIn,
@@ -190,6 +192,19 @@ export function createHandlers(backend = new FakeBackend(), persistence?: Persis
     http.post("*/v1/doctrine/questions", handle(({ body }) => b.askDoctrine(body as DoctrineQuestion))),
     http.get("*/v1/doctrine/publications", handle(() => ({ publications: b.listPublications() }))),
     http.get("*/v1/glossary", handle(({ url }) => b.searchGlossary(url.searchParams.get("q") ?? ""))),
+    http.get("*/v1/users", handle(() => ({ users: b.listUsers() }))),
+    http.post("*/v1/users", handle(({ body }) => b.createUser(body as CreateUser), 201)),
+    http.put("*/v1/users/:userId/role", handle(({ params, body }) => b.changeUserRole(params.userId!, (body as { role: string }).role))),
+    http.post("*/v1/users/:userId/disable", handle(({ params }) => b.disableUser(params.userId!))),
+    http.post("*/v1/users/:userId/enable", handle(({ params }) => b.enableUser(params.userId!))),
+    http.post("*/v1/users/:userId/password-reset", handle(({ params }) => b.resetUserPassword(params.userId!))),
+    http.get("*/v1/roles", handle(() => ({ roles: b.listRoles() }))),
+    http.put(
+      "*/v1/session/password",
+      handle(({ body }) => {
+        b.changeOwnPassword(body as ChangePassword);
+      }, 204),
+    ),
     http.post(
       "*/v1/commands/:commandId/decision",
       handle(({ params, body }) => b.decideCommand(params.commandId!, (body as { decision: CommandDecision }).decision)),

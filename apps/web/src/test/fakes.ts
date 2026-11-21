@@ -37,6 +37,14 @@ export function fakeApi(backend = new FakeBackend()): ApiPort {
     listPublications: () => run(() => backend.listPublications()),
     searchGlossary: (query) => run(() => backend.searchGlossary(query)),
     explainCommand: (commandId) => run(() => backend.explainCommand(commandId)),
+    listUsers: () => run(() => backend.listUsers()),
+    listRoles: () => run(() => backend.listRoles()),
+    createUser: (body) => run(() => backend.createUser(body)),
+    changeUserRole: (userId, role) => run(() => backend.changeUserRole(userId, role)),
+    disableUser: (userId) => run(() => backend.disableUser(userId)),
+    enableUser: (userId) => run(() => backend.enableUser(userId)),
+    resetUserPassword: (userId) => run(() => backend.resetUserPassword(userId)),
+    changeOwnPassword: (body) => run(() => backend.changeOwnPassword(body)),
   };
 }
 

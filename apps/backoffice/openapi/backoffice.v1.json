@@ -41,6 +41,47 @@
         }
       }
     },
+    "/v1/roles": {
+      "get": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleListBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/session/password": {
+      "put": {
+        "tags": [
+          "session"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/v1/session": {
       "post": {
         "tags": [
@@ -58,7 +99,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionViewBody"
+                }
+              }
+            }
           }
         }
       },
@@ -68,7 +116,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionViewBody"
+                }
+              }
+            }
           }
         }
       },
@@ -77,8 +132,184 @@
           "session"
         ],
         "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedPasswordBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}/role": {
+      "put": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeUserRoleBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}/disable": {
+      "post": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}/enable": {
+      "post": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}/password-reset": {
+      "post": {
+        "tags": [
+          "utilisateurs"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedPasswordBody"
+                }
+              }
+            }
           }
         }
       }
@@ -86,6 +317,47 @@
   },
   "components": {
     "schemas": {
+      "ChangePasswordBody": {
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "type": "object",
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "new_password": {
+            "type": "string"
+          }
+        }
+      },
+      "ChangeUserRoleBody": {
+        "required": [
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateUserBody": {
+        "required": [
+          "username",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
       "Health": {
         "required": [
           "status",
@@ -105,6 +377,84 @@
           }
         }
       },
+      "IssuedPasswordBody": {
+        "required": [
+          "user",
+          "temporary_password"
+        ],
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserViewBody"
+          },
+          "temporary_password": {
+            "type": "string"
+          }
+        }
+      },
+      "RoleListBody": {
+        "required": [
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleViewBody"
+            }
+          }
+        }
+      },
+      "RoleViewBody": {
+        "required": [
+          "code",
+          "label",
+          "permissions"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SessionViewBody": {
+        "required": [
+          "username",
+          "role",
+          "permissions",
+          "expires_at"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "SignInBody": {
         "required": [
           "username",
@@ -119,12 +469,70 @@
             "type": "string"
           }
         }
+      },
+      "UserListBody": {
+        "required": [
+          "users"
+        ],
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserViewBody"
+            }
+          }
+        }
+      },
+      "UserViewBody": {
+        "required": [
+          "id",
+          "username",
+          "role",
+          "created_at",
+          "disabled_at",
+          "password_changed_at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "disabled_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "password_changed_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
       }
     }
   },
   "tags": [
     {
       "name": "sant\u00E9"
+    },
+    {
+      "name": "utilisateurs"
     },
     {
       "name": "session"

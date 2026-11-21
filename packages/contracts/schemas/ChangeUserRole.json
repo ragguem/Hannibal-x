@@ -1,0 +1,15 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ChangeUserRole",
+  "additionalProperties": false,
+  "properties": {
+    "role": {
+      "title": "Role",
+      "type": "string"
+    }
+  },
+  "required": [
+    "role"
+  ],
+  "title": "ChangeUserRole",
+  "type": "object"
+}

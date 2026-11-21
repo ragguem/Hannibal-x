@@ -11,4 +11,6 @@ export const queryKeys = {
   publications: ["doctrine", "publications"] as const,
   glossary: (query: string) => ["glossary", query] as const,
   explanation: (commandId: string) => ["commands", commandId, "explanation"] as const,
+  users: ["users"] as const,
+  roles: ["roles"] as const,
 };
