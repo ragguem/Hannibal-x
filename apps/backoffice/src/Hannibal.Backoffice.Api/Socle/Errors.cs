@@ -76,7 +76,7 @@ public static class ErrorHandling
                     _ => (StatusCodes.Status422UnprocessableEntity, "invalid_request", "Requête refusée."),
                 };
                 Log(context).LogWarning("request_failed code={Code} detail={Detail}", code, e.Message);
-                await Write(context, status, new ErrorBody(code, message, RequestIds.Of(context))).ConfigureAwait(false);
+                await Write(context, status, new ErrorBody(code, e.PublicMessage ?? message, RequestIds.Of(context))).ConfigureAwait(false);
             }
 #pragma warning disable CA1031 // dernier filet : aucune exception ne sort sans ErrorBody
             catch (Exception e) when (!context.Response.HasStarted)

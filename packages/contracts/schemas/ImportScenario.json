@@ -1,0 +1,17 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ImportScenario",
+  "additionalProperties": false,
+  "properties": {
+    "yaml": {
+      "description": "Document ScenarioDocument en YAML",
+      "minLength": 1,
+      "title": "Yaml",
+      "type": "string"
+    }
+  },
+  "required": [
+    "yaml"
+  ],
+  "title": "ImportScenario",
+  "type": "object"
+}

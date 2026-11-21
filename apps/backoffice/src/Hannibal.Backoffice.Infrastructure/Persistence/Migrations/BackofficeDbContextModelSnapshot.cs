@@ -226,9 +226,14 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .HasColumnName("imported_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<Guid>("ImportedBy")
+                    b.Property<Guid?>("ImportedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("imported_by");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source");
 
                     b.HasKey("ScenarioId", "Version");
 
@@ -453,8 +458,7 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", null)
                         .WithMany()
                         .HasForeignKey("ImportedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.ScenarioRow", null)
                         .WithMany()

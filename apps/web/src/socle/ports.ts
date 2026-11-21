@@ -15,6 +15,10 @@ type WithNumbers<T> = { [K in keyof T]: number extends T[K] ? number : T[K] };
 export type ShipClass = WithNumbers<BackofficeSchemas["ShipClassBody"]>;
 export type CatalogShip = BackofficeSchemas["ShipViewBody"];
 export type CreateShip = BackofficeSchemas["CreateShipBody"];
+export type ScenarioEntry = Omit<BackofficeSchemas["ScenarioEntryBody"], "published_version" | "latest_version"> & {
+  published_version: number | null;
+  latest_version: number;
+};
 
 export type Mission = Schemas["Mission"];
 export type MissionPhase = Schemas["MissionPhase"];
@@ -133,6 +137,12 @@ export interface ApiPort {
   changeShipClass(shipId: string, classCode: string): Promise<CatalogShip>;
   retireShip(shipId: string): Promise<CatalogShip>;
   reactivateShip(shipId: string): Promise<CatalogShip>;
+  /** Scenario catalog (back-office, `catalog:manage`): immutable versions, one published, archived rather than deleted. */
+  listCatalogScenarios(): Promise<ScenarioEntry[]>;
+  importScenario(yaml: string): Promise<ScenarioEntry>;
+  publishScenario(id: string, version: number): Promise<ScenarioEntry>;
+  archiveScenario(id: string): Promise<ScenarioEntry>;
+  exportScenario(id: string, version: number): Promise<string>;
 }
 
 export type StreamEvent = { type: "situation"; mission: Mission } | { type: "phase"; phase: MissionPhase };

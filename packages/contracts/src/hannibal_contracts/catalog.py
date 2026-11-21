@@ -51,3 +51,26 @@ class CreateShip(ContractModel):
 
 class ChangeShipClass(ContractModel):
     class_code: str
+
+
+class ScenarioEntry(ContractModel):
+    """Scénario du catalogue (Lot 7.4) : versions immuables, une seule publiée."""
+
+    id: str
+    title: str
+    level: str
+    published_version: int | None = Field(description="Version jouable ; absente tant que rien n'est publié")
+    latest_version: int = Field(ge=1)
+    archived_at: datetime | None
+
+
+class ScenarioCatalogList(ContractModel):
+    scenarios: list[ScenarioEntry] = Field(description="Tous les scénarios, par identifiant")
+
+
+class ImportScenario(ContractModel):
+    yaml: str = Field(min_length=1, description="Document ScenarioDocument en YAML")
+
+
+class PublishScenario(ContractModel):
+    version: int = Field(ge=1)

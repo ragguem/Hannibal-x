@@ -20,6 +20,7 @@ import type {
   IssuedPassword,
   RoleView,
   CatalogShip,
+  ScenarioEntry,
   ShipClass,
   UserView,
   VoiceOrderOutcome,
@@ -206,6 +207,7 @@ export interface FakeState {
   /** Absent from states saved before accounts existed: seeded on first use. */
   accounts?: FakeAccount[];
   catalog?: { classes: ShipClass[]; ships: CatalogShip[] };
+  scenarioCatalog?: (ScenarioEntry & { sources: string[] })[];
 }
 
 /** What the fake "hears" in every recording, unless a test sets `FakeBackend.heard`. */
@@ -417,6 +419,79 @@ export class FakeBackend {
   reactivateShip(shipId: string): CatalogShip {
     this.require("catalog:manage");
     return Object.assign(this.ship(shipId), { active: true, retired_at: null });
+  }
+
+  // ------------------------------------------------------------------ scenario catalog
+  listCatalogScenarios(): ScenarioEntry[] {
+    this.require("catalog:manage");
+    return this.scenarioCatalog()
+      .map((e) => this.scenarioEntry(e.id))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  /** Reads only `id`, `titre` and `niveau`: the real schema check is the back-office's. */
+  importScenario(yaml: string): ScenarioEntry {
+    this.require("catalog:manage");
+    const field = (name: string) => new RegExp(`^${name}:\\s*(.+)$`, "m").exec(yaml)?.[1]?.trim();
+    const id = field("id");
+    if (!id) throw new FakeError(422, "invalid_request", "Scénario non conforme en / : id manquant");
+    let entry = this.scenarioCatalog().find((e) => e.id === id);
+    if (entry?.archived_at) throw new FakeError(409, "conflict", `Le scénario « ${id} » est archivé.`);
+    if (!entry) {
+      entry = { id, title: field("titre") ?? id, level: field("niveau") ?? "", published_version: null, latest_version: 0, archived_at: null, sources: [] };
+      this.scenarioCatalog().push(entry);
+    }
+    if (entry.sources.at(-1) !== yaml) {
+      entry.sources.push(yaml);
+      entry.latest_version = entry.sources.length;
+    }
+    return this.scenarioEntry(id);
+  }
+
+  publishScenario(id: string, version: number): ScenarioEntry {
+    this.require("catalog:manage");
+    const entry = this.catalogScenario(id);
+    if (entry.archived_at) throw new FakeError(409, "conflict", "Conflit avec l'état actuel.");
+    if (version < 1 || version > entry.latest_version) throw invalid();
+    entry.published_version = version;
+    return this.scenarioEntry(id);
+  }
+
+  archiveScenario(id: string): ScenarioEntry {
+    this.require("catalog:manage");
+    this.catalogScenario(id).archived_at ??= new Date(this.now()).toISOString();
+    return this.scenarioEntry(id);
+  }
+
+  exportScenario(id: string, version: number): string {
+    this.require("catalog:manage");
+    const source = this.catalogScenario(id).sources[version - 1];
+    if (source === undefined) throw new FakeError(404, "not_found", "Ressource introuvable.");
+    return source;
+  }
+
+  private scenarioCatalog() {
+    this.state.scenarioCatalog ??= SCENARIOS.map((s) => ({
+      id: s.id,
+      title: s.title,
+      level: s.level ?? "",
+      published_version: 1,
+      latest_version: 1,
+      archived_at: null,
+      sources: [`schema_version: 1\nid: ${s.id}\ntitre: ${s.title}\nniveau: ${s.level ?? ""}\n`],
+    }));
+    return this.state.scenarioCatalog;
+  }
+
+  private catalogScenario(id: string) {
+    const entry = this.scenarioCatalog().find((e) => e.id === id);
+    if (!entry) throw new FakeError(404, "not_found", "Ressource introuvable.");
+    return entry;
+  }
+
+  private scenarioEntry(id: string): ScenarioEntry {
+    const e = this.catalogScenario(id);
+    return { id: e.id, title: e.title, level: e.level, published_version: e.published_version, latest_version: e.latest_version, archived_at: e.archived_at };
   }
 
   private catalog(): { classes: ShipClass[]; ships: CatalogShip[] } {

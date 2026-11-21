@@ -35,7 +35,8 @@ public sealed class ScenarioVersionRow
     public int Version { get; set; }
     public required string Document { get; set; }
     public required string ContentSha256 { get; set; }
-    public Guid ImportedBy { get; set; }
+    public required string Source { get; set; }
+    public Guid? ImportedBy { get; set; }
     public DateTimeOffset ImportedAt { get; set; }
 }
 

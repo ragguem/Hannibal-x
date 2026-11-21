@@ -1,0 +1,58 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ScenarioEntry",
+  "additionalProperties": false,
+  "description": "Scénario du catalogue (Lot 7.4) : versions immuables, une seule publiée.",
+  "properties": {
+    "archived_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Archived At"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "latest_version": {
+      "minimum": 1,
+      "title": "Latest Version",
+      "type": "integer"
+    },
+    "level": {
+      "title": "Level",
+      "type": "string"
+    },
+    "published_version": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Version jouable ; absente tant que rien n'est publié",
+      "title": "Published Version"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "level",
+    "published_version",
+    "latest_version",
+    "archived_at"
+  ],
+  "title": "ScenarioEntry",
+  "type": "object"
+}

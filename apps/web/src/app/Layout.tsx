@@ -21,6 +21,7 @@ const NAV: NavEntry[] = [
   { to: "/registre", section: "/registre/*", label: "Registre", icon: "list", permission: "audit:read" },
   { to: "/utilisateurs", section: "/utilisateurs/*", label: "Utilisateurs", icon: "user", permission: "user:manage" },
   { to: "/navires", section: "/navires/*", label: "Navires", icon: "ship", permission: "catalog:manage" },
+  { to: "/scenarios", section: "/scenarios/*", label: "Scénarios", icon: "layers", permission: "catalog:manage" },
 ];
 
 function useClock() {

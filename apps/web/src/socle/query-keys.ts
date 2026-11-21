@@ -15,4 +15,5 @@ export const queryKeys = {
   roles: ["roles"] as const,
   shipClasses: ["catalog", "ship-classes"] as const,
   ships: ["catalog", "ships"] as const,
+  catalogScenarios: ["catalog", "scenarios"] as const,
 };

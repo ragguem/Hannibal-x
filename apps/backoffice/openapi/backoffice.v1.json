@@ -544,6 +544,159 @@
           }
         }
       }
+    },
+    "/v1/catalog/scenarios": {
+      "get": {
+        "tags": [
+          "sc\u00E9narios"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioCatalogBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sc\u00E9narios"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportScenarioBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioEntryBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/scenarios/{id}/publish": {
+      "post": {
+        "tags": [
+          "sc\u00E9narios"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishScenarioBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioEntryBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/scenarios/{id}/archive": {
+      "post": {
+        "tags": [
+          "sc\u00E9narios"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioEntryBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/scenarios/{id}/versions/{version}/yaml": {
+      "get": {
+        "tags": [
+          "sc\u00E9narios"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/yaml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -634,6 +787,17 @@
           }
         }
       },
+      "ImportScenarioBody": {
+        "required": [
+          "yaml"
+        ],
+        "type": "object",
+        "properties": {
+          "yaml": {
+            "type": "string"
+          }
+        }
+      },
       "IssuedPasswordBody": {
         "required": [
           "user",
@@ -646,6 +810,22 @@
           },
           "temporary_password": {
             "type": "string"
+          }
+        }
+      },
+      "PublishScenarioBody": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -682,6 +862,66 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "ScenarioCatalogBody": {
+        "required": [
+          "scenarios"
+        ],
+        "type": "object",
+        "properties": {
+          "scenarios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScenarioEntryBody"
+            }
+          }
+        }
+      },
+      "ScenarioEntryBody": {
+        "required": [
+          "id",
+          "title",
+          "level",
+          "published_version",
+          "latest_version",
+          "archived_at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "published_version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "latest_version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "archived_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -959,6 +1199,9 @@
     },
     {
       "name": "navires"
+    },
+    {
+      "name": "sc\u00E9narios"
     }
   ]
 }

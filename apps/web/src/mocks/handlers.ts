@@ -211,6 +211,25 @@ export function createHandlers(backend = new FakeBackend(), persistence?: Persis
     ),
     http.post("*/v1/ships/:shipId/retire", handle(({ params }) => b.retireShip(params.shipId!))),
     http.post("*/v1/ships/:shipId/reactivate", handle(({ params }) => b.reactivateShip(params.shipId!))),
+    http.get("*/v1/catalog/scenarios", handle(() => ({ scenarios: b.listCatalogScenarios() }))),
+    http.post("*/v1/catalog/scenarios", handle(({ body }) => b.importScenario((body as { yaml: string }).yaml), 201)),
+    http.post(
+      "*/v1/catalog/scenarios/:id/publish",
+      handle(({ params, body }) => b.publishScenario(params.id!, (body as { version: number }).version)),
+    ),
+    http.post("*/v1/catalog/scenarios/:id/archive", handle(({ params }) => b.archiveScenario(params.id!))),
+    http.get("*/v1/catalog/scenarios/:id/versions/:version/yaml", ({ params }) => {
+      const stored = persistence?.load();
+      if (stored) backend.state = stored;
+      try {
+        return HttpResponse.text(b.exportScenario(String(params.id), Number(params.version)), {
+          headers: { "Content-Type": "application/yaml; charset=utf-8" },
+        });
+      } catch (e) {
+        if (e instanceof FakeError) return errorBody(e);
+        throw e;
+      }
+    }),
     http.put(
       "*/v1/session/password",
       handle(({ body }) => {

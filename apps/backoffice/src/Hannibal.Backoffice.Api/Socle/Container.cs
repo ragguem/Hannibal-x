@@ -2,6 +2,7 @@ using Hannibal.Backoffice.Application.Catalog;
 using Hannibal.Backoffice.Application.Identity;
 using Hannibal.Backoffice.Application.Readiness;
 using Hannibal.Backoffice.Domain;
+using Hannibal.Backoffice.Infrastructure.Catalog;
 using Hannibal.Backoffice.Infrastructure.Persistence;
 using Hannibal.Backoffice.Infrastructure.Probes;
 using Hannibal.Backoffice.Infrastructure.Seeding.Seeders;
@@ -34,9 +35,15 @@ public static class Container
         services.AddScoped<IShipCatalog>(sp => Settings(sp).FakeAdapters
             ? sp.GetRequiredService<InMemoryShipCatalog>()
             : ActivatorUtilities.CreateInstance<EfShipCatalog>(sp));
+        services.AddSingleton<IScenarioDocuments, YamlScenarioDocuments>();
+        services.AddSingleton<InMemoryScenarioCatalog>();
+        services.AddScoped<IScenarioCatalog>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryScenarioCatalog>()
+            : ActivatorUtilities.CreateInstance<EfScenarioCatalog>(sp));
         services.AddScoped<Sessions>();
         services.AddScoped<Users>();
         services.AddScoped<Ships>();
+        services.AddScoped<Scenarios>();
         services.AddSessionAuthentication();
         services.AddApiRelay(sp => Settings(sp).ApiUrl ?? new Uri("http://127.0.0.1:8000"));
         return services;

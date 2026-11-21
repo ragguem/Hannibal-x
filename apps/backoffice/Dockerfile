@@ -14,6 +14,8 @@ COPY apps/backoffice/src/Hannibal.Backoffice.Api/*.csproj apps/backoffice/src/Ha
 RUN --mount=type=cache,target=/root/.nuget/packages \
     dotnet restore apps/backoffice/src/Hannibal.Backoffice.Api --locked-mode
 COPY apps/backoffice apps/backoffice
+COPY packages/contracts/schemas/ScenarioDocument.json packages/contracts/schemas/
+COPY apps/api/scenarios apps/api/scenarios
 RUN --mount=type=cache,target=/root/.nuget/packages \
     dotnet publish apps/backoffice/src/Hannibal.Backoffice.Api -c Release --no-restore -o /out /p:UseAppHost=false
 

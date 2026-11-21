@@ -32,6 +32,7 @@ app.MapSystem();
 app.MapSession();
 app.MapUsers();
 app.MapShips();
+app.MapScenarioCatalog();
 app.MapOpenApi().AllowAnonymous();
 app.MapReverseProxy();
 await app.RunAsync().ConfigureAwait(false);

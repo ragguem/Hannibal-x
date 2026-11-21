@@ -1,0 +1,16 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:PublishScenario",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "version"
+  ],
+  "title": "PublishScenario",
+  "type": "object"
+}

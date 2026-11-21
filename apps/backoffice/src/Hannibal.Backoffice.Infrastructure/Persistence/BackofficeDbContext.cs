@@ -186,6 +186,7 @@ public sealed class BackofficeDbContext(DbContextOptions<BackofficeDbContext> op
             version.Property(v => v.Version).HasColumnName("version");
             version.Property(v => v.Document).HasColumnName("document").HasColumnType("jsonb");
             version.Property(v => v.ContentSha256).HasColumnName("content_sha256");
+            version.Property(v => v.Source).HasColumnName("source");
             version.Property(v => v.ImportedBy).HasColumnName("imported_by");
             version.Property(v => v.ImportedAt).HasColumnName("imported_at").HasDefaultValueSql("now()");
             version.HasOne<ScenarioRow>().WithMany().HasForeignKey(v => v.ScenarioId).OnDelete(DeleteBehavior.Restrict);

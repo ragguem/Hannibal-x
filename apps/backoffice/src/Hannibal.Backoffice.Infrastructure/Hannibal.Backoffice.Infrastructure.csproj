@@ -8,5 +8,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="YamlDotNet" PrivateAssets="compile" />
+    <PackageReference Include="JsonSchema.Net" PrivateAssets="compile" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\packages\contracts\schemas\ScenarioDocument.json" LogicalName="ScenarioDocument.json" />
+    <EmbeddedResource Include="..\..\..\..\apps\api\scenarios\*.yaml" LogicalName="scenarios/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

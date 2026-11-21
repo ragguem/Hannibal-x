@@ -74,6 +74,10 @@ MODELS: tuple[type[BaseModel], ...] = (
     catalog.ShipList,
     catalog.CreateShip,
     catalog.ChangeShipClass,
+    catalog.ScenarioEntry,
+    catalog.ScenarioCatalogList,
+    catalog.ImportScenario,
+    catalog.PublishScenario,
 )
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
 

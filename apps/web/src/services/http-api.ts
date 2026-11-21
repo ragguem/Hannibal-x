@@ -1,5 +1,5 @@
 import createClient from "openapi-fetch";
-import type { ApiPort, SessionView, ShipClass, SignIn } from "../socle/ports";
+import type { ApiPort, ScenarioEntry, SessionView, ShipClass, SignIn } from "../socle/ports";
 import { networkError, toApiError } from "./api-error";
 import type { paths as backofficePaths } from "./backoffice-openapi";
 import type { paths } from "./openapi";
@@ -200,4 +200,26 @@ export class HttpApi implements ApiPort {
 
   reactivateShip = (shipId: string) =>
     call(() => this.backoffice.POST("/v1/ships/{id}/reactivate", { params: { path: { id: shipId } } }));
+
+  listCatalogScenarios = async () =>
+    (await call(() => this.backoffice.GET("/v1/catalog/scenarios"))).scenarios as ScenarioEntry[];
+
+  importScenario = async (yaml: string) =>
+    (await call(() => this.backoffice.POST("/v1/catalog/scenarios", { body: { yaml } }))) as ScenarioEntry;
+
+  publishScenario = async (id: string, version: number) =>
+    (await call(() =>
+      this.backoffice.POST("/v1/catalog/scenarios/{id}/publish", { params: { path: { id } }, body: { version } }),
+    )) as ScenarioEntry;
+
+  archiveScenario = async (id: string) =>
+    (await call(() => this.backoffice.POST("/v1/catalog/scenarios/{id}/archive", { params: { path: { id } } }))) as ScenarioEntry;
+
+  exportScenario = (id: string, version: number) =>
+    call(() =>
+      this.backoffice.GET("/v1/catalog/scenarios/{id}/versions/{version}/yaml", {
+        params: { path: { id, version } },
+        parseAs: "text",
+      }),
+    );
 }
