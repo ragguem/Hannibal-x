@@ -35,4 +35,7 @@ public interface IScenarioCatalog
     Task<bool> SetArchivedAtAsync(string id, DateTimeOffset archivedAt, CancellationToken cancellationToken);
 
     Task<string?> SourceOfAsync(string id, int version, CancellationToken cancellationToken);
+
+    /// <summary>Document JSON d'une version, tel que la photo de mission le transporte.</summary>
+    Task<string?> DocumentOfAsync(string id, int version, CancellationToken cancellationToken);
 }

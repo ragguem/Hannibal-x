@@ -10,7 +10,7 @@ from hannibal_api.application.missions import MissionError
 from hannibal_api.infrastructure.gpu_gate_metrics import expose_gpu_gate
 from hannibal_api.presentation.audit import audit_router
 from hannibal_api.presentation.doctrine import doctrine_router
-from hannibal_api.presentation.missions import missions_router, on_mission_error
+from hannibal_api.presentation.missions import mission_runs_router, missions_router, on_mission_error
 from hannibal_api.presentation.system import system_router
 from hannibal_api.socle.container import Container
 from hannibal_api.socle.settings import AdapterMode, ApiSettings
@@ -73,6 +73,7 @@ def create_app(settings: ApiSettings | None = None, container: Container | None 
             stream_period_s=settings.mission_stream_period_s,
         )
     )
+    app.include_router(mission_runs_router(missions, settings))
     app.include_router(audit_router(container.audit_trail(), voice_orders, settings))
     app.include_router(
         doctrine_router(

@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "ParticipantPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "game_role": {
+          "title": "Game Role",
+          "type": "string"
+        },
+        "ship": {
+          "description": "Indicatif d'un navire actif de la flotte",
+          "title": "Ship",
+          "type": "string"
+        },
+        "user_id": {
+          "format": "uuid",
+          "title": "User Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user_id",
+        "ship",
+        "game_role"
+      ],
+      "title": "ParticipantPlan",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:PlanMission",
+  "additionalProperties": false,
+  "properties": {
+    "autopilot": {
+      "default": false,
+      "title": "Autopilot",
+      "type": "boolean"
+    },
+    "manual_helm": {
+      "default": false,
+      "title": "Manual Helm",
+      "type": "boolean"
+    },
+    "participants": {
+      "items": {
+        "$ref": "#/$defs/ParticipantPlan"
+      },
+      "title": "Participants",
+      "type": "array"
+    },
+    "player_ship": {
+      "title": "Player Ship",
+      "type": "string"
+    },
+    "scenario_id": {
+      "description": "Scénario publié ; sa version publiée est figée à la planification",
+      "title": "Scenario Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scenario_id",
+    "player_ship"
+  ],
+  "title": "PlanMission",
+  "type": "object"
+}

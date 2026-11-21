@@ -18,7 +18,6 @@ public static class ApiRelay
     /// <summary>Routes relayées : (identifiant, motif, méthodes, permission). Les motifs précis passent devant.</summary>
     public static readonly IReadOnlyList<(string Id, string Path, string[]? Methods, string Permission)> Routes =
     [
-        ("scenarios", "/v1/scenarios", ["GET"], Permission.MissionPlay),
         ("orders", "/v1/missions/{missionId}/orders", ["POST"], Permission.CommandSubmit),
         ("voice", "/v1/missions/{missionId}/voice", ["POST"], Permission.CommandSubmit),
         ("simulations", "/v1/missions/{missionId}/simulations", ["POST"], Permission.CommandSubmit),

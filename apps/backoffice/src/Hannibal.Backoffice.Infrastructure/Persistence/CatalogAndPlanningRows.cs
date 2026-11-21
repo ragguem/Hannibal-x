@@ -45,6 +45,9 @@ public sealed class MissionRow
     public Guid Id { get; set; }
     public required string ScenarioId { get; set; }
     public int ScenarioVersion { get; set; }
+    public Guid PlayerShipId { get; set; }
+    public bool Autopilot { get; set; }
+    public bool ManualHelm { get; set; }
     public required string State { get; set; }
     public string? Runner { get; set; }
     public Guid PlannedBy { get; set; }

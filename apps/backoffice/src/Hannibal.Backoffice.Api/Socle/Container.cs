@@ -1,9 +1,11 @@
 using Hannibal.Backoffice.Application.Catalog;
 using Hannibal.Backoffice.Application.Identity;
+using Hannibal.Backoffice.Application.Planning;
 using Hannibal.Backoffice.Application.Readiness;
 using Hannibal.Backoffice.Domain;
 using Hannibal.Backoffice.Infrastructure.Catalog;
 using Hannibal.Backoffice.Infrastructure.Persistence;
+using Hannibal.Backoffice.Infrastructure.Planning;
 using Hannibal.Backoffice.Infrastructure.Probes;
 using Hannibal.Backoffice.Infrastructure.Seeding.Seeders;
 using Npgsql;
@@ -40,10 +42,22 @@ public static class Container
         services.AddScoped<IScenarioCatalog>(sp => Settings(sp).FakeAdapters
             ? sp.GetRequiredService<InMemoryScenarioCatalog>()
             : ActivatorUtilities.CreateInstance<EfScenarioCatalog>(sp));
+        services.AddSingleton<InMemoryMissionPlanning>();
+        services.AddScoped<IMissionPlanning>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryMissionPlanning>()
+            : ActivatorUtilities.CreateInstance<EfMissionPlanning>(sp));
+        services.AddSingleton<InMemoryMissionRunner>();
+        services.AddScoped<IMissionRuns>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryMissionRunner>()
+            : new PostgresMissionRuns(sp.GetRequiredService<NpgsqlDataSource>()));
+        services.AddScoped<IMissionLauncher>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryMissionRunner>()
+            : new HttpMissionLauncher(sp.GetRequiredService<IHttpClientFactory>().CreateClient("api"), Settings(sp).ApiUrl!, Settings(sp).InternalToken));
         services.AddScoped<Sessions>();
         services.AddScoped<Users>();
         services.AddScoped<Ships>();
         services.AddScoped<Scenarios>();
+        services.AddScoped<MissionPlanner>();
         services.AddSessionAuthentication();
         services.AddApiRelay(sp => Settings(sp).ApiUrl ?? new Uri("http://127.0.0.1:8000"));
         return services;

@@ -64,6 +64,13 @@ public sealed class EfScenarioCatalog(BackofficeDbContext dbContext) : IScenario
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
+    public async Task<string?> DocumentOfAsync(string id, int version, CancellationToken cancellationToken) =>
+        await dbContext.ScenarioVersions.AsNoTracking()
+            .Where(v => v.ScenarioId == id && v.Version == version)
+            .Select(v => v.Document)
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
     private IQueryable<ScenarioEntry> Entries() =>
         from s in dbContext.Scenarios.AsNoTracking()
         let latest = dbContext.ScenarioVersions.Where(v => v.ScenarioId == s.Id).OrderByDescending(v => v.Version).First()

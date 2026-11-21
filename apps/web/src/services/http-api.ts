@@ -1,5 +1,14 @@
 import createClient from "openapi-fetch";
-import type { ApiPort, ScenarioEntry, SessionView, ShipClass, SignIn } from "../socle/ports";
+import type {
+  ApiPort,
+  MissionHistory,
+  PlannedMission,
+  ScenarioEntry,
+  ScenarioSummary,
+  SessionView,
+  ShipClass,
+  SignIn,
+} from "../socle/ports";
 import { networkError, toApiError } from "./api-error";
 import type { paths as backofficePaths } from "./backoffice-openapi";
 import type { paths } from "./openapi";
@@ -64,9 +73,22 @@ export class HttpApi implements ApiPort {
     await this.session("DELETE");
   };
 
-  listScenarios = () => call(() => this.client.GET("/v1/scenarios"));
+  listScenarios = async () => (await call(() => this.backoffice.GET("/v1/scenarios"))) as ScenarioSummary[];
 
-  startMission: ApiPort["startMission"] = (body) => call(() => this.client.POST("/v1/missions", { body }));
+  startMission: ApiPort["startMission"] = async (body) => {
+    const planned = await call(() => this.backoffice.POST("/v1/planning/missions", { body: { ...body, participants: [] } }));
+    return (await call(() =>
+      this.backoffice.POST("/v1/planning/missions/{id}/launch", { params: { path: { id: planned.id } } }),
+    )) as PlannedMission;
+  };
+
+  listMissionHistory = async (cursor?: string) =>
+    (await call(() => this.backoffice.GET("/v1/planning/missions", { params: { query: { cursor } } }))) as MissionHistory;
+
+  archiveMission = async (missionId: string) =>
+    (await call(() =>
+      this.backoffice.POST("/v1/planning/missions/{id}/archive", { params: { path: { id: missionId } } }),
+    )) as PlannedMission;
 
   readMission = (missionId: string) =>
     call(() => this.client.GET("/v1/missions/{mission_id}", { params: { path: { mission_id: missionId } } }));

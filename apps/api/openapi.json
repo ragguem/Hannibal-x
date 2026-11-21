@@ -1713,75 +1713,61 @@
         "title": "ReplyRequest",
         "type": "object"
       },
-      "ScenarioSummary": {
+      "RunMission": {
         "additionalProperties": false,
+        "description": "Photo figée envoyée par le back-office au lancement : `apps/api` ne lit aucun catalogue.",
         "properties": {
-          "briefing": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Briefing"
+          "autopilot": {
+            "default": false,
+            "description": "Le navire du joueur accuse et exécute seul",
+            "title": "Autopilot",
+            "type": "boolean"
           },
-          "duration_s": {
-            "title": "Duration S",
+          "manual_helm": {
+            "default": false,
+            "description": "Le joueur tient la barre de son navire",
+            "title": "Manual Helm",
+            "type": "boolean"
+          },
+          "operator": {
+            "description": "Identifiant de l'utilisateur qui tient le navire du joueur",
+            "title": "Operator",
+            "type": "string"
+          },
+          "player_ship": {
+            "description": "Navire tenu par l'opérateur",
+            "title": "Player Ship",
+            "type": "string"
+          },
+          "scenario": {
+            "additionalProperties": true,
+            "description": "Document ScenarioDocument publié, tel quel",
+            "title": "Scenario",
+            "type": "object"
+          },
+          "scenario_version": {
+            "minimum": 1.0,
+            "title": "Scenario Version",
             "type": "integer"
           },
-          "guide_ship": {
-            "title": "Guide Ship",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "level": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Level"
-          },
-          "playable_ships": {
-            "description": "Navires que l'opérateur peut tenir, le guide en premier",
+          "ships": {
+            "description": "Caractéristiques des navires de la flotte",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ShipSnapshot"
             },
-            "title": "Playable Ships",
+            "minItems": 1,
+            "title": "Ships",
             "type": "array"
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
           }
         },
         "required": [
-          "id",
-          "title",
-          "duration_s",
-          "playable_ships",
-          "guide_ship"
+          "scenario_version",
+          "scenario",
+          "player_ship",
+          "operator",
+          "ships"
         ],
-        "title": "ScenarioSummary",
+        "title": "RunMission",
         "type": "object"
       },
       "SetAutopilot": {
@@ -1913,6 +1899,51 @@
         "title": "Ship",
         "type": "object"
       },
+      "ShipSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "call_sign": {
+            "title": "Call Sign",
+            "type": "string"
+          },
+          "class_code": {
+            "title": "Class Code",
+            "type": "string"
+          },
+          "length_meters": {
+            "exclusiveMinimum": 0.0,
+            "title": "Length Meters",
+            "type": "number"
+          },
+          "max_speed_knots": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 60.0,
+            "title": "Max Speed Knots",
+            "type": "integer"
+          },
+          "min_speed_knots": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 60.0,
+            "title": "Min Speed Knots",
+            "type": "integer"
+          },
+          "turn_radius_meters": {
+            "exclusiveMinimum": 0.0,
+            "title": "Turn Radius Meters",
+            "type": "number"
+          }
+        },
+        "required": [
+          "call_sign",
+          "class_code",
+          "min_speed_knots",
+          "max_speed_knots",
+          "turn_radius_meters",
+          "length_meters"
+        ],
+        "title": "ShipSnapshot",
+        "type": "object"
+      },
       "ShipsPassing": {
         "additionalProperties": false,
         "properties": {
@@ -2041,38 +2072,6 @@
           "accepted"
         ],
         "title": "Simulation",
-        "type": "object"
-      },
-      "StartMission": {
-        "additionalProperties": false,
-        "properties": {
-          "autopilot": {
-            "default": false,
-            "description": "Le navire du joueur accuse et exécute seul",
-            "title": "Autopilot",
-            "type": "boolean"
-          },
-          "manual_helm": {
-            "default": false,
-            "description": "Le joueur tient la barre de son navire",
-            "title": "Manual Helm",
-            "type": "boolean"
-          },
-          "player_ship": {
-            "description": "Navire tenu par l'opérateur",
-            "title": "Player Ship",
-            "type": "string"
-          },
-          "scenario_id": {
-            "title": "Scenario Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "scenario_id",
-          "player_ship"
-        ],
-        "title": "StartMission",
         "type": "object"
       },
       "Station": {
@@ -2380,6 +2379,109 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/internal/missions/{mission_id}/run": {
+      "put": {
+        "operationId": "run_mission_internal_missions__mission_id__run_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mission_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Mission Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunMission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Run Mission",
+        "tags": [
+          "missions"
+        ]
+      }
+    },
     "/v1/audit": {
       "get": {
         "operationId": "read_audit_v1_audit_get",
@@ -3319,111 +3421,6 @@
         "summary": "Health",
         "tags": [
           "santé"
-        ]
-      }
-    },
-    "/v1/missions": {
-      "post": {
-        "operationId": "start_mission_v1_missions_post",
-        "parameters": [
-          {
-            "description": "Utilisateur authentifié, posé par le back-office",
-            "in": "header",
-            "name": "X-Hx-User",
-            "required": false,
-            "schema": {
-              "default": "local",
-              "description": "Utilisateur authentifié, posé par le back-office",
-              "title": "X-Hx-User",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartMission"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Mission"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "summary": "Start Mission",
-        "tags": [
-          "missions"
         ]
       }
     },
@@ -4607,91 +4604,6 @@
         "summary": "Ready",
         "tags": [
           "santé"
-        ]
-      }
-    },
-    "/v1/scenarios": {
-      "get": {
-        "operationId": "list_scenarios_v1_scenarios_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ScenarioSummary"
-                  },
-                  "title": "Response List Scenarios V1 Scenarios Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "summary": "List Scenarios",
-        "tags": [
-          "missions"
         ]
       }
     }

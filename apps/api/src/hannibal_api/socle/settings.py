@@ -20,7 +20,6 @@ class ApiSettings(BaseServiceSettings):
     database_url: SecretStr | None = None
     ollama_url: str | None = None
     readiness_timeout_s: float = 2.0
-    scenarios_dir: Path = Path(__file__).resolve().parents[3] / "scenarios"
     signal_table_path: Path | None = Field(
         default=None,
         description="Table MTP (`signals.json`) hors dépôt ; sans elle, seule la syntaxe simplifiée est lue",

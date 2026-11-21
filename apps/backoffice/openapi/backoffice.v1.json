@@ -82,6 +82,28 @@
         }
       }
     },
+    "/v1/scenarios": {
+      "get": {
+        "tags": [
+          "planification"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioSummaryBody"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/session": {
       "post": {
         "tags": [
@@ -697,6 +719,212 @@
           }
         }
       }
+    },
+    "/v1/planning/options": {
+      "get": {
+        "tags": [
+          "planification"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningOptionsBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/planning/missions": {
+      "get": {
+        "tags": [
+          "planification"
+        ],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionHistoryBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "planification"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanMissionBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMissionBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/planning/missions/{id}": {
+      "get": {
+        "tags": [
+          "planification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMissionBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/planning/missions/{id}/ready": {
+      "post": {
+        "tags": [
+          "planification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMissionBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/planning/missions/{id}/launch": {
+      "post": {
+        "tags": [
+          "planification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMissionBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/planning/missions/{id}/archive": {
+      "post": {
+        "tags": [
+          "planification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMissionBody"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -768,6 +996,21 @@
           }
         }
       },
+      "GameRoleBody": {
+        "required": [
+          "code",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
       "Health": {
         "required": [
           "status",
@@ -809,6 +1052,229 @@
             "$ref": "#/components/schemas/UserViewBody"
           },
           "temporary_password": {
+            "type": "string"
+          }
+        }
+      },
+      "MissionHistoryBody": {
+        "required": [
+          "missions",
+          "next_cursor"
+        ],
+        "type": "object",
+        "properties": {
+          "missions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlannedMissionBody"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ParticipantBody": {
+        "required": [
+          "user_id",
+          "ship",
+          "game_role"
+        ],
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ship": {
+            "type": "string"
+          },
+          "game_role": {
+            "type": "string"
+          }
+        }
+      },
+      "ParticipantViewBody": {
+        "required": [
+          "user_id",
+          "username",
+          "ship",
+          "game_role"
+        ],
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "ship": {
+            "type": "string"
+          },
+          "game_role": {
+            "type": "string"
+          }
+        }
+      },
+      "PlanMissionBody": {
+        "required": [
+          "scenario_id",
+          "player_ship",
+          "autopilot",
+          "manual_helm",
+          "participants"
+        ],
+        "type": "object",
+        "properties": {
+          "scenario_id": {
+            "type": "string"
+          },
+          "player_ship": {
+            "type": "string"
+          },
+          "autopilot": {
+            "type": "boolean"
+          },
+          "manual_helm": {
+            "type": "boolean"
+          },
+          "participants": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ParticipantBody"
+            }
+          }
+        }
+      },
+      "PlannedMissionBody": {
+        "required": [
+          "id",
+          "scenario_id",
+          "scenario_version",
+          "scenario_title",
+          "player_ship",
+          "autopilot",
+          "manual_helm",
+          "state",
+          "created_at",
+          "launched_at",
+          "archived_at",
+          "run_phase",
+          "finished_at",
+          "participants"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scenario_id": {
+            "type": "string"
+          },
+          "scenario_version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "scenario_title": {
+            "type": "string"
+          },
+          "player_ship": {
+            "type": "string"
+          },
+          "autopilot": {
+            "type": "boolean"
+          },
+          "manual_helm": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "launched_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "archived_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "run_phase": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "finished_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParticipantViewBody"
+            }
+          }
+        }
+      },
+      "PlanningOptionsBody": {
+        "required": [
+          "players",
+          "game_roles"
+        ],
+        "type": "object",
+        "properties": {
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerBody"
+            }
+          },
+          "game_roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GameRoleBody"
+            }
+          }
+        }
+      },
+      "PlayerBody": {
+        "required": [
+          "id",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
             "type": "string"
           }
         }
@@ -922,6 +1388,62 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "ScenarioSummaryBody": {
+        "required": [
+          "id",
+          "title",
+          "level",
+          "duration_s",
+          "summary",
+          "briefing",
+          "playable_ships",
+          "guide_ship"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "level": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "duration_s": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "briefing": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "playable_ships": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "guide_ship": {
+            "type": "string"
           }
         }
       },
@@ -1196,6 +1718,9 @@
     },
     {
       "name": "session"
+    },
+    {
+      "name": "planification"
     },
     {
       "name": "navires"

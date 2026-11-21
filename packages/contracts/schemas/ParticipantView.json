@@ -1,0 +1,31 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ParticipantView",
+  "additionalProperties": false,
+  "properties": {
+    "game_role": {
+      "title": "Game Role",
+      "type": "string"
+    },
+    "ship": {
+      "title": "Ship",
+      "type": "string"
+    },
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    },
+    "username": {
+      "title": "Username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "username",
+    "ship",
+    "game_role"
+  ],
+  "title": "ParticipantView",
+  "type": "object"
+}

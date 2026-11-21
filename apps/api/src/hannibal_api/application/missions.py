@@ -6,14 +6,14 @@ Une seule mission tourne à la fois : le simulateur n'a qu'un monde. Le registre
 
 import asyncio
 import random
-import uuid
 from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
-from hannibal_core.scenario import ScenarioEngine
+from hannibal_core.orders.limits import SpeedLimits
+from hannibal_core.scenario import ScenarioEngine, ScenarioError, load
 from hannibal_core.signals import KB
 
-from hannibal_api.application.ports import Clock, MissionJournal, ScenarioCatalog, Simulator
+from hannibal_api.application.ports import Clock, MissionJournal, Simulator
 from hannibal_api.domain.audit import AuditEntry, AuditEvent, FactType, MissionOutcome
 from hannibal_platform.logging import get_logger
 
@@ -51,9 +51,9 @@ class Busy(MissionError):
     pass
 
 
-class ScenarioNotFound(NotFound):
-    code = "scenario_not_found"
-    message = "Scénario inconnu."
+class InvalidScenario(Unprocessable):
+    code = "scenario_invalid"
+    message = "Le document du scénario n'est pas conforme."
 
 
 class MissionNotFound(NotFound):
@@ -120,7 +120,7 @@ class MissionRun:
 
 
 class Missions:
-    """Handlers `ListScenarios`, `StartMission`, `ReadMission`, `StopMission`, `SubmitOrder`, `SimulateOrder`,
+    """Handlers `RunMission`, `ReadMission`, `StopMission`, `SubmitOrder`, `SimulateOrder`,
     `Recommend`, `SetHelm`, `ClassifyContact`, `ReplyRequest`, `SetAutopilot`, et le pas du `MissionRunner`.
 
     Le moteur vit en mémoire : un changement d'état est appliqué au moteur, puis journalisé. Si le journal est
@@ -129,14 +129,12 @@ class Missions:
 
     def __init__(
         self,
-        catalog: ScenarioCatalog,
         simulator: Simulator,
         journal: MissionJournal,
         clock: Clock,
         runner_period_s: float,
         signal_table: KB | None = None,
     ) -> None:
-        self._catalog = catalog
         self._simulator = simulator
         self._journal = journal
         self._clock = clock
@@ -144,15 +142,26 @@ class Missions:
         self._runner_period_s = runner_period_s
         self._runs_by_id: dict[str, MissionRun] = {}
 
-    def list_scenarios(self) -> list[dict[str, Any]]:
-        return self._catalog.all()
-
-    async def start(
-        self, scenario_id: str, player_ship: str, *, operator: str, autopilot: bool, manual_helm: bool
+    async def run(
+        self,
+        mission_id: str,
+        document: dict[str, Any],
+        player_ship: str,
+        *,
+        operator: str,
+        autopilot: bool,
+        manual_helm: bool,
+        speed_kn: tuple[int, int],
     ) -> MissionRun:
-        scenario = self._catalog.get(scenario_id)
-        if scenario is None:
-            raise ScenarioNotFound(scenario_id=scenario_id)
+        """`RunMission` : déroule la photo envoyée par le back-office ; rejoué, rend la mission lancée."""
+        if (existing := self._runs_by_id.get(mission_id)) is not None:
+            return existing
+        try:
+            scenario = load(document)
+            speed = SpeedLimits(*speed_kn)
+        except (ScenarioError, ValueError) as error:
+            raise InvalidScenario(errors=error.args) from error
+        scenario_id = str(scenario["id"])
         if player_ship not in {ship["nom"] for ship in scenario["flotte"]}:
             raise UnknownShip(ship=player_ship)
         if any(run.active for run in self._runs_by_id.values()):
@@ -173,9 +182,10 @@ class Missions:
             auto=autopilot,
             manual=manual_helm,
             signal_table=self._signal_table,
+            speed=speed,
         )
         engine.st = await self._simulator.states()
-        run = MissionRun(str(uuid.uuid4()), scenario_id, operator, engine)
+        run = MissionRun(mission_id, scenario_id, operator, engine)
         await self._journal.mission_started(
             run.id,
             scenario_id,

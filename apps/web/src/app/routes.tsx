@@ -19,10 +19,23 @@ export const routes: RouteObject[] = [
           {
             path: "missions/nouvelle",
             element: (
-              <RequirePermission permission="mission:play">
+              <RequirePermission permission="mission:plan">
                 <SetupPage />
               </RequirePermission>
             ),
+          },
+          {
+            path: "missions",
+            lazy: async () => {
+              const { MissionHistoryPage } = await import("../pages/MissionHistoryPage");
+              return {
+                Component: () => (
+                  <RequirePermission permission="mission:plan">
+                    <MissionHistoryPage />
+                  </RequirePermission>
+                ),
+              };
+            },
           },
           {
             path: "missions/:missionId",

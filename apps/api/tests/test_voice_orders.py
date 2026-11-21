@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from mission_snapshot import run_body, run_path
 
 from hannibal_api.application.ports import RecordingUnusable
 from hannibal_api.domain.voice import VoiceRecording
@@ -55,9 +56,7 @@ class VoiceHarness:
         self.recordings: InMemoryVoiceRecordingStore = container.recordings()
 
     def start_mission(self) -> str:
-        response = self.client.post(
-            "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal"}
-        )
+        response = self.client.put(run_path(), json=run_body())
         mission_id = str(response.json()["id"])
         for _ in range(int(40 / RUNNER_PERIOD_S)):
             self.clock.now += RUNNER_PERIOD_S

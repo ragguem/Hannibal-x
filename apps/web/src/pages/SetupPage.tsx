@@ -41,7 +41,7 @@ export function SetupPage() {
     if (!scenario || !ship) return;
     start.mutate(
       { scenario_id: scenario.id, player_ship: ship, autopilot: options.autopilot, manual_helm: options.manualHelm },
-      { onSuccess: (mission) => void navigate(`/missions/${encodeURIComponent(mission.id)}`) },
+      { onSuccess: (planned) => void navigate(`/missions/${encodeURIComponent(planned.id)}`) },
     );
   };
 

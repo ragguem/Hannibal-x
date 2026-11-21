@@ -1,0 +1,46 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ShipSnapshot",
+  "additionalProperties": false,
+  "properties": {
+    "call_sign": {
+      "title": "Call Sign",
+      "type": "string"
+    },
+    "class_code": {
+      "title": "Class Code",
+      "type": "string"
+    },
+    "length_meters": {
+      "exclusiveMinimum": 0,
+      "title": "Length Meters",
+      "type": "number"
+    },
+    "max_speed_knots": {
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "title": "Max Speed Knots",
+      "type": "integer"
+    },
+    "min_speed_knots": {
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "title": "Min Speed Knots",
+      "type": "integer"
+    },
+    "turn_radius_meters": {
+      "exclusiveMinimum": 0,
+      "title": "Turn Radius Meters",
+      "type": "number"
+    }
+  },
+  "required": [
+    "call_sign",
+    "class_code",
+    "min_speed_knots",
+    "max_speed_knots",
+    "turn_radius_meters",
+    "length_meters"
+  ],
+  "title": "ShipSnapshot",
+  "type": "object"
+}

@@ -1,0 +1,187 @@
+{
+  "$defs": {
+    "ParticipantView": {
+      "additionalProperties": false,
+      "properties": {
+        "game_role": {
+          "title": "Game Role",
+          "type": "string"
+        },
+        "ship": {
+          "title": "Ship",
+          "type": "string"
+        },
+        "user_id": {
+          "format": "uuid",
+          "title": "User Id",
+          "type": "string"
+        },
+        "username": {
+          "title": "Username",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user_id",
+        "username",
+        "ship",
+        "game_role"
+      ],
+      "title": "ParticipantView",
+      "type": "object"
+    },
+    "PlannedMission": {
+      "additionalProperties": false,
+      "properties": {
+        "archived_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Archived At"
+        },
+        "autopilot": {
+          "title": "Autopilot",
+          "type": "boolean"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "launched_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Launched At"
+        },
+        "manual_helm": {
+          "title": "Manual Helm",
+          "type": "boolean"
+        },
+        "participants": {
+          "items": {
+            "$ref": "#/$defs/ParticipantView"
+          },
+          "title": "Participants",
+          "type": "array"
+        },
+        "player_ship": {
+          "title": "Player Ship",
+          "type": "string"
+        },
+        "run_phase": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Phase lue dans ops_read.mission_runs ; absente avant lancement",
+          "title": "Run Phase"
+        },
+        "scenario_id": {
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "scenario_title": {
+          "title": "Scenario Title",
+          "type": "string"
+        },
+        "scenario_version": {
+          "minimum": 1,
+          "title": "Scenario Version",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "planned",
+            "ready",
+            "launching",
+            "running",
+            "archived"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "scenario_id",
+        "scenario_version",
+        "scenario_title",
+        "player_ship",
+        "autopilot",
+        "manual_helm",
+        "state",
+        "created_at",
+        "launched_at",
+        "archived_at",
+        "run_phase",
+        "finished_at",
+        "participants"
+      ],
+      "title": "PlannedMission",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:MissionHistory",
+  "additionalProperties": false,
+  "properties": {
+    "missions": {
+      "description": "Plus récentes d'abord",
+      "items": {
+        "$ref": "#/$defs/PlannedMission"
+      },
+      "title": "Missions",
+      "type": "array"
+    },
+    "next_cursor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Next Cursor"
+    }
+  },
+  "required": [
+    "missions",
+    "next_cursor"
+  ],
+  "title": "MissionHistory",
+  "type": "object"
+}

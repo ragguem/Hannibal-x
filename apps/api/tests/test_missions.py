@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from mission_snapshot import run_body, run_path
 
 from hannibal_api.application.dispatch import Dispatcher
 from hannibal_api.application.missions import Missions
@@ -52,10 +53,8 @@ class MissionHarness:
         return asyncio.run(self.dispatcher.dispatch_next())
 
     def start(self, **body: Any) -> dict[str, Any]:
-        response = self.client.post(
-            "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal", **body}
-        )
-        assert response.status_code == 201, response.text
+        response = self.client.put(run_path(), json=run_body(**body))
+        assert response.status_code == 200, response.text
         return dict(response.json())
 
     def read(self, mission_id: str) -> dict[str, Any]:
@@ -72,12 +71,22 @@ def harness() -> MissionHarness:
     return MissionHarness()
 
 
-def test_list_scenarios(harness: MissionHarness) -> None:
-    scenarios = harness.client.get("/v1/scenarios").json()
-    assert len(scenarios) == 6
-    unknown_contact = next(s for s in scenarios if s["id"] == "contact_inconnu")
-    assert unknown_contact["guide_ship"] == "hannibal"
-    assert unknown_contact["playable_ships"][0] == "hannibal"
+def test_replayed_run_never_launches_twice(harness: MissionHarness) -> None:
+    path = run_path()
+    first = harness.client.put(path, json=run_body())
+    replay = harness.client.put(path, json=run_body(player_ship="alfa"))
+    assert replay.status_code == 200
+    assert replay.json()["id"] == first.json()["id"]
+    assert replay.json()["player_ship"] == "hannibal"
+
+
+def test_run_applies_the_speed_limits_of_the_snapshot(harness: MissionHarness) -> None:
+    body = run_body()
+    body["ships"] = [{**ship, "max_speed_knots": 12} for ship in body["ships"]]
+    mission = harness.client.put(run_path(), json=body).json()
+    harness.advance(mission["id"], 40)
+    outcome = harness.client.post(f"/v1/missions/{mission['id']}/orders", json={"text": "ALL SHIPS SPEED 20"})
+    assert "12 nœuds" in outcome.text
 
 
 def test_mission_runs_end_to_end_without_screen(harness: MissionHarness) -> None:
@@ -170,14 +179,16 @@ def test_autopilot_and_reply_without_request(harness: MissionHarness) -> None:
 
 def test_refusals_carry_stable_codes(harness: MissionHarness) -> None:
     client = harness.client
-    unknown_scenario = client.post("/v1/missions", json={"scenario_id": "nope", "player_ship": "x"})
-    assert unknown_scenario.json()["code"] == "scenario_not_found"
-    unknown_ship = client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "x"})
+    invalid_body = run_body()
+    invalid_body["scenario"] = {"id": "sans_flotte"}
+    invalid = client.put(run_path(), json=invalid_body)
+    assert (invalid.status_code, invalid.json()["code"]) == (422, "scenario_invalid")
+    unknown_ship = client.put(run_path(), json=run_body(player_ship="x"))
     assert unknown_ship.json()["code"] == "ship_not_found"
     assert client.get("/v1/missions/nope").json()["code"] == "mission_not_found"
 
     mission = harness.start()
-    second = client.post("/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "alfa"})
+    second = client.put(run_path(), json=run_body(player_ship="alfa"))
     assert second.status_code == 409
     unknown_contact = client.post(
         f"/v1/missions/{mission['id']}/contacts/TRK999/classification", json={"classification": "ami"}
@@ -192,24 +203,23 @@ def test_refusals_carry_stable_codes(harness: MissionHarness) -> None:
 
 def test_real_mode_without_sim_bridge() -> None:
     harness = MissionHarness(adapters=AdapterMode.REAL)
-    response = harness.client.post(
-        "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal"}
-    )
+    response = harness.client.put(run_path(), json=run_body())
     assert response.status_code == 503
     assert response.json()["dependency"] == "sim-bridge"
 
 
 def test_internal_token_required_when_configured() -> None:
     client = MissionHarness(internal_token="s3cret").client
-    assert client.get("/v1/scenarios").status_code == 401
-    assert client.get("/v1/scenarios", headers={"X-Internal-Token": "s3cret"}).status_code == 200
+    path = run_path()
+    assert client.put(path, json=run_body()).status_code == 401
+    assert client.put(path, json=run_body(), headers={"X-Internal-Token": "s3cret"}).status_code == 200
+    assert client.get("/v1/missions/nope").status_code == 401
 
 
 def test_runner_advances_missions_by_itself() -> None:
     settings = ApiSettings(adapters=AdapterMode.FAKE, log_json=True, mission_runner_period_s=0.01)  # type: ignore[call-arg]
     with TestClient(create_app(settings)) as client:
-        body = {"scenario_id": "contact_inconnu", "player_ship": "hannibal"}
-        mission_id = client.post("/v1/missions", json=body).json()["id"]
+        mission_id = client.put(run_path(), json=run_body()).json()["id"]
 
         def guide_speed() -> float:
             return float(client.get(f"/v1/missions/{mission_id}").json()["ships"][0]["speed_mps"])
@@ -223,9 +233,7 @@ def test_runner_advances_missions_by_itself() -> None:
 
 def test_actions_are_audited_with_their_author(harness: MissionHarness) -> None:
     alice = {"X-Hx-User": "alice"}
-    mission = harness.client.post(
-        "/v1/missions", json={"scenario_id": "contact_inconnu", "player_ship": "hannibal"}, headers=alice
-    ).json()
+    mission = harness.client.put(run_path(), json=run_body(operator="alice")).json()
     harness.advance(mission["id"], 40)
     harness.client.post(
         f"/v1/missions/{mission['id']}/orders", json={"text": "ALL SHIPS TURN 30 STBD"}, headers=alice

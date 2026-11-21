@@ -2,6 +2,7 @@
 export const queryKeys = {
   session: ["session"] as const,
   scenarios: ["scenarios"] as const,
+  missionHistory: ["planning", "missions"] as const,
   missions: ["missions"] as const,
   mission: (missionId: string) => ["missions", missionId] as const,
   recommendations: (missionId: string) => ["missions", missionId, "recommendations"] as const,

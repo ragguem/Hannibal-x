@@ -16,14 +16,6 @@ class DependencyProbe(Protocol):
     async def check(self) -> ProbeResult: ...
 
 
-class ScenarioCatalog(Protocol):
-    """Scénarios validés par `hannibal_core.scenario.load`, indexés par identifiant."""
-
-    def all(self) -> list[dict[str, Any]]: ...
-
-    def get(self, scenario_id: str) -> dict[str, Any] | None: ...
-
-
 class Clock(Protocol):
     def __call__(self) -> float: ...
 

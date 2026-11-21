@@ -10,6 +10,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 from fastapi.testclient import TestClient
+from mission_snapshot import run_body, run_path
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -227,8 +228,7 @@ def test_api_records_a_mission_in_postgres(migrated_database: str) -> None:
     container.simulator.override(InMemorySimulator(settings.simulator_origin_lat_lon))
     with TestClient(create_app(settings, container)) as client:
         headers = {"X-Hx-User": "alice"}
-        body = {"scenario_id": "contact_inconnu", "player_ship": "hannibal"}
-        mission_id = client.post("/v1/missions", json=body, headers=headers).json()["id"]
+        mission_id = client.put(run_path(), json=run_body(operator="alice")).json()["id"]
         client.post(
             f"/v1/missions/{mission_id}/orders", json={"text": "ALL SHIPS TURN 30 STBD"}, headers=headers
         )

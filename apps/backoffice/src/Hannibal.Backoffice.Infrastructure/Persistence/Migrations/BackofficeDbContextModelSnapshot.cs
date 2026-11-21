@@ -87,6 +87,10 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("archived_at");
 
+                    b.Property<bool>("Autopilot")
+                        .HasColumnType("boolean")
+                        .HasColumnName("autopilot");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -97,9 +101,17 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("launched_at");
 
+                    b.Property<bool>("ManualHelm")
+                        .HasColumnType("boolean")
+                        .HasColumnName("manual_helm");
+
                     b.Property<Guid>("PlannedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("planned_by");
+
+                    b.Property<Guid>("PlayerShipId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_ship_id");
 
                     b.Property<string>("Runner")
                         .HasColumnType("text")
@@ -123,6 +135,8 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PlannedBy");
 
+                    b.HasIndex("PlayerShipId");
+
                     b.HasIndex("ScenarioId", "ScenarioVersion");
 
                     b.HasIndex("State", "CreatedAt", "Id")
@@ -130,7 +144,7 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
 
                     b.ToTable("missions", "planning", t =>
                         {
-                            t.HasCheckConstraint("ck_missions_state", "state IN ('planned', 'launching', 'running', 'finished', 'stopped', 'archived')");
+                            t.HasCheckConstraint("ck_missions_state", "state IN ('planned', 'ready', 'launching', 'running', 'finished', 'stopped', 'archived')");
                         });
                 });
 
@@ -434,6 +448,12 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", null)
                         .WithMany()
                         .HasForeignKey("PlannedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.ShipRow", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerShipId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

@@ -1,0 +1,27 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ParticipantPlan",
+  "additionalProperties": false,
+  "properties": {
+    "game_role": {
+      "title": "Game Role",
+      "type": "string"
+    },
+    "ship": {
+      "description": "Indicatif d'un navire actif de la flotte",
+      "title": "Ship",
+      "type": "string"
+    },
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "ship",
+    "game_role"
+  ],
+  "title": "ParticipantPlan",
+  "type": "object"
+}

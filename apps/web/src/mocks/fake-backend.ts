@@ -25,7 +25,9 @@ import type {
   UserView,
   VoiceOrderOutcome,
   Mission,
+  MissionHistory,
   Objective,
+  PlannedMission,
   OrderOutcome,
   RadioMessage,
   Recommendation,
@@ -54,6 +56,7 @@ const SCENARIOS: ScenarioSummary[] = [
     title: "Écran anti-surface",
     level: "confirmé",
     summary: "Écran en ligne de front face à une menace de surface.",
+    briefing: null,
     duration_s: 1200,
     guide_ship: "hannibal",
     playable_ships: ["hannibal", "alfa", "charlie"],
@@ -66,6 +69,7 @@ const FAKE_ROLES: RoleView[] = [
     label: "Instructeur",
     permissions: [
       "mission:play",
+      "mission:plan",
       "command:submit",
       "command:decide",
       "audit:read",
@@ -208,6 +212,7 @@ export interface FakeState {
   accounts?: FakeAccount[];
   catalog?: { classes: ShipClass[]; ships: CatalogShip[] };
   scenarioCatalog?: (ScenarioEntry & { sources: string[] })[];
+  planned?: PlannedMission[];
 }
 
 /** What the fake "hears" in every recording, unless a test sets `FakeBackend.heard`. */
@@ -551,6 +556,51 @@ export class FakeBackend {
     return SCENARIOS;
   }
 
+  /** What the back-office does: plan, then launch on the simulator under the same id. */
+  planAndLaunch(body: StartMission): PlannedMission {
+    this.require("mission:plan");
+    const mission = this.startMission(body);
+    const planned: PlannedMission = {
+      id: mission.id,
+      scenario_id: body.scenario_id,
+      scenario_version: 1,
+      scenario_title: SCENARIOS.find((s) => s.id === body.scenario_id)?.title ?? body.scenario_id,
+      player_ship: body.player_ship,
+      autopilot: body.autopilot,
+      manual_helm: body.manual_helm,
+      state: "running",
+      created_at: new Date(this.now()).toISOString(),
+      launched_at: new Date(this.now()).toISOString(),
+      archived_at: null,
+      run_phase: "running",
+      finished_at: null,
+      participants: [],
+    };
+    (this.state.planned ??= []).unshift(planned);
+    return planned;
+  }
+
+  listMissionHistory(): MissionHistory {
+    this.require("mission:plan");
+    return { missions: this.state.planned ?? [], next_cursor: null };
+  }
+
+  /** Already launched by `planAndLaunch`: replaying returns it unchanged. */
+  launchMission(id: string): PlannedMission {
+    this.require("mission:plan");
+    const planned = this.state.planned?.find((m) => m.id === id);
+    if (!planned) throw new FakeError(404, "not_found", "Mission inconnue.");
+    return planned;
+  }
+
+  archiveMission(id: string): PlannedMission {
+    const planned = this.launchMission(id);
+    planned.state = "archived";
+    planned.archived_at = new Date(this.now()).toISOString();
+    return planned;
+  }
+
+  /** The simulator side: tests start a mission directly, as `apps/api` does on launch. */
   startMission(body: StartMission): Mission {
     this.require("mission:play");
     const scenario = SCENARIOS.find((s) => s.id === body.scenario_id);

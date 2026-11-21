@@ -1,0 +1,67 @@
+{
+  "$defs": {
+    "GameRole": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "label"
+      ],
+      "title": "GameRole",
+      "type": "object"
+    },
+    "Player": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "username": {
+          "title": "Username",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "username"
+      ],
+      "title": "Player",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:PlanningOptions",
+  "additionalProperties": false,
+  "properties": {
+    "game_roles": {
+      "items": {
+        "$ref": "#/$defs/GameRole"
+      },
+      "title": "Game Roles",
+      "type": "array"
+    },
+    "players": {
+      "items": {
+        "$ref": "#/$defs/Player"
+      },
+      "title": "Players",
+      "type": "array"
+    }
+  },
+  "required": [
+    "players",
+    "game_roles"
+  ],
+  "title": "PlanningOptions",
+  "type": "object"
+}

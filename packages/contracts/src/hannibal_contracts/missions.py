@@ -7,6 +7,7 @@ CPA : distance au point de rapprochement maximal ; TCPA : temps restant avant ce
 """
 
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from pydantic import Field
@@ -25,11 +26,25 @@ class ScenarioSummary(ContractModel):
     guide_ship: str
 
 
-class StartMission(ContractModel):
-    scenario_id: str
+class ShipSnapshot(ContractModel):
+    call_sign: str
+    class_code: str
+    min_speed_knots: int = Field(gt=0, le=60)
+    max_speed_knots: int = Field(gt=0, le=60)
+    turn_radius_meters: float = Field(gt=0)
+    length_meters: float = Field(gt=0)
+
+
+class RunMission(ContractModel):
+    """Photo figée envoyée par le back-office au lancement : `apps/api` ne lit aucun catalogue."""
+
+    scenario_version: int = Field(ge=1)
+    scenario: dict[str, Any] = Field(description="Document ScenarioDocument publié, tel quel")
     player_ship: str = Field(description="Navire tenu par l'opérateur")
+    operator: str = Field(description="Identifiant de l'utilisateur qui tient le navire du joueur")
     autopilot: bool = Field(default=False, description="Le navire du joueur accuse et exécute seul")
     manual_helm: bool = Field(default=False, description="Le joueur tient la barre de son navire")
+    ships: list[ShipSnapshot] = Field(min_length=1, description="Caractéristiques des navires de la flotte")
 
 
 class MissionPhase(StrEnum):

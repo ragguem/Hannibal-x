@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/internal/missions/{mission_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Run Mission */
+        put: operations["run_mission_internal_missions__mission_id__run_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/audit": {
         parameters: {
             query?: never;
@@ -168,23 +185,6 @@ export interface paths {
         get: operations["health_v1_health_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/missions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start Mission */
-        post: operations["start_mission_v1_missions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -371,23 +371,6 @@ export interface paths {
         };
         /** Ready */
         get: operations["ready_v1_ready_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/scenarios": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Scenarios */
-        get: operations["list_scenarios_v1_scenarios_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1056,27 +1039,47 @@ export interface components {
             /** Approve */
             approve: boolean;
         };
-        /** ScenarioSummary */
-        ScenarioSummary: {
-            /** Briefing */
-            briefing?: string | null;
-            /** Duration S */
-            duration_s: number;
-            /** Guide Ship */
-            guide_ship: string;
-            /** Id */
-            id: string;
-            /** Level */
-            level?: string | null;
+        /**
+         * RunMission
+         * @description Photo figée envoyée par le back-office au lancement : `apps/api` ne lit aucun catalogue.
+         */
+        RunMission: {
             /**
-             * Playable Ships
-             * @description Navires que l'opérateur peut tenir, le guide en premier
+             * Autopilot
+             * @description Le navire du joueur accuse et exécute seul
+             * @default false
              */
-            playable_ships: string[];
-            /** Summary */
-            summary?: string | null;
-            /** Title */
-            title: string;
+            autopilot: boolean;
+            /**
+             * Manual Helm
+             * @description Le joueur tient la barre de son navire
+             * @default false
+             */
+            manual_helm: boolean;
+            /**
+             * Operator
+             * @description Identifiant de l'utilisateur qui tient le navire du joueur
+             */
+            operator: string;
+            /**
+             * Player Ship
+             * @description Navire tenu par l'opérateur
+             */
+            player_ship: string;
+            /**
+             * Scenario
+             * @description Document ScenarioDocument publié, tel quel
+             */
+            scenario: {
+                [key: string]: unknown;
+            };
+            /** Scenario Version */
+            scenario_version: number;
+            /**
+             * Ships
+             * @description Caractéristiques des navires de la flotte
+             */
+            ships: components["schemas"]["ShipSnapshot"][];
         };
         /** SetAutopilot */
         SetAutopilot: {
@@ -1120,6 +1123,21 @@ export interface components {
              * @description Libellé vu par le joueur (« Vous », « En station »…)
              */
             status_for_player: string;
+        };
+        /** ShipSnapshot */
+        ShipSnapshot: {
+            /** Call Sign */
+            call_sign: string;
+            /** Class Code */
+            class_code: string;
+            /** Length Meters */
+            length_meters: number;
+            /** Max Speed Knots */
+            max_speed_knots: number;
+            /** Min Speed Knots */
+            min_speed_knots: number;
+            /** Turn Radius Meters */
+            turn_radius_meters: number;
         };
         /** ShipsPassing */
         ShipsPassing: {
@@ -1165,28 +1183,6 @@ export interface components {
             track_by_ship?: {
                 [key: string]: components["schemas"]["TrackPoint"][];
             };
-        };
-        /** StartMission */
-        StartMission: {
-            /**
-             * Autopilot
-             * @description Le navire du joueur accuse et exécute seul
-             * @default false
-             */
-            autopilot: boolean;
-            /**
-             * Manual Helm
-             * @description Le joueur tient la barre de son navire
-             * @default false
-             */
-            manual_helm: boolean;
-            /**
-             * Player Ship
-             * @description Navire tenu par l'opérateur
-             */
-            player_ship: string;
-            /** Scenario Id */
-            scenario_id: string;
         };
         /** Station */
         Station: {
@@ -1318,6 +1314,86 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    run_mission_internal_missions__mission_id__run_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mission_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunMission"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mission"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     read_audit_v1_audit_get: {
         parameters: {
             query?: {
@@ -2052,87 +2128,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
-                };
-            };
-        };
-    };
-    start_mission_v1_missions_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Utilisateur authentifié, posé par le back-office */
-                "X-Hx-User"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StartMission"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Mission"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };
@@ -3047,80 +3042,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Readiness"];
-                };
-            };
-        };
-    };
-    list_scenarios_v1_scenarios_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ScenarioSummary"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

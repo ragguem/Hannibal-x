@@ -54,7 +54,7 @@ public sealed class BackofficeDbContext(DbContextOptions<BackofficeDbContext> op
     public const string CatalogSchema = "catalog";
     public const string PlanningSchema = "planning";
     public const string MigrationsHistoryTable = "__ef_migrations_history";
-    public static readonly string[] MissionStates = ["planned", "launching", "running", "finished", "stopped", "archived"];
+    public static readonly string[] MissionStates = ["planned", "ready", "launching", "running", "finished", "stopped", "archived"];
 
     public DbSet<RoleRow> Roles => Set<RoleRow>();
     public DbSet<RolePermissionRow> RolePermissions => Set<RolePermissionRow>();
@@ -206,6 +206,9 @@ public sealed class BackofficeDbContext(DbContextOptions<BackofficeDbContext> op
             mission.Property(m => m.Id).HasColumnName("id").ValueGeneratedNever();
             mission.Property(m => m.ScenarioId).HasColumnName("scenario_id");
             mission.Property(m => m.ScenarioVersion).HasColumnName("scenario_version");
+            mission.Property(m => m.PlayerShipId).HasColumnName("player_ship_id");
+            mission.Property(m => m.Autopilot).HasColumnName("autopilot");
+            mission.Property(m => m.ManualHelm).HasColumnName("manual_helm");
             mission.Property(m => m.State).HasColumnName("state");
             mission.Property(m => m.Runner).HasColumnName("runner");
             mission.Property(m => m.PlannedBy).HasColumnName("planned_by");
@@ -215,6 +218,7 @@ public sealed class BackofficeDbContext(DbContextOptions<BackofficeDbContext> op
             mission.HasOne<ScenarioVersionRow>().WithMany()
                 .HasForeignKey(m => new { m.ScenarioId, m.ScenarioVersion }).OnDelete(DeleteBehavior.Restrict);
             mission.HasOne<UserAccountRow>().WithMany().HasForeignKey(m => m.PlannedBy).OnDelete(DeleteBehavior.Restrict);
+            mission.HasOne<ShipRow>().WithMany().HasForeignKey(m => m.PlayerShipId).OnDelete(DeleteBehavior.Restrict);
             mission.HasMany(m => m.Participants).WithOne().HasForeignKey(p => p.MissionId).OnDelete(DeleteBehavior.Cascade);
         });
 

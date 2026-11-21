@@ -16,7 +16,7 @@ interface NavEntry {
 
 const NAV: NavEntry[] = [
   { to: "/", section: "/", label: "Tableau de bord", icon: "home" },
-  { to: "/missions/nouvelle", section: "/missions/*", label: "Missions", icon: "target", permission: "mission:play" },
+  { to: "/missions", section: "/missions/*", label: "Missions", icon: "target", permission: "mission:plan" },
   { to: "/doctrine", section: "/doctrine/*", label: "Doctrine", icon: "book", permission: "doctrine:ask" },
   { to: "/registre", section: "/registre/*", label: "Registre", icon: "list", permission: "audit:read" },
   { to: "/utilisateurs", section: "/utilisateurs/*", label: "Utilisateurs", icon: "user", permission: "user:manage" },

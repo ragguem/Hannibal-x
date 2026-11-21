@@ -118,7 +118,10 @@ export function createHandlers(backend = new FakeBackend(), persistence?: Persis
       }, 204),
     ),
     http.get("*/v1/scenarios", handle(() => b.listScenarios())),
-    http.post("*/v1/missions", handle(({ body }) => b.startMission(body as StartMission), 201)),
+    http.post("*/v1/planning/missions", handle(({ body }) => b.planAndLaunch(body as StartMission), 201)),
+    http.post("*/v1/planning/missions/:id/launch", handle(({ params }) => b.launchMission(params.id!))),
+    http.post("*/v1/planning/missions/:id/archive", handle(({ params }) => b.archiveMission(params.id!))),
+    http.get("*/v1/planning/missions", handle(() => b.listMissionHistory())),
     http.get("*/v1/missions/:missionId/events", events),
     http.get("*/v1/missions/:missionId", handle(({ params }) => b.readMission(params.missionId!))),
     http.delete(

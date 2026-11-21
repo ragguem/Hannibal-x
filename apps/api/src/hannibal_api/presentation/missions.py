@@ -18,6 +18,7 @@ from hannibal_api.application.missions import (
     MissionRun,
     Missions,
     NotFound,
+    UnknownShip,
     Unprocessable,
 )
 from hannibal_api.application.voice_orders import VoiceOrderResult, VoiceOrders
@@ -68,20 +69,6 @@ async def on_mission_error(_: Request, error: Exception) -> JSONResponse:
     else:
         status = HTTPStatus.CONFLICT
     return JSONResponse(error_body(error.code, error.message), status_code=status)
-
-
-def to_scenario_summary(scenario: dict[str, Any]) -> contracts.ScenarioSummary:
-    guide = next(ship["nom"] for ship in scenario["flotte"] if ship["role"] == "guide")
-    return contracts.ScenarioSummary(
-        id=scenario["id"],
-        title=scenario["titre"],
-        level=scenario.get("niveau"),
-        duration_s=int(scenario["duree_s"]),
-        summary=scenario.get("resume"),
-        briefing=scenario.get("briefing"),
-        playable_ships=[guide] + [ship["nom"] for ship in scenario["flotte"] if ship["nom"] != guide],
-        guide_ship=guide,
-    )
 
 
 def to_objective(check: dict[str, Any]) -> contracts.Objective:
@@ -299,6 +286,31 @@ def to_voice_order_outcome(result: VoiceOrderResult) -> contracts.VoiceOrderOutc
     )
 
 
+def mission_runs_router(missions: Missions, settings: BaseServiceSettings) -> APIRouter:
+    """Lancement par le back-office seul : la route n'est pas relayée au navigateur."""
+    router = APIRouter(
+        prefix="/internal", tags=["missions"], dependencies=[Depends(require_internal_token(settings))]
+    )
+
+    @router.put("/missions/{mission_id}/run", response_model=contracts.Mission, responses=ERROR_RESPONSES)
+    async def run_mission(mission_id: UUID, body: contracts.RunMission) -> contracts.Mission:
+        player = next((ship for ship in body.ships if ship.call_sign == body.player_ship), None)
+        if player is None:
+            raise UnknownShip(ship=body.player_ship)
+        run = await missions.run(
+            str(mission_id),
+            body.scenario,
+            body.player_ship,
+            operator=body.operator,
+            autopilot=body.autopilot,
+            manual_helm=body.manual_helm,
+            speed_kn=(player.min_speed_knots, player.max_speed_knots),
+        )
+        return to_mission(run)
+
+    return router
+
+
 def missions_router(
     missions: Missions,
     commands: Commands,
@@ -310,28 +322,6 @@ def missions_router(
     router = APIRouter(
         prefix="/v1", tags=["missions"], dependencies=[Depends(require_internal_token(settings))]
     )
-
-    @router.get("/scenarios", response_model=list[contracts.ScenarioSummary], responses=ERROR_RESPONSES)
-    async def list_scenarios() -> list[contracts.ScenarioSummary]:
-        return [to_scenario_summary(scenario) for scenario in missions.list_scenarios()]
-
-    @router.post(
-        "/missions",
-        status_code=HTTPStatus.CREATED,
-        response_model=contracts.Mission,
-        responses=ERROR_RESPONSES,
-    )
-    async def start_mission(
-        body: contracts.StartMission, user: AuthenticatedUser = "local"
-    ) -> contracts.Mission:
-        run = await missions.start(
-            body.scenario_id,
-            body.player_ship,
-            operator=user,
-            autopilot=body.autopilot,
-            manual_helm=body.manual_helm,
-        )
-        return to_mission(run)
 
     @router.get("/missions/{mission_id}", response_model=contracts.Mission, responses=ERROR_RESPONSES)
     async def read_mission(mission_id: str) -> contracts.Mission:

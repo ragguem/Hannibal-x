@@ -19,6 +19,14 @@ export type ScenarioEntry = Omit<BackofficeSchemas["ScenarioEntryBody"], "publis
   published_version: number | null;
   latest_version: number;
 };
+export type ScenarioSummary = WithNumbers<BackofficeSchemas["ScenarioSummaryBody"]>;
+/** Planned by the back-office, which freezes the published version and launches it on `apps/api`. */
+export type StartMission = Omit<BackofficeSchemas["PlanMissionBody"], "participants">;
+export type PlannedMission = WithNumbers<BackofficeSchemas["PlannedMissionBody"]>;
+export interface MissionHistory {
+  missions: PlannedMission[];
+  next_cursor: string | null;
+}
 
 export type Mission = Schemas["Mission"];
 export type MissionPhase = Schemas["MissionPhase"];
@@ -29,8 +37,6 @@ export type RadioMessage = Schemas["RadioMessage"];
 export type Objective = Schemas["Objective"];
 export type Debrief = Schemas["Debrief"];
 export type AuthorizationRequest = Schemas["AuthorizationRequest"];
-export type ScenarioSummary = Schemas["ScenarioSummary"];
-export type StartMission = Schemas["StartMission"];
 export type SubmitOrder = Schemas["SubmitOrder"];
 export type OrderMode = Schemas["OrderMode"];
 export type OrderOutcome = Schemas["OrderOutcome"];
@@ -77,6 +83,7 @@ export interface SignIn {
 
 export const PERMISSIONS = [
   "mission:play",
+  "mission:plan",
   "command:submit",
   "command:decide",
   "audit:read",
@@ -94,7 +101,11 @@ export interface ApiPort {
   signIn(body: SignIn): Promise<SessionView>;
   signOut(): Promise<void>;
   listScenarios(): Promise<ScenarioSummary[]>;
-  startMission(body: StartMission): Promise<Mission>;
+  /** Plans then launches (`mission:plan`); replaying never starts the mission twice. */
+  startMission(body: StartMission): Promise<PlannedMission>;
+  /** Planned missions, most recent first, with their run phase once launched. */
+  listMissionHistory(cursor?: string): Promise<MissionHistory>;
+  archiveMission(missionId: string): Promise<PlannedMission>;
   readMission(missionId: string): Promise<Mission>;
   stopMission(missionId: string): Promise<void>;
   submitOrder(missionId: string, body: SubmitOrder): Promise<OrderOutcome>;

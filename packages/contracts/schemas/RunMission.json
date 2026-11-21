@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "ShipSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "call_sign": {
+          "title": "Call Sign",
+          "type": "string"
+        },
+        "class_code": {
+          "title": "Class Code",
+          "type": "string"
+        },
+        "length_meters": {
+          "exclusiveMinimum": 0,
+          "title": "Length Meters",
+          "type": "number"
+        },
+        "max_speed_knots": {
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Max Speed Knots",
+          "type": "integer"
+        },
+        "min_speed_knots": {
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Min Speed Knots",
+          "type": "integer"
+        },
+        "turn_radius_meters": {
+          "exclusiveMinimum": 0,
+          "title": "Turn Radius Meters",
+          "type": "number"
+        }
+      },
+      "required": [
+        "call_sign",
+        "class_code",
+        "min_speed_knots",
+        "max_speed_knots",
+        "turn_radius_meters",
+        "length_meters"
+      ],
+      "title": "ShipSnapshot",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:RunMission",
+  "additionalProperties": false,
+  "description": "Photo figée envoyée par le back-office au lancement : `apps/api` ne lit aucun catalogue.",
+  "properties": {
+    "autopilot": {
+      "default": false,
+      "description": "Le navire du joueur accuse et exécute seul",
+      "title": "Autopilot",
+      "type": "boolean"
+    },
+    "manual_helm": {
+      "default": false,
+      "description": "Le joueur tient la barre de son navire",
+      "title": "Manual Helm",
+      "type": "boolean"
+    },
+    "operator": {
+      "description": "Identifiant de l'utilisateur qui tient le navire du joueur",
+      "title": "Operator",
+      "type": "string"
+    },
+    "player_ship": {
+      "description": "Navire tenu par l'opérateur",
+      "title": "Player Ship",
+      "type": "string"
+    },
+    "scenario": {
+      "additionalProperties": true,
+      "description": "Document ScenarioDocument publié, tel quel",
+      "title": "Scenario",
+      "type": "object"
+    },
+    "scenario_version": {
+      "minimum": 1,
+      "title": "Scenario Version",
+      "type": "integer"
+    },
+    "ships": {
+      "description": "Caractéristiques des navires de la flotte",
+      "items": {
+        "$ref": "#/$defs/ShipSnapshot"
+      },
+      "minItems": 1,
+      "title": "Ships",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scenario_version",
+    "scenario",
+    "player_ship",
+    "operator",
+    "ships"
+  ],
+  "title": "RunMission",
+  "type": "object"
+}

@@ -9,6 +9,7 @@ public sealed class InMemoryScenarioCatalog : IScenarioCatalog
 {
     private readonly ConcurrentDictionary<string, ScenarioEntry> _entries = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(string Id, int Version), string> _sources = new();
+    private readonly ConcurrentDictionary<(string Id, int Version), string> _documents = new();
     private readonly Lock _writes = new();
 
     public InMemoryScenarioCatalog(IScenarioDocuments documents)
@@ -18,6 +19,7 @@ public sealed class InMemoryScenarioCatalog : IScenarioCatalog
             var document = documents.Parse(yaml);
             _entries[document.Id] = new ScenarioEntry(document.Id, document.Title, document.Level, 1, 1, document.ContentSha256, null);
             _sources[(document.Id, 1)] = yaml;
+            _documents[(document.Id, 1)] = document.Json;
         }
     }
 
@@ -35,6 +37,7 @@ public sealed class InMemoryScenarioCatalog : IScenarioCatalog
             {
                 return Task.FromResult(false);
             }
+            _documents[(document.Id, version.Version)] = document.Json;
             var published = _entries.GetValueOrDefault(document.Id)?.PublishedVersion;
             _entries[document.Id] = new ScenarioEntry(document.Id, document.Title, document.Level, published, version.Version, document.ContentSha256, null);
             return Task.FromResult(true);
@@ -49,6 +52,9 @@ public sealed class InMemoryScenarioCatalog : IScenarioCatalog
 
     public Task<string?> SourceOfAsync(string id, int version, CancellationToken cancellationToken) =>
         Task.FromResult(_sources.GetValueOrDefault((id, version)));
+
+    public Task<string?> DocumentOfAsync(string id, int version, CancellationToken cancellationToken) =>
+        Task.FromResult(_documents.GetValueOrDefault((id, version)));
 
     private bool Update(string id, Func<ScenarioEntry, ScenarioEntry> change)
     {

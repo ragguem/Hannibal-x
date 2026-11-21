@@ -123,8 +123,8 @@ public sealed class SessionAndRelayTests : IAsyncDisposable
     }
 
     [Theory]
-    [InlineData(null, "GET", "/v1/scenarios", HttpStatusCode.Unauthorized)]
-    [InlineData("olivia", "GET", "/v1/scenarios", HttpStatusCode.OK)]
+    [InlineData(null, "GET", "/v1/missions/" + MissionId, HttpStatusCode.Unauthorized)]
+    [InlineData("olivia", "GET", "/v1/missions/" + MissionId, HttpStatusCode.OK)]
     [InlineData("olivia", "POST", "/v1/commands/" + MissionId + "/decision", HttpStatusCode.Forbidden)]
     [InlineData("simon", "POST", "/v1/commands/" + MissionId + "/decision", HttpStatusCode.OK)]
     [InlineData("olivia", "GET", "/v1/audit?limit=2", HttpStatusCode.Forbidden)]

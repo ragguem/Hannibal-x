@@ -73,6 +73,7 @@ public static class ErrorHandling
                 {
                     RuleKind.NotFound => (StatusCodes.Status404NotFound, "not_found", "Ressource introuvable."),
                     RuleKind.Conflict => (StatusCodes.Status409Conflict, "conflict", "Conflit avec l'état actuel."),
+                    RuleKind.Unavailable => (StatusCodes.Status503ServiceUnavailable, "dependency_unavailable", "Service indisponible, réessayer."),
                     _ => (StatusCodes.Status422UnprocessableEntity, "invalid_request", "Requête refusée."),
                 };
                 Log(context).LogWarning("request_failed code={Code} detail={Detail}", code, e.Message);

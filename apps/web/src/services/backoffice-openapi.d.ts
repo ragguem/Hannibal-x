@@ -144,6 +144,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/scenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScenarioSummaryBody"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/session": {
         parameters: {
             query?: never;
@@ -875,6 +910,250 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/planning/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlanningOptionsBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/planning/missions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MissionHistoryBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlanMissionBody"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlannedMissionBody"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/planning/missions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlannedMissionBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/planning/missions/{id}/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlannedMissionBody"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/planning/missions/{id}/launch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlannedMissionBody"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/planning/missions/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlannedMissionBody"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -897,6 +1176,10 @@ export interface components {
             username: string;
             role: string;
         };
+        GameRoleBody: {
+            code: string;
+            label: string;
+        };
         Health: {
             status: string;
             service: string;
@@ -908,6 +1191,61 @@ export interface components {
         IssuedPasswordBody: {
             user: components["schemas"]["UserViewBody"];
             temporary_password: string;
+        };
+        MissionHistoryBody: {
+            missions: components["schemas"]["PlannedMissionBody"][];
+            next_cursor: null | string;
+        };
+        ParticipantBody: {
+            /** Format: uuid */
+            user_id: string;
+            ship: string;
+            game_role: string;
+        };
+        ParticipantViewBody: {
+            /** Format: uuid */
+            user_id: string;
+            username: string;
+            ship: string;
+            game_role: string;
+        };
+        PlanMissionBody: {
+            scenario_id: string;
+            player_ship: string;
+            autopilot: boolean;
+            manual_helm: boolean;
+            participants: null | components["schemas"]["ParticipantBody"][];
+        };
+        PlannedMissionBody: {
+            /** Format: uuid */
+            id: string;
+            scenario_id: string;
+            /** Format: int32 */
+            scenario_version: number | string;
+            scenario_title: string;
+            player_ship: string;
+            autopilot: boolean;
+            manual_helm: boolean;
+            state: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            launched_at: null | string;
+            /** Format: date-time */
+            archived_at: null | string;
+            run_phase: null | string;
+            /** Format: date-time */
+            finished_at: null | string;
+            participants: components["schemas"]["ParticipantViewBody"][];
+        };
+        PlanningOptionsBody: {
+            players: components["schemas"]["PlayerBody"][];
+            game_roles: components["schemas"]["GameRoleBody"][];
+        };
+        PlayerBody: {
+            /** Format: uuid */
+            id: string;
+            username: string;
         };
         PublishScenarioBody: {
             /** Format: int32 */
@@ -934,6 +1272,17 @@ export interface components {
             latest_version: number | string;
             /** Format: date-time */
             archived_at: null | string;
+        };
+        ScenarioSummaryBody: {
+            id: string;
+            title: string;
+            level: null | string;
+            /** Format: int32 */
+            duration_s: number | string;
+            summary: null | string;
+            briefing: null | string;
+            playable_ships: string[];
+            guide_ship: string;
         };
         SessionViewBody: {
             username: string;

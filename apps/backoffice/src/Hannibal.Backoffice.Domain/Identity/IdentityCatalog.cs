@@ -4,6 +4,7 @@ namespace Hannibal.Backoffice.Domain.Identity;
 public static class Permission
 {
     public const string MissionPlay = "mission:play";
+    public const string MissionPlan = "mission:plan";
     public const string CommandSubmit = "command:submit";
     public const string CommandDecide = "command:decide";
     public const string AuditRead = "audit:read";
@@ -40,15 +41,15 @@ public static class IdentityCatalog
             RoleCode.Supervisor,
             "Superviseur",
             [
-                Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead,
-                Permission.DoctrineAsk, Permission.GlossaryRead, Permission.DoctrineClassified,
+                Permission.MissionPlay, Permission.MissionPlan, Permission.CommandSubmit, Permission.CommandDecide,
+                Permission.AuditRead, Permission.DoctrineAsk, Permission.GlossaryRead, Permission.DoctrineClassified,
             ]),
         new(
             RoleCode.Admin,
             "Administrateur",
             [
-                Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead,
-                Permission.UserManage, Permission.CatalogManage, Permission.DoctrineAsk, Permission.GlossaryRead,
+                Permission.MissionPlay, Permission.MissionPlan, Permission.CommandSubmit, Permission.CommandDecide,
+                Permission.AuditRead, Permission.UserManage, Permission.CatalogManage, Permission.DoctrineAsk, Permission.GlossaryRead,
                 Permission.DoctrineClassified,
             ]),
     ];

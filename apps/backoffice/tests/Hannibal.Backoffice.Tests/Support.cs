@@ -35,4 +35,16 @@ internal static class Contract
         Assert.True(result.IsValid, $"{schema} invalide : {text}");
         return JsonNode.Parse(text)!;
     }
+
+    public static async Task<JsonArray> AssertEachMatchesAsync(HttpResponseMessage response, string schema)
+    {
+        var text = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var document = JsonDocument.Parse(text);
+        var loaded = Schemas.GetOrAdd(schema, name => new Lazy<JsonSchema>(() => JsonSchema.FromFile(Path.Combine(AppContext.BaseDirectory, "schemas", name + ".json")))).Value;
+        foreach (var item in document.RootElement.EnumerateArray())
+        {
+            Assert.True(loaded.Evaluate(item).IsValid, $"{schema} invalide : {item}");
+        }
+        return JsonNode.Parse(text)!.AsArray();
+    }
 }

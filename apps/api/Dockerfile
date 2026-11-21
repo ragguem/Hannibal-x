@@ -33,8 +33,7 @@ LABEL org.opencontainers.image.title="hannibal-api" org.opencontainers.image.ver
 RUN groupadd --system --gid 10001 hx && useradd --system --uid 10001 --gid hx --no-create-home hx \
     && mkdir -p /var/lib/hannibal/recordings && chown hx:hx /var/lib/hannibal/recordings
 COPY --from=build /opt/venv /opt/venv
-COPY apps/api/scenarios /app/scenarios
-ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 HX_API_SCENARIOS_DIR=/app/scenarios
+ENV PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 USER hx
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \

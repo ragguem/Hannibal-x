@@ -1,0 +1,21 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:Player",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "username": {
+      "title": "Username",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "username"
+  ],
+  "title": "Player",
+  "type": "object"
+}
