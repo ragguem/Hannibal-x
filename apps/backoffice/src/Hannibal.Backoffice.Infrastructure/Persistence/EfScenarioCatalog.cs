@@ -7,10 +7,10 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence;
 public sealed class EfScenarioCatalog(BackofficeDbContext dbContext) : IScenarioCatalog
 {
     public async Task<IReadOnlyList<ScenarioEntry>> ListAsync(CancellationToken cancellationToken) =>
-        await Entries().OrderBy(e => e.Id).ToListAsync(cancellationToken).ConfigureAwait(false);
+        await Entries(dbContext.Scenarios.OrderBy(s => s.Id)).ToListAsync(cancellationToken).ConfigureAwait(false);
 
     public async Task<ScenarioEntry?> FindAsync(string id, CancellationToken cancellationToken) =>
-        await Entries().Where(e => e.Id == id).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        await Entries(dbContext.Scenarios.Where(s => s.Id == id)).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 
     public async Task<bool> TryAddVersionAsync(NewScenarioVersion version, CancellationToken cancellationToken)
     {
@@ -71,8 +71,8 @@ public sealed class EfScenarioCatalog(BackofficeDbContext dbContext) : IScenario
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
-    private IQueryable<ScenarioEntry> Entries() =>
-        from s in dbContext.Scenarios.AsNoTracking()
+    private IQueryable<ScenarioEntry> Entries(IQueryable<ScenarioRow> scenarios) =>
+        from s in scenarios.AsNoTracking()
         let latest = dbContext.ScenarioVersions.Where(v => v.ScenarioId == s.Id).OrderByDescending(v => v.Version).First()
         select new ScenarioEntry(s.Id, s.Title, s.Level, s.PublishedVersion, latest.Version, latest.ContentSha256, s.ArchivedAt);
 }
