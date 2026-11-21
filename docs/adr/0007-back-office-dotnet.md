@@ -38,3 +38,27 @@ La 1.1.0 prévoit un seul langage serveur (Python 3.12). Le domaine se partage p
 - L'authentification et le RBAC passent du Lot 2 Python à `apps/backoffice`.
 - Un saut réseau de plus entre le front et `apps/api` (YARP, en mémoire sur la même machine, SSE compris).
 - Un système tiers .NET, Java ou autre s'intègre par les mêmes contrats, sans dépendre du langage d'un service.
+
+## Complément du 2026-11-21 — Lot 7
+
+Constat : à la fin du Lot 6, le back-office ne porte que les comptes, les rôles et les sessions. Scénarios, missions,
+navires et lecture du registre sont restés dans `apps/api`, qui mélange gestion, exécution et IA.
+
+Décision :
+
+- Règle de partage : ce qui a besoin de `packages/core` ou d'un modèle pendant la mission reste en Python ; tout le
+  reste appartient au back-office.
+- Le back-office porte en plus : l'administration des utilisateurs, le catalogue des **classes de navires**
+  (caractéristiques) et des **navires**, les **scénarios** (import et export YAML validés, versions, publication ;
+  éditeur par formulaires plus tard), la **planification des missions** (participants, statuts) et
+  l'**historique**, la lecture du registre. Schémas à lui : `identity`, `catalog`, `planning`.
+- Un seul écrivain par schéma ; le back-office appelle `apps/api`, jamais l'inverse ; l'identifiant de mission naît
+  dans le back-office ; le back-office est le seul à autoriser.
+- `apps/api` garde la mission en cours, les ordres, la voix, les décisions, l'écriture du registre, le débrief,
+  la doctrine et le glossaire. `ops.missions` devient le déroulé d'une mission planifiée, sous le même identifiant.
+- Au lancement, le back-office envoie à `apps/api` une photo figée (version du scénario et caractéristiques des
+  navires) par un contrat interne ; `apps/api` ne lit plus de fichier de scénario ni de catalogue.
+
+Conséquences : environ 8 semaines (Lot 7 du plan de réalisation) ; l'identifiant de mission est partagé entre les
+deux services, couvert par des tests de contrat des deux côtés ; les goldens ne changent pas, les caractéristiques
+par défaut des classes reprenant les limites actuelles.

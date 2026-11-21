@@ -8,6 +8,6 @@
 | [0004](0004-version-unique-produit.md) | Une version de produit, des contrats versionnés à part | accepté |
 | [0005](0005-contrats-d-abord.md) | Contrats d'abord | accepté |
 | [0006](0006-depot-local-sans-ci-distante.md) | Dépôt git local, contrôles sur le poste | accepté |
-| [0007](0007-back-office-dotnet.md) | Back-office métier en .NET 10, cœur tactique et IA en Python | accepté |
+| [0007](0007-back-office-dotnet.md) | Back-office métier en .NET 10, cœur tactique et IA en Python | accepté, complété le 2026-11-21 (Lot 7) |
 
 Nouvelle décision : copier le format d'une ADR existante, numéro suivant, statut « proposé » jusqu'à la revue.
