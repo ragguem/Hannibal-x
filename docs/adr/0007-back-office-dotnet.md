@@ -51,14 +51,19 @@ Décision :
 - Le back-office porte en plus : l'administration des utilisateurs, le catalogue des **classes de navires**
   (caractéristiques) et des **navires**, les **scénarios** (import et export YAML validés, versions, publication ;
   éditeur par formulaires plus tard), la **planification des missions** (participants, statuts) et
-  l'**historique**, la lecture du registre. Schémas à lui : `identity`, `catalog`, `planning`.
-- Un seul écrivain par schéma ; le back-office appelle `apps/api`, jamais l'inverse ; l'identifiant de mission naît
-  dans le back-office ; le back-office est le seul à autoriser.
+  l'**historique**. Schémas à lui : `identity`, `catalog`, `planning`. La lecture du registre reste dans
+  `apps/api` tant qu'aucun rapport ne croise missions et comptes.
+- Un seul écrivain par schéma ; le back-office ne lit d'`ops` que des vues versionnées (`ops_read`) ; le back-office
+  appelle `apps/api`, jamais l'inverse, et le lancement est idempotent ; l'identifiant de mission naît dans le
+  back-office ; le back-office est le seul à autoriser.
+- Performance : aucune écriture en base par requête relayée (session en cache), aucun appel entre services pendant
+  la mission. Le back-office, sans état, peut tourner en plusieurs instances ; il deviendra le répartiteur des
+  missions entre moteurs à la 2.0.0.
 - `apps/api` garde la mission en cours, les ordres, la voix, les décisions, l'écriture du registre, le débrief,
   la doctrine et le glossaire. `ops.missions` devient le déroulé d'une mission planifiée, sous le même identifiant.
 - Au lancement, le back-office envoie à `apps/api` une photo figée (version du scénario et caractéristiques des
   navires) par un contrat interne ; `apps/api` ne lit plus de fichier de scénario ni de catalogue.
 
-Conséquences : environ 8 semaines (Lot 7 du plan de réalisation) ; l'identifiant de mission est partagé entre les
+Conséquences : environ 7,5 semaines (Lot 7 du plan de réalisation) ; l'identifiant de mission est partagé entre les
 deux services, couvert par des tests de contrat des deux côtés ; les goldens ne changent pas, les caractéristiques
 par défaut des classes reprenant les limites actuelles.

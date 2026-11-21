@@ -525,7 +525,7 @@ Recette : installation à blanc sur une machine vierge depuis le paquet ; démon
 
 - Fait (dans le dépôt) : `GpuGate` à deux classes dans l’API (voix 1 + 3 sur 10 s, `429 speech_busy` ; doctrine 1 + 2 sur 20 s ; une question attend toute transcription active ou en attente) et ses métriques ; `infra/bord` (Caddy 2.10 et build React, CA interne ou PKI du site, `/v1` vers le back-office sans tampon, `/metrics` refusé, CSP) ; `infra/compose/compose.yml` (443 seul publié, réseaux internes, `/etc/hannibal/*.env`, limites du § 3.7, GPU `0` partagé) ; Prometheus, règles, Grafana (Mission, GPU), `dcgm-exporter` ; minuterie `/v1/ready` ; sauvegarde nocturne et test de restauration mensuel avec vérification de la chaîne ; paquet hors ligne (`build-bundle.sh`, `install.sh`, SBOM, sommes) ; `docs/exploitation.md`. L’audit était déjà chaîné par déclencheur depuis le Lot 2. Restent sur le serveur : construction du paquet et installation à blanc, mesures des limites et de la VRAM, latence de la voix pendant une rédaction, deux répétitions de démonstration, puis l’arrêt de `legacy/app_v3` (ses scripts Python servent encore aux tests de caractérisation).
 
-### Lot 7 — Back-office propriétaire de la gestion · `v1.1.0` · 8 semaines
+### Lot 7 — Back-office propriétaire de la gestion · `v1.1.0` · 7,5 semaines
 
 But : tout ce qui ne dépend ni de l’IA ni du cœur tactique temps réel appartient à `apps/backoffice` (complément de l’ADR 0007 du 2026-11-21). `apps/api` ne garde que l’exécution des missions et l’IA.
 
@@ -543,7 +543,7 @@ Données :
 
 Règles de séparation :
 
-1. **Un seul écrivain par schéma.** Le back-office écrit `identity`, `catalog` et `planning` ; `apps/api` écrit `ops`. Le back-office lit `ops.audit_events` et `ops.missions` avec un rôle SQL en lecture seule ; `apps/api` ne lit aucun schéma du back-office.
+1. **Un seul écrivain par schéma.** Le back-office écrit `identity`, `catalog` et `planning` ; `apps/api` écrit `ops`. Le back-office ne lit jamais les tables d’`ops` : `apps/api` publie des vues versionnées dans `ops_read` (résumé des missions jouées), testées comme un contrat, lues avec un rôle SQL en lecture seule. `apps/api` ne lit aucun schéma du back-office.
 2. **Le back-office appelle `apps/api`, jamais l’inverse.** `apps/api` reçoit tout ce qu’il lui faut dans la photo de mission ; la fin d’une mission se lit dans `ops.missions` (phase, `finished_at`, débrief), sans rappel vers le back-office.
 3. **L’identifiant de mission naît dans le back-office** (UUIDv7) et `apps/api` le reprend tel quel.
 4. **Le back-office est le seul à autoriser.** `apps/api` fait confiance au jeton interne et à `X-Hx-Permissions`, comme aujourd’hui ; il ne connaît les utilisateurs que par leur identifiant.
@@ -554,25 +554,34 @@ Répartition des routes actuelles de `apps/api` :
 | Route | Après le Lot 7 |
 |---|---|
 | `GET /v1/scenarios` | back-office (catalogue), retirée de `apps/api` |
-| `POST /v1/missions` | back-office : `POST /v1/missions` planifie, `POST /v1/missions/{id}/launch` envoie la photo à `POST /internal/missions/{id}/run` |
+| `POST /v1/missions` | back-office : `POST /v1/missions` planifie, `POST /v1/missions/{id}/launch` envoie la photo à `PUT /internal/missions/{id}/run` (idempotent) |
 | `DELETE /v1/missions/{id}` | back-office : `POST /v1/missions/{id}/stop` appelle `POST /internal/missions/{id}/stop` |
 | `GET /v1/missions` (nouvelle) | back-office : liste et historique (`planning` + `ops.missions`) |
-| `GET /v1/audit`, `GET /v1/audit/integrity` | back-office, lecture seule sur `ops.audit_events`, retirées de `apps/api` |
+| `GET /v1/audit`, `GET /v1/audit/integrity` | `apps/api`, relayées ; passage au back-office reporté tant qu’aucun rapport ne croise missions et comptes |
 | `GET /v1/audit/{id}/audio` | `apps/api` (fichiers dans son volume), relayée |
 | `GET /v1/missions/{id}`, `…/events`, `…/orders`, `…/voice`, `…/simulations`, `…/recommendations`, `…/helm`, `…/autopilot`, `…/contacts/{id}/classification`, `…/requests/{ship}/reply` | `apps/api`, relayées |
 | `GET /v1/commands/{id}`, `…/decision`, `…/explanation` | `apps/api`, relayées |
 | `GET /v1/doctrine/publications`, `POST /v1/doctrine/questions`, `GET /v1/glossary` | `apps/api`, relayées |
 
-- **7.1 Socle et contrats · 1 sem.** Schémas `catalog` et `planning` (EF Core) ; JSON Schema du scénario `schema_version: 1` dans `packages/contracts`, validé côté .NET ; OpenAPI du back-office commité d’abord (ADR 0005), `openapi.d.ts` du front régénéré ; test de dérive.
+- **7.1 Socle, performance et contrats · 1,5 sem.** Session en cache mémoire (30 s) et prolongation écrite au plus une fois par minute, permissions des rôles en cache : plus aucune écriture en base par requête relayée. Schémas `catalog` et `planning` (EF Core) ; JSON Schema du scénario `schema_version: 1` dans `packages/contracts`, validé côté .NET ; OpenAPI du back-office généré par `Microsoft.AspNetCore.OpenApi`, commité, test de dérive ; `openapi.d.ts` du front régénéré.
 - **7.2 Utilisateurs · 1 sem.** Lister, créer, désactiver ou réactiver, réinitialiser le mot de passe, attribuer rôles et rôles de jeu ; permission `users:manage` ; page Utilisateurs.
 - **7.3 Navires · 1,5 sem.** Classes (vitesses minimale et maximale, rayon de giration, longueur) et navires (nom d’appel, classe, actif) ; `ShipClassSeeder` et `ShipSeeder` sur données inventées ; page Navires. Le cœur lit les caractéristiques dans la photo de mission au lieu de `SpeedLimits` en dur, goldens inchangés avec les valeurs par défaut.
 - **7.4 Scénarios · 1 sem.** Import de fichiers YAML depuis la console, validés par le JSON Schema (navires de la flotte présents dans le catalogue) ; versions, publication, archivage ; export YAML ; `ScenarioSeeder` importe les 6 scénarios du dépôt. L’éditeur par formulaires est reporté à un lot suivant. `GET /v1/scenarios` quitte `apps/api`, qui ne lit plus aucun fichier de scénario.
-- **7.5 Planification des missions · 2,5 sem.** Le back-office crée la mission (version de scénario, navire joué, participants et rôles de jeu) et porte les statuts `planned`, `ready`, `archived`. Au lancement, il appelle `POST /internal/missions/{id}/run` avec une photo figée (version du scénario et caractéristiques des navires) ; `apps/api` déroule la mission sans connaître le catalogue. Le planificateur du front passe sur le back-office. Tests de contrat des deux côtés.
-- **7.6 Historique et registre · 1 sem.** Le back-office lit `ops.audit_events`, `ops.missions` et le débrief avec un rôle SQL en lecture seule : pagination, filtres, vérification de la chaîne ; seul l’audio reste relayé vers `apps/api`. Pages Registre et historique des missions sur le back-office.
+- **7.5 Planification des missions · 2,5 sem.** Le back-office crée la mission (version de scénario, navire joué, participants et rôles de jeu) et porte les statuts `planned`, `ready`, `archived`. Au lancement, il passe la mission à `launching` et appelle `PUT /internal/missions/{id}/run` avec une photo figée (version du scénario et caractéristiques des navires) ; un appel rejoué ne lance jamais deux fois. `apps/api` déroule la mission sans connaître le catalogue. Historique : `planning` joint à la vue `ops_read.mission_runs`, pagination par curseur. Le planificateur du front passe sur le back-office. Tests de contrat des deux côtés.
 
-Relais réduit : `ApiRelay` ne garde que les routes de l’exécution et de l’IA (ordres, voix, simulations, décisions, demandes, doctrine, glossaire, explication, flux de la mission en cours, audio). Le relais `integration_outbox` reste à la 1.2.0.
+Performance et montée en charge :
 
-Recette : un admin crée un utilisateur, une classe et un navire, importe un scénario YAML, planifie une mission avec deux participants, la lance et la joue au clavier et à la voix, puis la retrouve dans l’historique et le registre ; `apps/api` ne contient plus de lecture de scénario ni de lecture du registre ; goldens, tests .NET (domaine, application, EF sur PostgreSQL), Python, Vitest et Playwright verts.
+- **Chemin chaud inchangé.** Pendant la mission, le back-office ne fait que relayer (YARP, sans tampon pour le SSE) ; aucun appel entre services ni lecture du catalogue : tout est dans la photo de mission.
+- **Back-office sans état** (sessions en base, cache court) : plusieurs instances possibles derrière Caddy ; une session révoquée est refusée partout en 30 s au plus.
+- **Catalogue en lecture** : réponses avec `ETag` et cache mémoire invalidé à la publication ; l’import d’un scénario ne touche pas aux missions en cours, qui gardent leur photo.
+- **Listes** paginées par curseur, index sur les colonnes filtrées ; pools de connexions bornés par service (PgBouncer quand le nombre d’instances le demandera).
+- **Limite connue** : `apps/api` garde les missions en cours en mémoire d’un seul processus. Le Lot 7 prépare la 2.0.0 : comme le lancement passe par le back-office, c’est lui qui choisira plus tard le moteur d’une mission (`planning.missions.runner`) et y relaiera ses routes.
+
+Reporté : lecture du registre par le back-office, éditeur de scénarios par formulaires, relais `integration_outbox`.
+
+Relais réduit : `ApiRelay` ne garde que les routes de l’exécution et de l’IA (ordres, voix, simulations, décisions, demandes, doctrine, glossaire, explication, flux de la mission en cours, registre et audio).
+
+Recette : un admin crée un utilisateur, une classe et un navire, importe un scénario YAML, planifie une mission avec deux participants, la lance et la joue au clavier et à la voix, puis la retrouve dans l’historique ; `apps/api` ne lit plus de fichier de scénario ; une requête relayée n’écrit plus en base ; goldens, tests .NET (domaine, application, EF sur PostgreSQL), Python, Vitest et Playwright verts.
 
 ### Après le MVP
 
