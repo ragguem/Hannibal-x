@@ -3,6 +3,7 @@
     <ProjectReference Include="..\Hannibal.Backoffice.Infrastructure\Hannibal.Backoffice.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="prometheus-net.AspNetCore" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>

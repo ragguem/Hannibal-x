@@ -13,6 +13,7 @@ builder.Logging.AddJsonConsole(o =>
 });
 builder.Services.ConfigureHttpJsonOptions(o => Json.Configure(o.SerializerOptions));
 builder.Services.AddBackoffice();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 app.Services.GetRequiredService<BackofficeSettings>();
@@ -29,6 +30,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapSystem();
 app.MapSession();
+app.MapOpenApi().AllowAnonymous();
 app.MapReverseProxy();
 await app.RunAsync().ConfigureAwait(false);
 

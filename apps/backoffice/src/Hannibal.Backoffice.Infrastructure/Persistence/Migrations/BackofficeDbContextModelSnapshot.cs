@@ -44,6 +44,96 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.ToTable("game_roles", "identity");
                 });
 
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.MissionParticipantRow", b =>
+                {
+                    b.Property<Guid>("MissionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mission_id");
+
+                    b.Property<Guid>("ShipId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ship_id");
+
+                    b.Property<string>("GameRoleCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("game_role_code");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("MissionId", "ShipId");
+
+                    b.HasIndex("GameRoleCode");
+
+                    b.HasIndex("ShipId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("MissionId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("mission_participants", "planning");
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.MissionRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("archived_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTimeOffset?>("LaunchedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("launched_at");
+
+                    b.Property<Guid>("PlannedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("planned_by");
+
+                    b.Property<string>("Runner")
+                        .HasColumnType("text")
+                        .HasColumnName("runner");
+
+                    b.Property<string>("ScenarioId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("scenario_id");
+
+                    b.Property<int>("ScenarioVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("scenario_version");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("state");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlannedBy");
+
+                    b.HasIndex("ScenarioId", "ScenarioVersion");
+
+                    b.HasIndex("State", "CreatedAt", "Id")
+                        .IsDescending(false, true, true);
+
+                    b.ToTable("missions", "planning", t =>
+                        {
+                            t.HasCheckConstraint("ck_missions_state", "state IN ('planned', 'launching', 'running', 'finished', 'stopped', 'archived')");
+                        });
+                });
+
             modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.RolePermissionRow", b =>
                 {
                     b.Property<string>("RoleCode")
@@ -73,6 +163,78 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.HasKey("Code");
 
                     b.ToTable("roles", "identity");
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.ScenarioRow", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("archived_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("level");
+
+                    b.Property<int?>("PublishedVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("published_version");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("scenarios", "catalog");
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.ScenarioVersionRow", b =>
+                {
+                    b.Property<string>("ScenarioId")
+                        .HasColumnType("text")
+                        .HasColumnName("scenario_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.Property<string>("ContentSha256")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content_sha256");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("document");
+
+                    b.Property<DateTimeOffset>("ImportedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("imported_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("ImportedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("imported_by");
+
+                    b.HasKey("ScenarioId", "Version");
+
+                    b.HasIndex("ImportedBy");
+
+                    b.ToTable("scenario_versions", "catalog");
                 });
 
             modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.SessionRow", b =>
@@ -113,6 +275,76 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.ToTable("sessions", "identity");
                 });
 
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.ShipClassRow", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("label");
+
+                    b.Property<int>("MaxSpeedKnots")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_speed_kn");
+
+                    b.Property<int>("MinSpeedKnots")
+                        .HasColumnType("integer")
+                        .HasColumnName("min_speed_kn");
+
+                    b.Property<double>("TurnRateDegreesPerSecond")
+                        .HasColumnType("double precision")
+                        .HasColumnName("turn_rate_deg_s");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("ship_classes", "catalog", t =>
+                        {
+                            t.HasCheckConstraint("ck_ship_classes_speed_bounds", "min_speed_kn > 0 AND min_speed_kn <= max_speed_kn");
+
+                            t.HasCheckConstraint("ck_ship_classes_turn_rate", "turn_rate_deg_s > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.ShipRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CallSign")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("call_sign");
+
+                    b.Property<string>("ClassCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("class_code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTimeOffset?>("RetiredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("retired_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CallSign")
+                        .IsUnique();
+
+                    b.HasIndex("ClassCode");
+
+                    b.ToTable("ships", "catalog");
+                });
+
             modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -129,6 +361,10 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("DisabledAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("disabled_at");
+
+                    b.Property<DateTimeOffset?>("PasswordChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_changed_at");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -155,12 +391,69 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                     b.ToTable("users", "identity");
                 });
 
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.MissionParticipantRow", b =>
+                {
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.GameRoleRow", null)
+                        .WithMany()
+                        .HasForeignKey("GameRoleCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.MissionRow", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("MissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.ShipRow", null)
+                        .WithMany()
+                        .HasForeignKey("ShipId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.MissionRow", b =>
+                {
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", null)
+                        .WithMany()
+                        .HasForeignKey("PlannedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.ScenarioVersionRow", null)
+                        .WithMany()
+                        .HasForeignKey("ScenarioId", "ScenarioVersion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.RolePermissionRow", b =>
                 {
                     b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.RoleRow", null)
                         .WithMany("Permissions")
                         .HasForeignKey("RoleCode")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.ScenarioVersionRow", b =>
+                {
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", null)
+                        .WithMany()
+                        .HasForeignKey("ImportedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.ScenarioRow", null)
+                        .WithMany()
+                        .HasForeignKey("ScenarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -173,6 +466,15 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.ShipRow", b =>
+                {
+                    b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.ShipClassRow", null)
+                        .WithMany()
+                        .HasForeignKey("ClassCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.UserAccountRow", b =>
                 {
                     b.HasOne("Hannibal.Backoffice.Infrastructure.Persistence.RoleRow", null)
@@ -180,6 +482,11 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .HasForeignKey("RoleCode")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.MissionRow", b =>
+                {
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("Hannibal.Backoffice.Infrastructure.Persistence.RoleRow", b =>

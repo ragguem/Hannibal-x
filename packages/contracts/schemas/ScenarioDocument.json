@@ -1,0 +1,605 @@
+{
+  "$defs": {
+    "FleetMember": {
+      "additionalProperties": false,
+      "properties": {
+        "nom": {
+          "description": "Nom d'appel du navire, présent dans le catalogue",
+          "minLength": 1,
+          "title": "Nom",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "guide",
+            "escorte"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nom",
+        "role"
+      ],
+      "title": "FleetMember",
+      "type": "object"
+    },
+    "ScenarioEvent": {
+      "additionalProperties": true,
+      "properties": {
+        "a": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Nom d'un navire ou `TOUS`",
+          "title": "A"
+        },
+        "apres_repousse": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Apres Repousse"
+        },
+        "de": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "De"
+        },
+        "delai_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delai S"
+        },
+        "ordres": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ScenarioOrder"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ordres"
+        },
+        "piste": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScenarioTrack"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "t": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "T"
+        }
+      },
+      "title": "ScenarioEvent",
+      "type": "object"
+    },
+    "ScenarioGoal": {
+      "additionalProperties": true,
+      "properties": {
+        "avant_t": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Avant T"
+        },
+        "classe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classe"
+        },
+        "cls": {
+          "anyOf": [
+            {
+              "enum": [
+                "ami",
+                "neutre",
+                "hostile",
+                "inconnu"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cls"
+        },
+        "garde_nm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Garde Nm"
+        },
+        "ordre": {
+          "anyOf": [
+            {
+              "enum": [
+                "CORPEN",
+                "TURN",
+                "SPEED",
+                "FORM",
+                "RESUME",
+                "EMERG",
+                "ACK"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ordre"
+        },
+        "piste": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Piste"
+        },
+        "repousse": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repousse"
+        },
+        "texte": {
+          "minLength": 1,
+          "title": "Texte",
+          "type": "string"
+        }
+      },
+      "required": [
+        "texte"
+      ],
+      "title": "ScenarioGoal",
+      "type": "object"
+    },
+    "ScenarioOrder": {
+      "additionalProperties": true,
+      "properties": {
+        "cap": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cap"
+        },
+        "deg": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deg"
+        },
+        "kn": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kn"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "side": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Side"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "type": {
+          "enum": [
+            "CORPEN",
+            "TURN",
+            "SPEED",
+            "FORM",
+            "RESUME",
+            "EMERG",
+            "ACK"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ScenarioOrder",
+      "type": "object"
+    },
+    "ScenarioStep": {
+      "additionalProperties": true,
+      "properties": {
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "ordre": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ordre"
+        },
+        "rel_tens": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rel Tens"
+        },
+        "texte": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Texte"
+        }
+      },
+      "title": "ScenarioStep",
+      "type": "object"
+    },
+    "ScenarioTrack": {
+      "additionalProperties": true,
+      "properties": {
+        "cap": {
+          "title": "Cap",
+          "type": "number"
+        },
+        "cls_reel": {
+          "default": "inconnu",
+          "enum": [
+            "ami",
+            "neutre",
+            "hostile",
+            "inconnu"
+          ],
+          "title": "Cls Reel",
+          "type": "string"
+        },
+        "comportement": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Comportement"
+        },
+        "dist_nm": {
+          "title": "Dist Nm",
+          "type": "number"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "rapports_nm": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Rapports Nm",
+          "type": "array"
+        },
+        "rel": {
+          "description": "Relèvement relatif au guide, en degrés",
+          "title": "Rel",
+          "type": "number"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "vit_kn": {
+          "title": "Vit Kn",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "rel",
+        "dist_nm",
+        "cap",
+        "vit_kn"
+      ],
+      "title": "ScenarioTrack",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:ScenarioDocument",
+  "additionalProperties": false,
+  "properties": {
+    "attendu": {
+      "items": {
+        "$ref": "#/$defs/ScenarioGoal"
+      },
+      "title": "Attendu",
+      "type": "array"
+    },
+    "briefing": {
+      "minLength": 1,
+      "title": "Briefing",
+      "type": "string"
+    },
+    "cap_initial": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cap Initial"
+    },
+    "duree_s": {
+      "exclusiveMinimum": 0,
+      "title": "Duree S",
+      "type": "number"
+    },
+    "etapes": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/ScenarioStep"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Etapes"
+    },
+    "etapes_aleatoires": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Etapes Aleatoires"
+    },
+    "etapes_delai_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Etapes Delai S"
+    },
+    "evenements": {
+      "items": {
+        "$ref": "#/$defs/ScenarioEvent"
+      },
+      "title": "Evenements",
+      "type": "array"
+    },
+    "flotte": {
+      "items": {
+        "$ref": "#/$defs/FleetMember"
+      },
+      "minItems": 1,
+      "title": "Flotte",
+      "type": "array"
+    },
+    "formation_depart": {
+      "default": "column",
+      "title": "Formation Depart",
+      "type": "string"
+    },
+    "id": {
+      "minLength": 1,
+      "pattern": "^[a-z0-9_]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "niveau": {
+      "minLength": 1,
+      "title": "Niveau",
+      "type": "string"
+    },
+    "resume": {
+      "minLength": 1,
+      "title": "Resume",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "titre": {
+      "minLength": 1,
+      "title": "Titre",
+      "type": "string"
+    },
+    "vitesse_initiale_kn": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Vitesse Initiale Kn"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "titre",
+    "niveau",
+    "duree_s",
+    "resume",
+    "briefing",
+    "flotte"
+  ],
+  "title": "ScenarioDocument",
+  "type": "object"
+}
