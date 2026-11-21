@@ -78,7 +78,7 @@ disallow_untyped_calls = false
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["dependency_injector.*", "asyncpg.*", "rclpy.*", "lotusim_msgs.*", "geographic_msgs.*", "geometry_msgs.*", "faster_whisper.*", "sentence_transformers.*"]
+module = ["dependency_injector.*", "asyncpg.*", "rclpy.*", "lotusim_msgs.*", "geographic_msgs.*", "geometry_msgs.*", "faster_whisper.*", "numpy.*", "sentence_transformers.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

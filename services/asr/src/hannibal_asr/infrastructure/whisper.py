@@ -1,14 +1,34 @@
 """Adaptateur faster-whisper de `SpeechEngine` (repris de legacy/hx/scripts/hx_service.py)."""
 
 import io
+import wave
 from typing import Any
 
 from hannibal_asr.application.ports import EngineTranscript, HeardWord, UnreadableAudio
+from hannibal_asr.infrastructure.wav_reading import is_wav, read_pcm16_wav_as_speech_samples
 from hannibal_platform.logging import get_logger
 
 log = get_logger(__name__)
 
 SAMPLE_RATE = 16_000
+
+
+def decode_speech_samples(audio: bytes) -> Any:
+    """WAV PCM 16 bits lu directement ; les autres formats passent par PyAV (faster-whisper)."""
+    import numpy
+
+    if is_wav(audio):
+        try:
+            samples = read_pcm16_wav_as_speech_samples(audio, SAMPLE_RATE)
+        except (wave.Error, EOFError) as error:
+            raise UnreadableAudio(type(error).__name__) from error
+        return numpy.asarray(samples, dtype=numpy.float32)
+    from faster_whisper.audio import decode_audio
+
+    try:
+        return decode_audio(io.BytesIO(audio), sampling_rate=SAMPLE_RATE)
+    except Exception as error:  # PyAV lève des erreurs propres à chaque format
+        raise UnreadableAudio(type(error).__name__) from error
 
 
 class WhisperEngine:
@@ -56,14 +76,9 @@ class WhisperEngine:
         raise RuntimeError("aucun modèle Whisper n'a pu être chargé")
 
     def transcribe(self, audio: bytes, vocabulary_prompt: str) -> EngineTranscript:
-        from faster_whisper.audio import decode_audio
-
         if self._model is None:
             self.load()
-        try:
-            samples = decode_audio(io.BytesIO(audio), sampling_rate=SAMPLE_RATE)
-        except Exception as error:  # PyAV lève des erreurs propres à chaque format
-            raise UnreadableAudio(type(error).__name__) from error
+        samples = decode_speech_samples(audio)
         segments, _ = self._model.transcribe(
             samples,
             language=self._language,
