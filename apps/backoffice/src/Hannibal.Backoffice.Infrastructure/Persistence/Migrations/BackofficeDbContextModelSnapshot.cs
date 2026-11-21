@@ -286,6 +286,10 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("label");
 
+                    b.Property<double>("LengthMeters")
+                        .HasColumnType("double precision")
+                        .HasColumnName("length_m");
+
                     b.Property<int>("MaxSpeedKnots")
                         .HasColumnType("integer")
                         .HasColumnName("max_speed_kn");
@@ -294,17 +298,19 @@ namespace Hannibal.Backoffice.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("min_speed_kn");
 
-                    b.Property<double>("TurnRateDegreesPerSecond")
+                    b.Property<double>("TurnRadiusMeters")
                         .HasColumnType("double precision")
-                        .HasColumnName("turn_rate_deg_s");
+                        .HasColumnName("turn_radius_m");
 
                     b.HasKey("Code");
 
                     b.ToTable("ship_classes", "catalog", t =>
                         {
+                            t.HasCheckConstraint("ck_ship_classes_length", "length_m > 0");
+
                             t.HasCheckConstraint("ck_ship_classes_speed_bounds", "min_speed_kn > 0 AND min_speed_kn <= max_speed_kn");
 
-                            t.HasCheckConstraint("ck_ship_classes_turn_rate", "turn_rate_deg_s > 0");
+                            t.HasCheckConstraint("ck_ship_classes_turn_radius", "turn_radius_m > 0");
                         });
                 });
 

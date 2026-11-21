@@ -1,3 +1,4 @@
+using Hannibal.Backoffice.Application.Catalog;
 using Hannibal.Backoffice.Application.Identity;
 using Hannibal.Backoffice.Application.Readiness;
 using Hannibal.Backoffice.Domain;
@@ -29,8 +30,13 @@ public static class Container
         services.AddScoped<IUserDirectory>(sp => Settings(sp).FakeAdapters
             ? sp.GetRequiredService<InMemoryIdentityStore>()
             : ActivatorUtilities.CreateInstance<EfUserDirectory>(sp));
+        services.AddSingleton<InMemoryShipCatalog>();
+        services.AddScoped<IShipCatalog>(sp => Settings(sp).FakeAdapters
+            ? sp.GetRequiredService<InMemoryShipCatalog>()
+            : ActivatorUtilities.CreateInstance<EfShipCatalog>(sp));
         services.AddScoped<Sessions>();
         services.AddScoped<Users>();
+        services.AddScoped<Ships>();
         services.AddSessionAuthentication();
         services.AddApiRelay(sp => Settings(sp).ApiUrl ?? new Uri("http://127.0.0.1:8000"));
         return services;

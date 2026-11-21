@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from hannibal_core.orders.limits import SpeedLimits
 from hannibal_core.scenario import ScenarioEngine, ScenarioError, load, validate
 
 REPO = Path(__file__).resolve().parents[3]
@@ -155,6 +156,13 @@ def test_engine_runs_without_io_and_finishes() -> None:
     assert eng.run["ended"]
     assert eng.run["debrief"]["total"] == len(eng.run["sc"]["attendu"])
     assert eng.tick(st) == {}
+
+
+def test_engine_applies_the_speed_limits_of_the_mission() -> None:
+    eng, _ = engine("transit_colonne.yaml", "alfa", speed=SpeedLimits(min_kn=5, max_kn=18))
+    checked = eng.check_order("ALFA SPEED 25")
+    assert checked["orders"] == [{"type": "SPEED", "kn": 18}]
+    assert eng.read_order("ALFA SPEED 25", "ALFA")["orders"] == [{"type": "SPEED", "kn": 18}]
 
 
 def test_drill_uses_the_injected_random() -> None:

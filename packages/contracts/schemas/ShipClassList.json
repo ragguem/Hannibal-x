@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "ShipClass": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "pattern": "^[a-z][a-z0-9_-]{1,31}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "length_meters": {
+          "exclusiveMinimum": 0,
+          "maximum": 500,
+          "title": "Length Meters",
+          "type": "number"
+        },
+        "max_speed_knots": {
+          "description": "Vitesse maximale ordonnable, en nœuds",
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Max Speed Knots",
+          "type": "integer"
+        },
+        "min_speed_knots": {
+          "description": "Vitesse minimale ordonnable, en nœuds",
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Min Speed Knots",
+          "type": "integer"
+        },
+        "turn_radius_meters": {
+          "exclusiveMinimum": 0,
+          "maximum": 5000,
+          "title": "Turn Radius Meters",
+          "type": "number"
+        }
+      },
+      "required": [
+        "label",
+        "min_speed_knots",
+        "max_speed_knots",
+        "turn_radius_meters",
+        "length_meters",
+        "code"
+      ],
+      "title": "ShipClass",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:ShipClassList",
+  "additionalProperties": false,
+  "properties": {
+    "classes": {
+      "description": "Toutes les classes, par code",
+      "items": {
+        "$ref": "#/$defs/ShipClass"
+      },
+      "title": "Classes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "classes"
+  ],
+  "title": "ShipClassList",
+  "type": "object"
+}

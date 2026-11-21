@@ -45,6 +45,13 @@ export function fakeApi(backend = new FakeBackend()): ApiPort {
     enableUser: (userId) => run(() => backend.enableUser(userId)),
     resetUserPassword: (userId) => run(() => backend.resetUserPassword(userId)),
     changeOwnPassword: (body) => run(() => backend.changeOwnPassword(body)),
+    listShipClasses: () => run(() => backend.listShipClasses()),
+    createShipClass: (body) => run(() => backend.createShipClass(body)),
+    listShips: () => run(() => backend.listShips()),
+    createShip: (body) => run(() => backend.createShip(body)),
+    changeShipClass: (shipId, classCode) => run(() => backend.changeShipClass(shipId, classCode)),
+    retireShip: (shipId) => run(() => backend.retireShip(shipId)),
+    reactivateShip: (shipId) => run(() => backend.reactivateShip(shipId)),
   };
 }
 

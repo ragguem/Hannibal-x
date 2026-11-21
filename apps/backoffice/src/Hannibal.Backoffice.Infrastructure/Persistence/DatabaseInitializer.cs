@@ -31,6 +31,8 @@ public static class IdentityPersistence
         services.AddScoped<IDataSeeder, RoleSeeder>();
         services.AddScoped<IDataSeeder, GameRoleSeeder>();
         services.AddScoped<IDataSeeder, InitialAdminSeeder>();
+        services.AddScoped<IDataSeeder, ShipClassSeeder>();
+        services.AddScoped<IDataSeeder, ShipSeeder>();
         services.AddScoped<DataSeederOrchestrator>();
         services.AddScoped<DatabaseInitializer>();
         return services;

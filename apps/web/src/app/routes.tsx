@@ -68,6 +68,19 @@ export const routes: RouteObject[] = [
             },
           },
           {
+            path: "navires",
+            lazy: async () => {
+              const { ShipsPage } = await import("../pages/ShipsPage");
+              return {
+                Component: () => (
+                  <RequirePermission permission="catalog:manage">
+                    <ShipsPage />
+                  </RequirePermission>
+                ),
+              };
+            },
+          },
+          {
             path: "mot-de-passe",
             lazy: async () => ({ Component: (await import("../pages/ChangePasswordPage")).ChangePasswordPage }),
           },

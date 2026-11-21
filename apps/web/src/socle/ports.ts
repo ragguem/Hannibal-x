@@ -10,6 +10,12 @@ export type CreateUser = BackofficeSchemas["CreateUserBody"];
 export type IssuedPassword = BackofficeSchemas["IssuedPasswordBody"];
 export type ChangePassword = BackofficeSchemas["ChangePasswordBody"];
 
+/** The back-office also reads numbers sent as strings; the console always sends and expects numbers. */
+type WithNumbers<T> = { [K in keyof T]: number extends T[K] ? number : T[K] };
+export type ShipClass = WithNumbers<BackofficeSchemas["ShipClassBody"]>;
+export type CatalogShip = BackofficeSchemas["ShipViewBody"];
+export type CreateShip = BackofficeSchemas["CreateShipBody"];
+
 export type Mission = Schemas["Mission"];
 export type MissionPhase = Schemas["MissionPhase"];
 export type Ship = Schemas["Ship"];
@@ -71,6 +77,7 @@ export const PERMISSIONS = [
   "command:decide",
   "audit:read",
   "user:manage",
+  "catalog:manage",
   "doctrine:ask",
   "glossary:read",
   "doctrine:classified",
@@ -118,6 +125,14 @@ export interface ApiPort {
   resetUserPassword(userId: string): Promise<IssuedPassword>;
   /** Every session of the user is revoked: they sign in again with the new password. */
   changeOwnPassword(body: ChangePassword): Promise<void>;
+  /** Ship catalog (back-office, `catalog:manage`). Nothing is deleted: a ship is retired. */
+  listShipClasses(): Promise<ShipClass[]>;
+  createShipClass(body: ShipClass): Promise<ShipClass>;
+  listShips(): Promise<CatalogShip[]>;
+  createShip(body: CreateShip): Promise<CatalogShip>;
+  changeShipClass(shipId: string, classCode: string): Promise<CatalogShip>;
+  retireShip(shipId: string): Promise<CatalogShip>;
+  reactivateShip(shipId: string): Promise<CatalogShip>;
 }
 
 export type StreamEvent = { type: "situation"; mission: Mission } | { type: "phase"; phase: MissionPhase };

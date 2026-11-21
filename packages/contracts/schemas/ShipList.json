@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "ShipView": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "description": "Faux une fois retiré : plus proposé à la planification",
+          "title": "Active",
+          "type": "boolean"
+        },
+        "call_sign": {
+          "description": "Nom d'appel, celui des flottes des scénarios",
+          "pattern": "^[a-z][a-z0-9-]{1,23}$",
+          "title": "Call Sign",
+          "type": "string"
+        },
+        "class_code": {
+          "title": "Class Code",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "retired_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Retired At"
+        }
+      },
+      "required": [
+        "id",
+        "call_sign",
+        "class_code",
+        "active",
+        "created_at",
+        "retired_at"
+      ],
+      "title": "ShipView",
+      "type": "object"
+    }
+  },
+  "$id": "urn:hannibal-x:contracts:1.0.0:ShipList",
+  "additionalProperties": false,
+  "properties": {
+    "ships": {
+      "description": "Tous les navires, par nom d'appel",
+      "items": {
+        "$ref": "#/$defs/ShipView"
+      },
+      "title": "Ships",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ships"
+  ],
+  "title": "ShipList",
+  "type": "object"
+}

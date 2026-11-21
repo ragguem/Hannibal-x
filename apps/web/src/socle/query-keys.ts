@@ -13,4 +13,6 @@ export const queryKeys = {
   explanation: (commandId: string) => ["commands", commandId, "explanation"] as const,
   users: ["users"] as const,
   roles: ["roles"] as const,
+  shipClasses: ["catalog", "ship-classes"] as const,
+  ships: ["catalog", "ships"] as const,
 };

@@ -141,14 +141,16 @@ public sealed class BackofficeDbContext(DbContextOptions<BackofficeDbContext> op
             shipClass.ToTable("ship_classes", CatalogSchema, table =>
             {
                 table.HasCheckConstraint("ck_ship_classes_speed_bounds", "min_speed_kn > 0 AND min_speed_kn <= max_speed_kn");
-                table.HasCheckConstraint("ck_ship_classes_turn_rate", "turn_rate_deg_s > 0");
+                table.HasCheckConstraint("ck_ship_classes_turn_radius", "turn_radius_m > 0");
+                table.HasCheckConstraint("ck_ship_classes_length", "length_m > 0");
             });
             shipClass.HasKey(c => c.Code);
             shipClass.Property(c => c.Code).HasColumnName("code");
             shipClass.Property(c => c.Label).HasColumnName("label");
             shipClass.Property(c => c.MinSpeedKnots).HasColumnName("min_speed_kn");
             shipClass.Property(c => c.MaxSpeedKnots).HasColumnName("max_speed_kn");
-            shipClass.Property(c => c.TurnRateDegreesPerSecond).HasColumnName("turn_rate_deg_s");
+            shipClass.Property(c => c.TurnRadiusMeters).HasColumnName("turn_radius_m");
+            shipClass.Property(c => c.LengthMeters).HasColumnName("length_m");
         });
 
         modelBuilder.Entity<ShipRow>(ship =>

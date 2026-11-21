@@ -1,0 +1,15 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:ChangeShipClass",
+  "additionalProperties": false,
+  "properties": {
+    "class_code": {
+      "title": "Class Code",
+      "type": "string"
+    }
+  },
+  "required": [
+    "class_code"
+  ],
+  "title": "ChangeShipClass",
+  "type": "object"
+}

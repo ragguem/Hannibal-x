@@ -8,6 +8,7 @@ public static class Permission
     public const string CommandDecide = "command:decide";
     public const string AuditRead = "audit:read";
     public const string UserManage = "user:manage";
+    public const string CatalogManage = "catalog:manage";
     public const string DoctrineAsk = "doctrine:ask";
     public const string GlossaryRead = "glossary:read";
 
@@ -47,7 +48,8 @@ public static class IdentityCatalog
             "Administrateur",
             [
                 Permission.MissionPlay, Permission.CommandSubmit, Permission.CommandDecide, Permission.AuditRead,
-                Permission.UserManage, Permission.DoctrineAsk, Permission.GlossaryRead, Permission.DoctrineClassified,
+                Permission.UserManage, Permission.CatalogManage, Permission.DoctrineAsk, Permission.GlossaryRead,
+                Permission.DoctrineClassified,
             ]),
     ];
 

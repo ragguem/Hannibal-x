@@ -3,9 +3,11 @@ import type {
   ChangePassword,
   Classification,
   CommandDecision,
+  CreateShip,
   CreateUser,
   DoctrineQuestion,
   SetHelm,
+  ShipClass,
   SignIn,
   StartMission,
   SubmitOrder,
@@ -199,6 +201,16 @@ export function createHandlers(backend = new FakeBackend(), persistence?: Persis
     http.post("*/v1/users/:userId/enable", handle(({ params }) => b.enableUser(params.userId!))),
     http.post("*/v1/users/:userId/password-reset", handle(({ params }) => b.resetUserPassword(params.userId!))),
     http.get("*/v1/roles", handle(() => ({ roles: b.listRoles() }))),
+    http.get("*/v1/ship-classes", handle(() => ({ classes: b.listShipClasses() }))),
+    http.post("*/v1/ship-classes", handle(({ body }) => b.createShipClass(body as ShipClass), 201)),
+    http.get("*/v1/ships", handle(() => ({ ships: b.listShips() }))),
+    http.post("*/v1/ships", handle(({ body }) => b.createShip(body as CreateShip), 201)),
+    http.put(
+      "*/v1/ships/:shipId/class",
+      handle(({ params, body }) => b.changeShipClass(params.shipId!, (body as { class_code: string }).class_code)),
+    ),
+    http.post("*/v1/ships/:shipId/retire", handle(({ params }) => b.retireShip(params.shipId!))),
+    http.post("*/v1/ships/:shipId/reactivate", handle(({ params }) => b.reactivateShip(params.shipId!))),
     http.put(
       "*/v1/session/password",
       handle(({ body }) => {

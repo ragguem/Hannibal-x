@@ -6,7 +6,8 @@ public sealed class ShipClassRow
     public required string Label { get; set; }
     public int MinSpeedKnots { get; set; }
     public int MaxSpeedKnots { get; set; }
-    public double TurnRateDegreesPerSecond { get; set; }
+    public double TurnRadiusMeters { get; set; }
+    public double LengthMeters { get; set; }
 }
 
 public sealed class ShipRow

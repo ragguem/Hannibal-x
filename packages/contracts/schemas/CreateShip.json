@@ -1,0 +1,21 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:CreateShip",
+  "additionalProperties": false,
+  "properties": {
+    "call_sign": {
+      "pattern": "^[a-z][a-z0-9-]{1,23}$",
+      "title": "Call Sign",
+      "type": "string"
+    },
+    "class_code": {
+      "title": "Class Code",
+      "type": "string"
+    }
+  },
+  "required": [
+    "call_sign",
+    "class_code"
+  ],
+  "title": "CreateShip",
+  "type": "object"
+}

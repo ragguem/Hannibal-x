@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Hannibal.Backoffice.Application.Identity;
+using Hannibal.Backoffice.Application;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace Hannibal.Backoffice.Api.Socle;
@@ -67,12 +67,12 @@ public static class ErrorHandling
                 Log(context).LogWarning("request_failed code={Code} detail={Detail}", e.Code, e.Message);
                 await Write(context, e.Status, new ErrorBody(e.Code, e.PublicMessage, RequestIds.Of(context))).ConfigureAwait(false);
             }
-            catch (UserRuleViolation e)
+            catch (RuleViolation e)
             {
                 var (status, code, message) = e.Kind switch
                 {
-                    UserRuleKind.NotFound => (StatusCodes.Status404NotFound, "not_found", "Ressource introuvable."),
-                    UserRuleKind.Conflict => (StatusCodes.Status409Conflict, "conflict", "Conflit avec l'état actuel."),
+                    RuleKind.NotFound => (StatusCodes.Status404NotFound, "not_found", "Ressource introuvable."),
+                    RuleKind.Conflict => (StatusCodes.Status409Conflict, "conflict", "Conflit avec l'état actuel."),
                     _ => (StatusCodes.Status422UnprocessableEntity, "invalid_request", "Requête refusée."),
                 };
                 Log(context).LogWarning("request_failed code={Code} detail={Detail}", code, e.Message);

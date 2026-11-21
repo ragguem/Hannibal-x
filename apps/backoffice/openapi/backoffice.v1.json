@@ -313,6 +313,237 @@
           }
         }
       }
+    },
+    "/v1/ship-classes": {
+      "get": {
+        "tags": [
+          "navires"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipClassListBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "navires"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipClassBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipClassBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ship-classes/{code}": {
+      "put": {
+        "tags": [
+          "navires"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShipClassBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipClassBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ships": {
+      "get": {
+        "tags": [
+          "navires"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipListBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "navires"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShipBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ships/{id}/class": {
+      "put": {
+        "tags": [
+          "navires"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeShipClassBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ships/{id}/retire": {
+      "post": {
+        "tags": [
+          "navires"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ships/{id}/reactivate": {
+      "post": {
+        "tags": [
+          "navires"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShipViewBody"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -332,6 +563,17 @@
           }
         }
       },
+      "ChangeShipClassBody": {
+        "required": [
+          "class_code"
+        ],
+        "type": "object",
+        "properties": {
+          "class_code": {
+            "type": "string"
+          }
+        }
+      },
       "ChangeUserRoleBody": {
         "required": [
           "role"
@@ -339,6 +581,21 @@
         "type": "object",
         "properties": {
           "role": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateShipBody": {
+        "required": [
+          "call_sign",
+          "class_code"
+        ],
+        "type": "object",
+        "properties": {
+          "call_sign": {
+            "type": "string"
+          },
+          "class_code": {
             "type": "string"
           }
         }
@@ -455,6 +712,122 @@
           }
         }
       },
+      "ShipClassBody": {
+        "required": [
+          "code",
+          "label",
+          "min_speed_knots",
+          "max_speed_knots",
+          "turn_radius_meters",
+          "length_meters"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "min_speed_knots": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "max_speed_knots": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "turn_radius_meters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d\u002B)?(?:[eE][\u002B-]?\\d\u002B)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "length_meters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d\u002B)?(?:[eE][\u002B-]?\\d\u002B)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ShipClassListBody": {
+        "required": [
+          "classes"
+        ],
+        "type": "object",
+        "properties": {
+          "classes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipClassBody"
+            }
+          }
+        }
+      },
+      "ShipListBody": {
+        "required": [
+          "ships"
+        ],
+        "type": "object",
+        "properties": {
+          "ships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShipViewBody"
+            }
+          }
+        }
+      },
+      "ShipViewBody": {
+        "required": [
+          "id",
+          "call_sign",
+          "class_code",
+          "active",
+          "created_at",
+          "retired_at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "call_sign": {
+            "type": "string"
+          },
+          "class_code": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "retired_at": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "SignInBody": {
         "required": [
           "username",
@@ -467,6 +840,53 @@
           },
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateShipClassBody": {
+        "required": [
+          "label",
+          "min_speed_knots",
+          "max_speed_knots",
+          "turn_radius_meters",
+          "length_meters"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "min_speed_knots": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "max_speed_knots": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "turn_radius_meters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d\u002B)?(?:[eE][\u002B-]?\\d\u002B)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "length_meters": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d\u002B)?(?:[eE][\u002B-]?\\d\u002B)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
           }
         }
       },
@@ -536,6 +956,9 @@
     },
     {
       "name": "session"
+    },
+    {
+      "name": "navires"
     }
   ]
 }

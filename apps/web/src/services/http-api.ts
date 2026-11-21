@@ -1,5 +1,5 @@
 import createClient from "openapi-fetch";
-import type { ApiPort, SessionView, SignIn } from "../socle/ports";
+import type { ApiPort, SessionView, ShipClass, SignIn } from "../socle/ports";
 import { networkError, toApiError } from "./api-error";
 import type { paths as backofficePaths } from "./backoffice-openapi";
 import type { paths } from "./openapi";
@@ -183,4 +183,21 @@ export class HttpApi implements ApiPort {
   changeOwnPassword: ApiPort["changeOwnPassword"] = async (body) => {
     await call(() => this.backoffice.PUT("/v1/session/password", { body }));
   };
+
+  listShipClasses = async () => (await call(() => this.backoffice.GET("/v1/ship-classes"))).classes as ShipClass[];
+
+  createShipClass: ApiPort["createShipClass"] = async (body) =>
+    (await call(() => this.backoffice.POST("/v1/ship-classes", { body }))) as ShipClass;
+
+  listShips = async () => (await call(() => this.backoffice.GET("/v1/ships"))).ships;
+
+  createShip: ApiPort["createShip"] = (body) => call(() => this.backoffice.POST("/v1/ships", { body }));
+
+  changeShipClass = (shipId: string, classCode: string) =>
+    call(() => this.backoffice.PUT("/v1/ships/{id}/class", { params: { path: { id: shipId } }, body: { class_code: classCode } }));
+
+  retireShip = (shipId: string) => call(() => this.backoffice.POST("/v1/ships/{id}/retire", { params: { path: { id: shipId } } }));
+
+  reactivateShip = (shipId: string) =>
+    call(() => this.backoffice.POST("/v1/ships/{id}/reactivate", { params: { path: { id: shipId } } }));
 }

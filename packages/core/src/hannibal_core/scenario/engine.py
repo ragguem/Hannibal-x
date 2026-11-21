@@ -14,6 +14,7 @@ from hannibal_core.fleet.control import FORMS, KN, VMAX, FleetController, angdif
 from hannibal_core.orders import grammar as mtp
 from hannibal_core.orders import kinematics as sim
 from hannibal_core.orders import recommendations as reco
+from hannibal_core.orders.limits import DEFAULT_SPEED, SpeedLimits
 from hannibal_core.orders.order_reading import OrderContext, ReadingMethod, read_order
 from hannibal_core.signals import KB
 
@@ -38,8 +39,10 @@ class ScenarioEngine:
         auto=False,
         manual=False,
         signal_table: KB | None = None,
+        speed: SpeedLimits = DEFAULT_SPEED,
     ) -> None:
         self.clock = clock
+        self.speed = speed
         self.signal_table = signal_table
         self.rng = rng or random.Random()  # noqa: S311 — tirage d'exercice, pas de la cryptographie
         self.fleet = fleet or FleetController()
@@ -261,7 +264,7 @@ class ScenarioEngine:
         """Valide un ordre du joueur sans rien appliquer : destinataires, ordres, textes EN et FR."""
         run = self.run
         me, guide = run["player"], run["guide"]
-        pr = mtp.parse(text, list(run["ships"]))
+        pr = mtp.parse(text, list(run["ships"]), speed=self.speed)
         if not pr["ok"]:
             return {"ok": False, "error": pr["error"], "hint": pr["hint"]}
         to, orders = pr["to"], pr["orders"]
@@ -293,7 +296,7 @@ class ScenarioEngine:
             pending_requests=list(run.get("requests", {})),
             default_target=target,
         )
-        return read_order(text, context, self.signal_table)
+        return read_order(text, context, self.signal_table, self.speed)
 
     def execute_reading(self, reading: dict[str, Any]) -> str:
         """Applique une lecture `ok` comme un message approuvé : manœuvres, consignes aux commandants, accusés."""
@@ -1185,7 +1188,7 @@ class ScenarioEngine:
 
     def simulate(self, text: str) -> dict[str, Any]:
         run = self.run
-        pr = mtp.parse(text, list(run["ships"]))
+        pr = mtp.parse(text, list(run["ships"]), speed=self.speed)
         if not pr["ok"]:
             return {"ok": False, "error": pr["error"], "hint": pr["hint"]}
         mot = [o for o in pr["orders"] if o["type"] in ("CORPEN", "TURN", "SPEED")]

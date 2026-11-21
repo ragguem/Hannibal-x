@@ -15,9 +15,12 @@ import type {
   GlossaryResult,
   CommandSource,
   ChangePassword,
+  CreateShip,
   CreateUser,
   IssuedPassword,
   RoleView,
+  CatalogShip,
+  ShipClass,
   UserView,
   VoiceOrderOutcome,
   Mission,
@@ -66,6 +69,7 @@ const FAKE_ROLES: RoleView[] = [
       "command:decide",
       "audit:read",
       "user:manage",
+      "catalog:manage",
       "doctrine:ask",
       "glossary:read",
       "doctrine:classified",
@@ -83,6 +87,29 @@ const SEED_ACCOUNTS: FakeAccount[] = [
 export interface FakeAccount extends UserView {
   password: string;
 }
+
+/** Invented catalog, the call signs of the repository scenarios. */
+const SEED_SHIP_CLASSES: ShipClass[] = [
+  { code: "aviso", label: "Aviso", min_speed_knots: 3, max_speed_knots: 24, turn_radius_meters: 400, length_meters: 81 },
+  { code: "fregate", label: "Frégate", min_speed_knots: 3, max_speed_knots: 28, turn_radius_meters: 600, length_meters: 142 },
+];
+const SEED_SHIPS: CatalogShip[] = (
+  [
+    ["alfa", "fregate"],
+    ["charlie", "aviso"],
+    ["delta", "aviso"],
+    ["hannibal", "fregate"],
+  ] as const
+).map(([call_sign, class_code], i) => ({
+  id: `0190b000-0000-7000-8000-00000000000${i + 1}`,
+  call_sign,
+  class_code,
+  active: true,
+  created_at: "2026-01-05T08:00:00Z",
+  retired_at: null,
+}));
+const CLASS_CODE = /^[a-z][a-z0-9_-]{1,31}$/;
+const CALL_SIGN = /^[a-z][a-z0-9-]{1,23}$/;
 
 const USERNAME = /^[a-z0-9._-]{3,32}$/;
 const MIN_PASSWORD_LENGTH = 12;
@@ -178,6 +205,7 @@ export interface FakeState {
   seq: number;
   /** Absent from states saved before accounts existed: seeded on first use. */
   accounts?: FakeAccount[];
+  catalog?: { classes: ShipClass[]; ships: CatalogShip[] };
 }
 
 /** What the fake "hears" in every recording, unless a test sets `FakeBackend.heard`. */
@@ -334,6 +362,76 @@ export class FakeBackend {
     account.password = new_password;
     account.password_changed_at = new Date(this.now()).toISOString();
     this.state.session = null;
+  }
+
+  // ------------------------------------------------------------------ ship catalog
+  listShipClasses(): ShipClass[] {
+    this.require("catalog:manage");
+    return [...this.catalog().classes].sort((a, b) => a.code.localeCompare(b.code));
+  }
+
+  createShipClass(body: ShipClass): ShipClass {
+    this.require("catalog:manage");
+    const shipClass = { ...body, label: body.label.trim() };
+    const { min_speed_knots: min, max_speed_knots: max, turn_radius_meters: radius, length_meters: length } = shipClass;
+    const valid = CLASS_CODE.test(shipClass.code) && shipClass.label.length > 0 && min > 0 && min <= max && max <= 60;
+    if (!valid || !(radius > 0 && radius <= 5000) || !(length > 0 && length <= 500)) throw invalid();
+    if (this.catalog().classes.some((c) => c.code === shipClass.code)) throw new FakeError(409, "conflict", "Conflit avec l'état actuel.");
+    this.catalog().classes.push(shipClass);
+    return shipClass;
+  }
+
+  listShips(): CatalogShip[] {
+    this.require("catalog:manage");
+    return [...this.catalog().ships].sort((a, b) => a.call_sign.localeCompare(b.call_sign));
+  }
+
+  createShip({ call_sign, class_code }: CreateShip): CatalogShip {
+    this.require("catalog:manage");
+    if (!CALL_SIGN.test(call_sign)) throw invalid();
+    this.requireShipClass(class_code);
+    if (this.catalog().ships.some((s) => s.call_sign === call_sign)) throw new FakeError(409, "conflict", "Conflit avec l'état actuel.");
+    const ship: CatalogShip = {
+      id: crypto.randomUUID(),
+      call_sign,
+      class_code,
+      active: true,
+      created_at: new Date(this.now()).toISOString(),
+      retired_at: null,
+    };
+    this.catalog().ships.push(ship);
+    return ship;
+  }
+
+  changeShipClass(shipId: string, classCode: string): CatalogShip {
+    this.require("catalog:manage");
+    this.requireShipClass(classCode);
+    return Object.assign(this.ship(shipId), { class_code: classCode });
+  }
+
+  retireShip(shipId: string): CatalogShip {
+    this.require("catalog:manage");
+    return Object.assign(this.ship(shipId), { active: false, retired_at: new Date(this.now()).toISOString() });
+  }
+
+  reactivateShip(shipId: string): CatalogShip {
+    this.require("catalog:manage");
+    return Object.assign(this.ship(shipId), { active: true, retired_at: null });
+  }
+
+  private catalog(): { classes: ShipClass[]; ships: CatalogShip[] } {
+    this.state.catalog ??= { classes: SEED_SHIP_CLASSES.map((c) => ({ ...c })), ships: SEED_SHIPS.map((s) => ({ ...s })) };
+    return this.state.catalog;
+  }
+
+  private requireShipClass(code: string) {
+    if (!this.catalog().classes.some((c) => c.code === code)) throw invalid();
+  }
+
+  private ship(shipId: string): CatalogShip {
+    const ship = this.catalog().ships.find((s) => s.id === shipId);
+    if (!ship) throw new FakeError(404, "not_found", "Ressource introuvable.");
+    return ship;
   }
 
   private accounts(): FakeAccount[] {

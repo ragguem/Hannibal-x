@@ -1,0 +1,47 @@
+{
+  "$id": "urn:hannibal-x:contracts:1.0.0:UpdateShipClass",
+  "additionalProperties": false,
+  "properties": {
+    "label": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+    },
+    "length_meters": {
+      "exclusiveMinimum": 0,
+      "maximum": 500,
+      "title": "Length Meters",
+      "type": "number"
+    },
+    "max_speed_knots": {
+      "description": "Vitesse maximale ordonnable, en nœuds",
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "title": "Max Speed Knots",
+      "type": "integer"
+    },
+    "min_speed_knots": {
+      "description": "Vitesse minimale ordonnable, en nœuds",
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "title": "Min Speed Knots",
+      "type": "integer"
+    },
+    "turn_radius_meters": {
+      "exclusiveMinimum": 0,
+      "maximum": 5000,
+      "title": "Turn Radius Meters",
+      "type": "number"
+    }
+  },
+  "required": [
+    "label",
+    "min_speed_knots",
+    "max_speed_knots",
+    "turn_radius_meters",
+    "length_meters"
+  ],
+  "title": "UpdateShipClass",
+  "type": "object"
+}

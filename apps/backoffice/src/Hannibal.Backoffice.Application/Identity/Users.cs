@@ -6,18 +6,6 @@ namespace Hannibal.Backoffice.Application.Identity;
 
 public sealed record IssuedPassword(UserSummary User, string TemporaryPassword);
 
-public enum UserRuleKind
-{
-    NotFound,
-    Conflict,
-    Invalid,
-}
-
-public sealed class UserRuleViolation(UserRuleKind kind, string detail) : Exception(detail)
-{
-    public UserRuleKind Kind { get; } = kind;
-}
-
 /// <summary>
 /// Gestion des comptes (Lot 7.2). Un administrateur ne peut ni se désactiver ni changer son propre rôle :
 /// il reste toujours au moins un compte capable de gérer les autres.
@@ -36,14 +24,14 @@ public sealed partial class Users(IUserDirectory directory, IPasswordHasher hash
     {
         if (!AcceptedUsername().IsMatch(username))
         {
-            throw new UserRuleViolation(UserRuleKind.Invalid, "nom d'utilisateur refusé");
+            throw new RuleViolation(RuleKind.Invalid, "nom d'utilisateur refusé");
         }
         RequireKnownRole(roleCode);
         var password = TemporaryPassword();
         var user = new NewUser(Guid.CreateVersion7(), username, hasher.Hash(password), roleCode, clock.GetUtcNow());
         if (!await directory.TryCreateAsync(user, cancellationToken).ConfigureAwait(false))
         {
-            throw new UserRuleViolation(UserRuleKind.Conflict, "nom d'utilisateur déjà pris");
+            throw new RuleViolation(RuleKind.Conflict, "nom d'utilisateur déjà pris");
         }
         return new IssuedPassword(await RequireAsync(user.Id, cancellationToken).ConfigureAwait(false), password);
     }
@@ -85,12 +73,12 @@ public sealed partial class Users(IUserDirectory directory, IPasswordHasher hash
     {
         if (newPassword.Length < MinimumPasswordLength || newPassword == currentPassword)
         {
-            throw new UserRuleViolation(UserRuleKind.Invalid, "nouveau mot de passe refusé");
+            throw new RuleViolation(RuleKind.Invalid, "nouveau mot de passe refusé");
         }
         var hash = await directory.PasswordHashOfAsync(userId, cancellationToken).ConfigureAwait(false);
         if (hash is null || !hasher.Verify(currentPassword, hash))
         {
-            throw new UserRuleViolation(UserRuleKind.Invalid, "mot de passe actuel refusé");
+            throw new RuleViolation(RuleKind.Invalid, "mot de passe actuel refusé");
         }
         var now = clock.GetUtcNow();
         await directory.SetPasswordAsync(userId, hasher.Hash(newPassword), now, cancellationToken).ConfigureAwait(false);
@@ -99,13 +87,13 @@ public sealed partial class Users(IUserDirectory directory, IPasswordHasher hash
 
     private async Task<UserSummary> RequireAsync(Guid userId, CancellationToken cancellationToken) =>
         await directory.FindAsync(userId, cancellationToken).ConfigureAwait(false)
-        ?? throw new UserRuleViolation(UserRuleKind.NotFound, "compte inconnu");
+        ?? throw new RuleViolation(RuleKind.NotFound, "compte inconnu");
 
     private static async Task RequireFoundAsync(Task<bool> update)
     {
         if (!await update.ConfigureAwait(false))
         {
-            throw new UserRuleViolation(UserRuleKind.NotFound, "compte inconnu");
+            throw new RuleViolation(RuleKind.NotFound, "compte inconnu");
         }
     }
 
@@ -113,7 +101,7 @@ public sealed partial class Users(IUserDirectory directory, IPasswordHasher hash
     {
         if (actorId == userId)
         {
-            throw new UserRuleViolation(UserRuleKind.Invalid, detail);
+            throw new RuleViolation(RuleKind.Invalid, detail);
         }
     }
 
@@ -121,7 +109,7 @@ public sealed partial class Users(IUserDirectory directory, IPasswordHasher hash
     {
         if (!IdentityCatalog.Roles.Any(r => r.Code == roleCode))
         {
-            throw new UserRuleViolation(UserRuleKind.Invalid, "rôle inconnu");
+            throw new RuleViolation(RuleKind.Invalid, "rôle inconnu");
         }
     }
 
